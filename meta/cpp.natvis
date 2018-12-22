@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+	
+	<Type Name="cpp::String">
+		<DisplayString Condition="_Mypair._Myval2._Myres &lt; _Mypair._Myval2._BUF_SIZE">{_Mypair._Myval2._Bx._Buf,s8}</DisplayString>
+		<DisplayString Condition="_Mypair._Myval2._Myres &gt;= _Mypair._Myval2._BUF_SIZE">{_Mypair._Myval2._Bx._Ptr,s8}</DisplayString>
+		<StringView Condition="_Mypair._Myval2._Myres &lt; _Mypair._Myval2._BUF_SIZE">_Mypair._Myval2._Bx._Buf,s8</StringView>
+		<StringView Condition="_Mypair._Myval2._Myres &gt;= _Mypair._Myval2._BUF_SIZE">_Mypair._Myval2._Bx._Ptr,s8</StringView>
+	</Type>
+	
+	<Type Name="cpp::Memory">
+		<DisplayString Condition="m_begin == 0">null</DisplayString>
+		<DisplayString Condition="*m_end == 0">{m_begin,s} (strlen = {strlen(m_begin)})</DisplayString>
+		<DisplayString>{m_begin,s}</DisplayString>
+		<StringView Condition="m_begin != 0">m_begin,s</StringView>
+		<Expand>
+			<Item Condition="m_begin != 0 &amp;&amp; m_end == 0" Name="[length]">strlen(m_begin)</Item>
+			<Item Condition="m_begin != 0 &amp;&amp; m_end != 0" Name="[length]">m_end - m_begin</Item>
+		</Expand>
+	</Type>
+	
+	<Type Name="cpp::Properties">
+		<DisplayString>{{ size={m_map._Mypair._Myval2._Myval2._Mysize} }}</DisplayString>
+		<Expand>
+			<TreeItems>
+				<Size>m_map._Mypair._Myval2._Myval2._Mysize</Size>
+				<HeadPointer>m_map._Mypair._Myval2._Myval2._Myhead-&gt;_Parent</HeadPointer>
+				<LeftPointer>_Left</LeftPointer>
+				<RightPointer>_Right</RightPointer>
+				<ValueNode Condition="_Isnil == 0">_Myval</ValueNode>
+			</TreeItems>
+		</Expand>
+	</Type>
+</AutoVisualizer>

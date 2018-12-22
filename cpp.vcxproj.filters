@@ -1,0 +1,382 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClInclude Include="process\Process.h">
+      <Filter>process</Filter>
+    </ClInclude>
+    <ClInclude Include="process\Thread.h">
+      <Filter>process</Filter>
+    </ClInclude>
+    <ClInclude Include="util\Handle.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="process\Lock.h">
+      <Filter>process</Filter>
+    </ClInclude>
+    <ClInclude Include="process\System.h">
+      <Filter>process</Filter>
+    </ClInclude>
+    <ClInclude Include="process\Future.h">
+      <Filter>process</Filter>
+    </ClInclude>
+    <ClInclude Include="util\Properties.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="io\StandardInput.h">
+      <Filter>io</Filter>
+    </ClInclude>
+    <ClInclude Include="io\StringInput.h">
+      <Filter>io</Filter>
+    </ClInclude>
+    <ClInclude Include="io\MemoryInput.h">
+      <Filter>io</Filter>
+    </ClInclude>
+    <ClInclude Include="io\IOBuffer.h">
+      <Filter>io</Filter>
+    </ClInclude>
+    <ClInclude Include="io\StandardOutput.h">
+      <Filter>io</Filter>
+    </ClInclude>
+    <ClInclude Include="process\Bus.h">
+      <Filter>process</Filter>
+    </ClInclude>
+    <ClInclude Include="process\ThreadGroup.h">
+      <Filter>process</Filter>
+    </ClInclude>
+    <ClInclude Include="math\XY.h">
+      <Filter>math</Filter>
+    </ClInclude>
+    <ClInclude Include="math\Rect.h">
+      <Filter>math</Filter>
+    </ClInclude>
+    <ClInclude Include="platform\windows\WindowsConsole.h">
+      <Filter>platform\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="math\Alignment.h">
+      <Filter>math</Filter>
+    </ClInclude>
+    <ClInclude Include="math\Math.h">
+      <Filter>math</Filter>
+    </ClInclude>
+    <ClInclude Include="platform\windows\WindowsException.h">
+      <Filter>platform\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="platform\windows\WindowsGraphics.h">
+      <Filter>platform\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="math\AES.h">
+      <Filter>math</Filter>
+    </ClInclude>
+    <ClInclude Include="math\SHA2.h">
+      <Filter>math</Filter>
+    </ClInclude>
+    <ClInclude Include="util\encoding.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="platform\windows\WindowsShell.h">
+      <Filter>platform\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="platform\windows\WindowsMutex.h">
+      <Filter>platform\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="io\IOPipe.h">
+      <Filter>io</Filter>
+    </ClInclude>
+    <ClInclude Include="platform\windows\WindowsRegistry.h">
+      <Filter>platform\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="util\Log.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="util\LogFilter.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="util\PropertyFile.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="io\StringOutput.h">
+      <Filter>io</Filter>
+    </ClInclude>
+    <ClInclude Include="util\BitData.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="util\BitDB.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="util\TimeoutSet.h" />
+    <ClInclude Include="util\DataFile.h" />
+    <ClInclude Include="meta\Test.h">
+      <Filter>meta</Filter>
+    </ClInclude>
+    <ClInclude Include="cpp.h" />
+    <ClInclude Include="Data.h" />
+    <ClInclude Include="data\ByteOrder.h" />
+    <ClInclude Include="data\Float.h" />
+    <ClInclude Include="data\Integer.h" />
+    <ClInclude Include="data\Memory.h" />
+    <ClInclude Include="data\Platform.h" />
+    <ClInclude Include="data\RegexMatch.h" />
+    <ClInclude Include="data\Size.h" />
+    <ClInclude Include="data\String.h" />
+    <ClInclude Include="data\DataMap.h" />
+    <ClInclude Include="data\DataBuffer.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="data\IndexedSet.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="data\Path.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="text\Utf16.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="text\Unicode.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="text\Utf8.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="time\Date.h">
+      <Filter>chrono</Filter>
+    </ClInclude>
+    <ClInclude Include="time\DateTime.h">
+      <Filter>chrono</Filter>
+    </ClInclude>
+    <ClInclude Include="time\Duration.h">
+      <Filter>chrono</Filter>
+    </ClInclude>
+    <ClInclude Include="time\Time.h">
+      <Filter>chrono</Filter>
+    </ClInclude>
+    <ClInclude Include="time\Timer.h">
+      <Filter>chrono</Filter>
+    </ClInclude>
+    <ClInclude Include="file\File.h">
+      <Filter>io\file</Filter>
+    </ClInclude>
+    <ClInclude Include="file\FileInfo.h">
+      <Filter>io\file</Filter>
+    </ClInclude>
+    <ClInclude Include="file\FilePath.h">
+      <Filter>io\file</Filter>
+    </ClInclude>
+    <ClInclude Include="network\Http.h">
+      <Filter>io\network</Filter>
+    </ClInclude>
+    <ClInclude Include="network\Tcp.h">
+      <Filter>io\network</Filter>
+    </ClInclude>
+    <ClInclude Include="io\Input.h">
+      <Filter>io</Filter>
+    </ClInclude>
+    <ClInclude Include="io\Output.h">
+      <Filter>io</Filter>
+    </ClInclude>
+    <ClInclude Include="io\AsyncIO.h">
+      <Filter>io</Filter>
+    </ClInclude>
+    <ClInclude Include="process\Program.h" />
+    <ClInclude Include="process\Exception.h" />
+    <ClInclude Include="io\reader\ByteReader.h">
+      <Filter>io\reader</Filter>
+    </ClInclude>
+    <ClInclude Include="io\reader\SearchReader.h">
+      <Filter>io\reader</Filter>
+    </ClInclude>
+    <ClInclude Include="io\reader\LineReader.h">
+      <Filter>io\reader</Filter>
+    </ClInclude>
+    <ClInclude Include="data\Comparable.h">
+      <Filter>util</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="io">
+      <UniqueIdentifier>{9af4e036-ea04-4e0c-96b4-0d657b854f66}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="chrono">
+      <UniqueIdentifier>{7ab2b932-33cd-4db8-96a9-74926206deaa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="util">
+      <UniqueIdentifier>{e9d0db51-5e43-4381-9f4d-e53c0b9d82b3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="process">
+      <UniqueIdentifier>{b4015350-9758-4ec8-9142-a20e9a47ef53}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="io\reader">
+      <UniqueIdentifier>{ba819834-d872-4343-a4e7-9179525787f6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="meta">
+      <UniqueIdentifier>{e14c7e4d-5dc3-4ec7-bc4e-86d9049d17ee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="math">
+      <UniqueIdentifier>{69d260cc-3254-4c0b-9d34-cb93bd78dcc0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="platform">
+      <UniqueIdentifier>{d0531fa2-085c-4630-a6b9-edfaa6c9fd26}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="platform\windows">
+      <UniqueIdentifier>{6e79ccef-1391-4d0e-9a9d-cfc7e20bdd6d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ui">
+      <UniqueIdentifier>{af946762-96be-4cdd-9f97-bb0e7a307394}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="io\network">
+      <UniqueIdentifier>{ba952aee-0777-4a3e-b2a3-6f4319e4c75e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="io\file">
+      <UniqueIdentifier>{7ff68d5d-8e29-447f-9625-793e990cec9c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="process\Lock.cpp">
+      <Filter>process</Filter>
+    </ClCompile>
+    <ClCompile Include="process\Thread.cpp">
+      <Filter>process</Filter>
+    </ClCompile>
+    <ClCompile Include="util\Properties.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="io\IOBuffer.cpp">
+      <Filter>io</Filter>
+    </ClCompile>
+    <ClCompile Include="process\ThreadGroup.cpp">
+      <Filter>process</Filter>
+    </ClCompile>
+    <ClCompile Include="process\Bus.cpp">
+      <Filter>process</Filter>
+    </ClCompile>
+    <ClCompile Include="math\Alignment.cpp">
+      <Filter>math</Filter>
+    </ClCompile>
+    <ClCompile Include="platform\windows\WindowsConsole.cpp">
+      <Filter>platform\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="platform\windows\WindowsApp.cpp">
+      <Filter>platform\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="math\AES.cpp">
+      <Filter>math</Filter>
+    </ClCompile>
+    <ClCompile Include="math\SHA2.cpp">
+      <Filter>math</Filter>
+    </ClCompile>
+    <ClCompile Include="util\encoding.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="platform\windows\WindowsShell.cpp">
+      <Filter>platform\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="process\Process.cpp">
+      <Filter>process</Filter>
+    </ClCompile>
+    <ClCompile Include="io\IOPipe.cpp">
+      <Filter>io</Filter>
+    </ClCompile>
+    <ClCompile Include="util\Log.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="util\LogFilter.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="io\StandardIO.cpp">
+      <Filter>io</Filter>
+    </ClCompile>
+    <ClCompile Include="platform\windows\WindowsGraphics.cpp">
+      <Filter>platform\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="util\PropertyFile.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="math\Rect.cpp">
+      <Filter>math</Filter>
+    </ClCompile>
+    <ClCompile Include="util\BitData.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="util\BitDB.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="util\DataFile.cpp" />
+    <ClCompile Include="meta\Test.cpp">
+      <Filter>meta</Filter>
+    </ClCompile>
+    <ClCompile Include="data\ByteOrder.cpp" />
+    <ClCompile Include="data\Memory.cpp" />
+    <ClCompile Include="data\String.cpp" />
+    <ClCompile Include="data\DataMap.cpp" />
+    <ClCompile Include="data\DataBuffer.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="data\IndexedSet.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="data\Path.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="text\Utf8.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="text\Utf16.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="time\Date.cpp">
+      <Filter>chrono</Filter>
+    </ClCompile>
+    <ClCompile Include="time\DateTime.cpp">
+      <Filter>chrono</Filter>
+    </ClCompile>
+    <ClCompile Include="time\Duration.cpp">
+      <Filter>chrono</Filter>
+    </ClCompile>
+    <ClCompile Include="time\Time.cpp">
+      <Filter>chrono</Filter>
+    </ClCompile>
+    <ClCompile Include="file\File.cpp">
+      <Filter>io\file</Filter>
+    </ClCompile>
+    <ClCompile Include="file\FileInfo.cpp">
+      <Filter>io\file</Filter>
+    </ClCompile>
+    <ClCompile Include="file\FilePath.cpp">
+      <Filter>io\file</Filter>
+    </ClCompile>
+    <ClCompile Include="network\Http.cpp">
+      <Filter>io\network</Filter>
+    </ClCompile>
+    <ClCompile Include="network\Tcp.cpp">
+      <Filter>io\network</Filter>
+    </ClCompile>
+    <ClCompile Include="io\Input.cpp">
+      <Filter>io</Filter>
+    </ClCompile>
+    <ClCompile Include="io\Output.cpp">
+      <Filter>io</Filter>
+    </ClCompile>
+    <ClCompile Include="io\AsyncIO.cpp">
+      <Filter>io</Filter>
+    </ClCompile>
+    <ClCompile Include="process\Program.cpp" />
+    <ClCompile Include="io\reader\ByteReader.cpp">
+      <Filter>io\reader</Filter>
+    </ClCompile>
+    <ClCompile Include="io\reader\SearchReader.cpp">
+      <Filter>io\reader</Filter>
+    </ClCompile>
+    <ClCompile Include="io\reader\LineReader.cpp">
+      <Filter>io\reader</Filter>
+    </ClCompile>
+    <ClCompile Include="data\Float.cpp" />
+    <ClCompile Include="data\Integer.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="meta\cpp.natvis">
+      <Filter>meta</Filter>
+    </Natvis>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="notes.txt" />
+  </ItemGroup>
+</Project>

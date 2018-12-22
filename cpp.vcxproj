@@ -1,0 +1,226 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="time\Date.h" />
+    <ClInclude Include="time\DateTime.h" />
+    <ClInclude Include="time\Duration.h" />
+    <ClInclude Include="time\Time.h" />
+    <ClInclude Include="time\Timer.h" />
+    <ClInclude Include="cpp.h" />
+    <ClInclude Include="Data.h" />
+    <ClInclude Include="data\ByteOrder.h" />
+    <ClInclude Include="data\RegexMatch.h" />
+    <ClInclude Include="data\Size.h" />
+    <ClInclude Include="process\Exception.h" />
+    <ClInclude Include="data\Float.h" />
+    <ClInclude Include="data\Integer.h" />
+    <ClInclude Include="io\AsyncIO.h" />
+    <ClInclude Include="file\File.h" />
+    <ClInclude Include="file\FileInfo.h" />
+    <ClInclude Include="file\FilePath.h" />
+    <ClInclude Include="io\IOBuffer.h" />
+    <ClInclude Include="io\Input.h" />
+    <ClInclude Include="io\MemoryInput.h" />
+    <ClInclude Include="network\Http.h" />
+    <ClInclude Include="network\Tcp.h" />
+    <ClInclude Include="io\Output.h" />
+    <ClInclude Include="io\IOPipe.h" />
+    <ClInclude Include="io\reader\ByteReader.h" />
+    <ClInclude Include="io\reader\LineReader.h" />
+    <ClInclude Include="io\reader\SearchReader.h" />
+    <ClInclude Include="io\StandardInput.h" />
+    <ClInclude Include="io\StandardOutput.h" />
+    <ClInclude Include="io\StringInput.h" />
+    <ClInclude Include="io\StringOutput.h" />
+    <ClInclude Include="math\Alignment.h" />
+    <ClInclude Include="math\AES.h" />
+    <ClInclude Include="math\SHA2.h" />
+    <ClInclude Include="math\Math.h" />
+    <ClInclude Include="math\Rect.h" />
+    <ClInclude Include="math\XY.h" />
+    <ClInclude Include="data\Memory.h" />
+    <ClInclude Include="meta\Test.h" />
+    <ClInclude Include="data\Platform.h" />
+    <ClInclude Include="platform\windows\WindowsException.h" />
+    <ClInclude Include="platform\windows\WindowsConsole.h" />
+    <ClInclude Include="platform\windows\WindowsGraphics.h" />
+    <ClInclude Include="platform\windows\WindowsMutex.h" />
+    <ClInclude Include="platform\windows\WindowsRegistry.h" />
+    <ClInclude Include="platform\windows\WindowsShell.h" />
+    <ClInclude Include="process\Bus.h" />
+    <ClInclude Include="process\Future.h" />
+    <ClInclude Include="process\Lock.h" />
+    <ClInclude Include="process\Process.h" />
+    <ClInclude Include="process\System.h" />
+    <ClInclude Include="process\Thread.h" />
+    <ClInclude Include="process\ThreadGroup.h" />
+    <ClInclude Include="process\Program.h" />
+    <ClInclude Include="data\String.h" />
+    <ClInclude Include="util\BitData.h" />
+    <ClInclude Include="util\BitDB.h" />
+    <ClInclude Include="data\Comparable.h" />
+    <ClInclude Include="data\DataBuffer.h" />
+    <ClInclude Include="util\DataFile.h" />
+    <ClInclude Include="data\DataMap.h" />
+    <ClInclude Include="util\encoding.h" />
+    <ClInclude Include="util\Handle.h" />
+    <ClInclude Include="data\IndexedSet.h" />
+    <ClInclude Include="util\Log.h" />
+    <ClInclude Include="util\LogFilter.h" />
+    <ClInclude Include="data\Path.h" />
+    <ClInclude Include="util\Properties.h" />
+    <ClInclude Include="util\PropertyFile.h" />
+    <ClInclude Include="util\TimeoutSet.h" />
+    <ClInclude Include="text\Unicode.h" />
+    <ClInclude Include="text\Utf16.h" />
+    <ClInclude Include="text\Utf8.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="data\Float.cpp" />
+    <ClCompile Include="data\Integer.cpp" />
+    <ClCompile Include="time\Date.cpp" />
+    <ClCompile Include="time\DateTime.cpp" />
+    <ClCompile Include="time\Duration.cpp" />
+    <ClCompile Include="time\Time.cpp" />
+    <ClCompile Include="data\ByteOrder.cpp" />
+    <ClCompile Include="io\AsyncIO.cpp" />
+    <ClCompile Include="file\File.cpp" />
+    <ClCompile Include="file\FileInfo.cpp" />
+    <ClCompile Include="file\FilePath.cpp" />
+    <ClCompile Include="io\Input.cpp" />
+    <ClCompile Include="io\IOBuffer.cpp" />
+    <ClCompile Include="io\IOPipe.cpp" />
+    <ClCompile Include="network\Http.cpp" />
+    <ClCompile Include="network\Tcp.cpp" />
+    <ClCompile Include="io\Output.cpp" />
+    <ClCompile Include="io\reader\ByteReader.cpp" />
+    <ClCompile Include="io\reader\LineReader.cpp" />
+    <ClCompile Include="io\reader\SearchReader.cpp" />
+    <ClCompile Include="io\StandardIO.cpp" />
+    <ClCompile Include="math\AES.cpp" />
+    <ClCompile Include="math\Alignment.cpp" />
+    <ClCompile Include="math\Rect.cpp" />
+    <ClCompile Include="math\SHA2.cpp" />
+    <ClCompile Include="data\Memory.cpp" />
+    <ClCompile Include="meta\Test.cpp" />
+    <ClCompile Include="platform\windows\WindowsApp.cpp" />
+    <ClCompile Include="platform\windows\WindowsConsole.cpp" />
+    <ClCompile Include="platform\windows\WindowsGraphics.cpp" />
+    <ClCompile Include="platform\windows\WindowsShell.cpp" />
+    <ClCompile Include="process\Bus.cpp" />
+    <ClCompile Include="process\Lock.cpp" />
+    <ClCompile Include="process\Process.cpp" />
+    <ClCompile Include="process\Thread.cpp" />
+    <ClCompile Include="process\ThreadGroup.cpp" />
+    <ClCompile Include="process\Program.cpp" />
+    <ClCompile Include="data\String.cpp" />
+    <ClCompile Include="util\BitData.cpp" />
+    <ClCompile Include="util\BitDB.cpp" />
+    <ClCompile Include="data\DataBuffer.cpp" />
+    <ClCompile Include="util\DataFile.cpp" />
+    <ClCompile Include="data\DataMap.cpp" />
+    <ClCompile Include="util\encoding.cpp" />
+    <ClCompile Include="data\IndexedSet.cpp" />
+    <ClCompile Include="util\Log.cpp" />
+    <ClCompile Include="util\LogFilter.cpp" />
+    <ClCompile Include="data\Path.cpp" />
+    <ClCompile Include="util\Properties.cpp" />
+    <ClCompile Include="util\PropertyFile.cpp" />
+    <ClCompile Include="text\Utf16.cpp" />
+    <ClCompile Include="text\Utf8.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="meta\cpp.natvis" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="notes.txt" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{899774D3-2670-47AD-BB32-549A69144F7F}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>cpp</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>.output\$(Platform)-$(Configuration)\</OutDir>
+    <IntDir>.output\$(Platform)-$(Configuration)\$(ProjectName)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>.output\$(Platform)-$(Configuration)\</OutDir>
+    <IntDir>.output\$(Platform)-$(Configuration)\$(ProjectName)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <AdditionalIncludeDirectories>..</AdditionalIncludeDirectories>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

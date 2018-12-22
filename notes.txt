@@ -1,0 +1,76 @@
+Main Features
+* Useful Types: String, Memory, Unicode, Properties, DataBuffer
+* Program Structure: Program, Log, Bus
+* IO: Abstract Input/Output, Abstract Readers, Sync & Async, Synchronous Timeouts, Interruptable IO, FileIO, PipeIO, HttpIO, TcpIo
+* Threads: Interruptable Threads, Thread Group, Future, Interruptable Lock
+
+
+
+* Want to open an Input
+
+	auto input1 = File::read( "filename.txt" );
+	auto input2 = Http::get( "www.google.com" );
+	auto input3 = Tcp::connect( "www.google.com:80" );
+
+* Want to read all input until closed?
+
+	String data = input.readAll();
+
+* Want to read something asynchronously?
+
+	Input input = ...;
+	input.async(
+		[]( const String & data )	// read function
+			{
+				print( "got data: %\n", data );
+			},
+		[]( std::error_code error ) // close function
+			{
+				if ( error )
+				{
+					print( "got error: %\n", error.message() );
+				}
+				else
+				{
+					print( "done!\n" );
+				}
+			},
+		Program::bus() );
+	
+	while ( input )
+		{ Program::update(); 
+		
+	}
+
+* Want to iteratively read bytes?
+	
+	for ( auto cursor : input.bytes() )
+	{
+		print( cursor.data() );
+	}
+
+
+* Want to iteratively read lines?
+
+	for ( auto cursor : input.lines() )
+	{
+		print( cursor.line() );
+	}
+
+* Want to iteratively regex search?
+
+	for ( auto cursor : input.search( R"(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})" ) )
+	{
+		print( "match #% at %bytes\n", cursor.matchIndex(), cursor.position() );
+	}
+
+* Want to read lines asynchronously?
+
+	input.lines.async(
+		[]( const LineReader::Cursor & cursor )
+			{
+			},
+		[]( std::error_code error )
+			{
+			},
+		Program::bus() );

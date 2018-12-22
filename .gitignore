@@ -1,0 +1,5 @@
+# Ignore any directory beginning with '.': e.g. .output, .unittest
+**/.*/
+
+# Visual C++ cache files
+*.VC.db

@@ -1,5 +1,13 @@
 #pragma once
 
+/*
+
+	ByteOrder is used to detect the byte order for the current 
+	program and also specify byte orderind for encode and decode 
+	operations.
+
+*/
+
 #include <cpp/data/Comparable.h>
 
 namespace cpp
@@ -9,33 +17,36 @@ namespace cpp
         : public Comparable<ByteOrder>
     {
     public:
-        static const ByteOrder LittleEndian;
-        static const ByteOrder BigEndian;
-        static const ByteOrder Network;
-        static const ByteOrder Host;
+        static const ByteOrder		LittleEndian;
+        static const ByteOrder		BigEndian;
+        static const ByteOrder		Network;
+        static const ByteOrder		Host;
 
-		static int compare( ByteOrder lhs, ByteOrder rhs );
+		static int					compare( ByteOrder lhs, ByteOrder rhs );
 
     private:
-        static ByteOrder getHostByteOrder( );
+		enum Endianess { Little, Big };
+		
+									ByteOrder( Endianess endianness );
+		static ByteOrder			getHostByteOrder( );
 
-        enum Endianess { Little, Big };
-        ByteOrder( Endianess endianness )
-            : value( endianness ) { }
-        Endianess value;
+	private:
+        Endianess					value;
     };
 
 
-	int ByteOrder::compare( ByteOrder lhs, ByteOrder rhs )
+	inline ByteOrder::ByteOrder( Endianess endianness )
+		: value( endianness ) 
+	{ 
+	}
+
+
+	inline int ByteOrder::compare( ByteOrder lhs, ByteOrder rhs )
 	{
 		if ( lhs.value == rhs.value )
-		{
-			return 0;
-		}
+			{ return 0; }
 		else
-		{
-			return lhs.value < rhs.value ? -1 : 1;
-		}
+			{ return lhs.value < rhs.value ? -1 : 1; }
 	}
 
 }

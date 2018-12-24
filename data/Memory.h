@@ -1,15 +1,8 @@
 #pragma once
 
-#include <string>
-#include <vector>
-
-#include <cpp/data/Comparable.h>
-#include <cpp/data/ByteOrder.h>
-#include <cpp/data/RegexMatch.h>
-
 /*
 
-	Memory is like a std::span<char> but includes C-style memory operations commonly associated 
+	Memory is like a std::span<char> but includes C-style memory operations commonly associated
 	with strings.  A Memory object can be thought of as a String that does not own its memory.
 
 	(1) composed pointer to beginning and end of memory range.
@@ -20,15 +13,22 @@
 
 */
 
+#include <string>
+#include <vector>
+
+#include <cpp/data/Comparable.h>
+#include <cpp/data/ByteOrder.h>
+#include <cpp/data/RegexMatch.h>
+
+
+
 namespace cpp
 {
 
-//    class String;
-
 	class Memory : 
 		public Comparable<Memory>, 
-		public Comparable<std::string, Memory>,
-		public Comparable<const char *, Memory>
+		public Comparable<Memory, const std::string &>,
+		public Comparable<Memory, const char *>
 	{
 	public:
 									Memory( );
@@ -37,13 +37,11 @@ namespace cpp
 									Memory( const char * begin, const char * end );
 									Memory( const std::string & string );
 									Memory( const std::wstring & string );
-//									Memory( const String & string );;
 									Memory( const Memory & copy );
 
 		Memory &					operator=( nullptr_t );
 		Memory &					operator=( const char * cstring );
 		Memory &					operator=( const std::string & string );
-//        Memory &					operator=( const String & string );
 		Memory &					operator=( const Memory & memory );
 
 		static const size_t			npos = (size_t)-1;
@@ -321,24 +319,24 @@ namespace cpp
 
 
 
-    inline bool operator==( const char * lhs, const Memory & rhs )
+    inline bool operator==( const char * lhs, Memory rhs )
         { return Memory{ lhs } == rhs; }
-    inline bool operator==( const std::string & lhs, const Memory & rhs )
+    inline bool operator==( const std::string & lhs, Memory rhs )
         { return Memory{ lhs } == rhs; }
 
-    inline bool operator!=( const char * lhs, const Memory & rhs )
+    inline bool operator!=( const char * lhs, Memory rhs )
         { return Memory{ lhs } != rhs; }
 
-    inline bool operator<( const char * lhs, const Memory & rhs )
+    inline bool operator<( const char * lhs, Memory rhs )
         { return Memory{ lhs } < rhs; }
 
-    inline bool operator<=( const char * lhs, const Memory & rhs )
+    inline bool operator<=( const char * lhs, Memory rhs )
         { return Memory{ lhs } <= rhs; }
 
-    inline bool operator>( const char * lhs, const Memory & rhs )
+    inline bool operator>( const char * lhs, Memory rhs )
         { return Memory{ lhs } > rhs; }
 
-    inline bool operator>=( const char * lhs, const Memory & rhs )
+    inline bool operator>=( const char * lhs, Memory rhs )
         { return Memory{ lhs } >= rhs; }
 
 }

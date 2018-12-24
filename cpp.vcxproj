@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="file\MemoryFile.h" />
     <ClInclude Include="time\Date.h" />
     <ClInclude Include="time\DateTime.h" />
     <ClInclude Include="time\Duration.h" />
@@ -66,6 +67,7 @@
     <ClInclude Include="process\ThreadGroup.h" />
     <ClInclude Include="process\Program.h" />
     <ClInclude Include="data\String.h" />
+    <ClInclude Include="util\Bit.h" />
     <ClInclude Include="util\BitData.h" />
     <ClInclude Include="util\BitDB.h" />
     <ClInclude Include="data\Comparable.h" />
@@ -88,6 +90,7 @@
   <ItemGroup>
     <ClCompile Include="data\Float.cpp" />
     <ClCompile Include="data\Integer.cpp" />
+    <ClCompile Include="file\MemoryFile.cpp" />
     <ClCompile Include="time\Date.cpp" />
     <ClCompile Include="time\DateTime.cpp" />
     <ClCompile Include="time\Duration.cpp" />
@@ -124,6 +127,7 @@
     <ClCompile Include="process\ThreadGroup.cpp" />
     <ClCompile Include="process\Program.cpp" />
     <ClCompile Include="data\String.cpp" />
+    <ClCompile Include="util\Bit.cpp" />
     <ClCompile Include="util\BitData.cpp" />
     <ClCompile Include="util\BitDB.cpp" />
     <ClCompile Include="data\DataBuffer.cpp" />

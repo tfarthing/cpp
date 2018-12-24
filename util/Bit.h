@@ -4,8 +4,8 @@
 #include <set>
 #include <map>
 #include <variant>
-#include <cpp/util/DataBuffer.h>
-#include <cpp/util/IndexedSet.h>
+#include <cpp/data/DataBuffer.h>
+#include <cpp/data/IndexedSet.h>
 
 /*
 
@@ -64,8 +64,8 @@ namespace cpp
         class Object;
 
         Object decode( Memory text );
-        Object decode( ReadBuffer & buffer );
-        Object decodeLine( ReadBuffer & buffer );
+        Object decode( DataBuffer & buffer );
+        Object decodeLine( DataBuffer & buffer );
                
         class Object
         {
@@ -266,7 +266,7 @@ namespace cpp
             enum class Error
                 { Null, IncompleteData, ExpectedKey, ExpectedAssignment, ExpectedValue, ExpectedValueOrValueSpec, ExpectedValueSpec, InvalidValueSpec, ExpectedValueDelimiter, ExpectedTokenDelimiter };
 
-            Error decode( ReadBuffer & buffer );
+            Error decode( DataBuffer & buffer );
 
             bool hasResult( ) const;
             Object & data( );
@@ -279,34 +279,34 @@ namespace cpp
             size_t errorPos( ) const;
             
         private:
-            bool step( ReadBuffer & buffer );
-            void onBOL( uint8_t byte, ReadBuffer & buffer );
-            void onPreToken( uint8_t byte, ReadBuffer & buffer );
-            void onToken( uint8_t byte, ReadBuffer & buffer );
-            void onPostToken( uint8_t byte, ReadBuffer & buffer );
-            void onPreValue( uint8_t byte, ReadBuffer & buffer );
-            void onNullValue( uint8_t byte, ReadBuffer & buffer );
-            void onValueSpec( uint8_t byte, ReadBuffer & buffer );
-            void onFastValue( ReadBuffer & buffer );
-            void onValue( uint8_t byte, ReadBuffer & buffer );
-            void onPostValue( uint8_t byte, ReadBuffer & buffer );
-            void onComment( uint8_t byte, ReadBuffer & buffer );
-            void onError( uint8_t byte, ReadBuffer & buffer );
+            bool step( DataBuffer & buffer );
+            void onBOL( uint8_t byte, DataBuffer & buffer );
+            void onPreToken( uint8_t byte, DataBuffer & buffer );
+            void onToken( uint8_t byte, DataBuffer & buffer );
+            void onPostToken( uint8_t byte, DataBuffer & buffer );
+            void onPreValue( uint8_t byte, DataBuffer & buffer );
+            void onNullValue( uint8_t byte, DataBuffer & buffer );
+            void onValueSpec( uint8_t byte, DataBuffer & buffer );
+            void onFastValue( DataBuffer & buffer );
+            void onValue( uint8_t byte, DataBuffer & buffer );
+            void onPostValue( uint8_t byte, DataBuffer & buffer );
+            void onComment( uint8_t byte, DataBuffer & buffer );
+            void onError( uint8_t byte, DataBuffer & buffer );
 
             void reset( );
-            void completeLineBuffer( ReadBuffer & buffer );
-            void maybeCopyBuffer( ReadBuffer & buffer );
-            void copyBuffer( ReadBuffer & buffer );
-            Memory line( ReadBuffer & buffer );
+            void completeLineBuffer( DataBuffer & buffer );
+            void maybeCopyBuffer( DataBuffer & buffer );
+            void copyBuffer( DataBuffer & buffer );
+            Memory line( DataBuffer & buffer );
 
             size_t pos( );
-            uint8_t getch( ReadBuffer & buffer );
-            Memory token( ReadBuffer & buffer );
-            Memory record( ReadBuffer & buffer );
-            Memory key( ReadBuffer & buffer );
-            Memory valueSpec( ReadBuffer & buffer );
-            Memory value( ReadBuffer & buffer );
-            Memory comment( ReadBuffer & buffer );
+            uint8_t getch( DataBuffer & buffer );
+            Memory token( DataBuffer & buffer );
+            Memory record( DataBuffer & buffer );
+            Memory key( DataBuffer & buffer );
+            Memory valueSpec( DataBuffer & buffer );
+            Memory value( DataBuffer & buffer );
+            Memory comment( DataBuffer & buffer );
 
         private:
             enum class State 

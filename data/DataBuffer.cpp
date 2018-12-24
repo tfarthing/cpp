@@ -7,14 +7,14 @@
 namespace cpp
 {
 
-    Memory ReadBuffer::getAll( )
+    Memory DataBuffer::getAll( )
     {
         Memory result = getable( );
         m_getIndex += result.length( );
         return result;
     }
 
-    Memory ReadBuffer::get( size_t bytes )
+    Memory DataBuffer::get( size_t bytes )
     {
         checkRead( m_getIndex, bytes );
         Memory result = getable( ).substr( 0, bytes );
@@ -22,7 +22,7 @@ namespace cpp
         return result;
     }
 
-    Memory ReadBuffer::getAt( size_t pos, size_t bytes )
+    Memory DataBuffer::getAt( size_t pos, size_t bytes )
     {
         checkRead( pos, bytes );
         Memory result = m_getBuffer.substr( pos, bytes );
@@ -31,18 +31,18 @@ namespace cpp
     }
 
     //  Reads a line (up to '\n'), or null if non-found
-    Memory ReadBuffer::getLine( Memory delim, size_t pos )
+    Memory DataBuffer::getLine( Memory delim, size_t pos )
     {
         pos = getable( ).find( delim, pos );
-        return ( pos != Memory::npos ) ? get( pos + 1 ) : Memory::Null;
+        return ( pos != Memory::npos ) ? get( pos + 1 ) : nullptr;
     }
 
-    RegexMatch<Memory> ReadBuffer::getRegex( Memory regex )
+    RegexMatch<Memory> DataBuffer::getRegex( Memory regex )
     {
         return getRegex( std::regex{ regex.begin(), regex.end() } );
     }
 
-    RegexMatch<Memory> ReadBuffer::getRegex( const std::regex & regex )
+    RegexMatch<Memory> DataBuffer::getRegex( const std::regex & regex )
     {
         RegexMatch<Memory> result = getable( ).searchOne( regex, true );
         if ( result.hasMatch( ) )
@@ -55,47 +55,47 @@ namespace cpp
 
 
 
-    DataBuffer::DataBuffer( Memory data )
-        : ReadBuffer( m_buffer, false ), m_buffer( data )
+    StringBuffer::StringBuffer( std::string data )
+        : DataBuffer( m_buffer, false ), m_buffer( std::move( data ) )
     {
         m_getBuffer = m_buffer;
         m_putIndex = size( );
     }
 
-    DataBuffer::DataBuffer( size_t bufsize )
-        : ReadBuffer( m_buffer, false )
+    StringBuffer::StringBuffer( size_t bufsize )
+        : DataBuffer( m_buffer, false )
     {
         resize( bufsize );
     }
 
-    Memory ReadBuffer::putable( )
+    Memory DataBuffer::putable( )
     {
         if ( m_putIndex == m_getBuffer.length( ) && m_getIndex != 0 )
             { trim( ); }
-        return Memory{ m_getBuffer.c_str( ) + m_putIndex, m_getBuffer.length( ) - m_putIndex };
+        return Memory{ m_getBuffer.data( ) + m_putIndex, m_getBuffer.length( ) - m_putIndex };
     }
 
-    void ReadBuffer::trim( )
+    void DataBuffer::trim( )
     {
         if ( m_getIndex != 0 )
         {
             size_t len = m_putIndex - m_getIndex;
             if ( len != 0 )
-                { memmove( (char *)m_getBuffer.c_str( ), m_getBuffer.c_str( ) + m_getIndex, len ); }
+                { memmove( (char *)m_getBuffer.data( ), m_getBuffer.data( ) + m_getIndex, len ); }
             m_putIndex = len;
             m_getIndex = 0;
         }
     }
 
-    Memory ReadBuffer::put( size_t len )
+    Memory DataBuffer::put( size_t len )
     {
         checkWrite( m_putIndex, len );
-        Memory result = Memory{ m_getBuffer.c_str( ) + m_putIndex, len };
+        Memory result = Memory{ m_getBuffer.data( ) + m_putIndex, len };
         m_putIndex += len;
         return result;
     }
 
-    Memory ReadBuffer::put( const Memory & memory )
+    Memory DataBuffer::put( const Memory & memory )
     { 
         Memory dst = putable( ); 
         checkWrite( m_putIndex, memory.length( ) ); 
@@ -111,15 +111,15 @@ namespace cpp
 #else
 
 #include <cpp/meta/Unittest.h>
-#include <cpp/util/DataBuffer.h>
+#include <cpp/util/StringBuffer.h>
 
-SUITE( DataBuffer )
+SUITE( StringBuffer )
 {
     using namespace cpp;
 
     TEST( encode_primitives )
     {
-        DataBuffer buffer(64);
+        StringBuffer buffer(64);
 
         int32_t encode1 = -2300077;
         buffer.putBinary( encode1 );
@@ -138,7 +138,7 @@ SUITE( DataBuffer )
 
     TEST( encode_string )
     {
-        DataBuffer buffer(64);
+        StringBuffer buffer(64);
 
         cpp::String encode1 = "Hello World!";
         buffer.putBinary( encode1 );

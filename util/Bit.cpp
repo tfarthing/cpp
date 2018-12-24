@@ -1,6 +1,6 @@
 #include <cassert>
 
-#include <cpp/Integer.h>
+#include <cpp/data/Integer.h>
 
 #include "Bit.h"
 
@@ -9,10 +9,10 @@ namespace cpp::bit
 
     Object decode( Memory text )
     {
-        return decode( ReadBuffer{ text } );
+        return decode( DataBuffer{ text } );
     }
 
-    Object decode( ReadBuffer & buffer )
+    Object decode( DataBuffer & buffer )
     {
         Object result;
 
@@ -27,7 +27,7 @@ namespace cpp::bit
         return result;
     }
 
-    Object decodeLine( ReadBuffer & buffer )
+    Object decodeLine( DataBuffer & buffer )
     {
         Decoder decoder;
         decoder.decode( buffer );
@@ -212,9 +212,9 @@ namespace cpp::bit
         if ( itr != m_data->keys.end( ) )
         {
             String * value = std::get_if<String>( &itr->second );
-            return value ? Memory{ *value } : Memory::Null;
+            return value ? Memory{ *value } : nullptr;
         }
-        return Memory::Null;
+        return nullptr;
     }
 
     Object::operator Memory( ) const
@@ -1155,7 +1155,7 @@ namespace cpp::bit
     }
 
     //  once done decoding a line, either copy the line if an error occurred or just advance the read buffer
-    void Decoder::completeLineBuffer( ReadBuffer & buffer )
+    void Decoder::completeLineBuffer( DataBuffer & buffer )
     {
         if ( hasError( ) )
         {
@@ -1168,14 +1168,14 @@ namespace cpp::bit
         }
     }
 
-    void Decoder::maybeCopyBuffer( ReadBuffer & buffer )
+    void Decoder::maybeCopyBuffer( DataBuffer & buffer )
     {
         //  If part of the line has already been copied, copy the current buffer to make the line data contiguous.
         if ( m_line.length( ) )
             { copyBuffer( buffer ); }
     }
 
-    void Decoder::copyBuffer( ReadBuffer & buffer )
+    void Decoder::copyBuffer( DataBuffer & buffer )
     {
         if ( m_pos > 0 )
         {
@@ -1189,7 +1189,7 @@ namespace cpp::bit
         return m_pos + m_line.length( );
     }
 
-    uint8_t Decoder::getch( ReadBuffer & buffer )
+    uint8_t Decoder::getch( DataBuffer & buffer )
     {
         return buffer.getable( ).get( m_pos );
     }
@@ -1198,7 +1198,7 @@ namespace cpp::bit
     //  if possible so that data does not have to be copied.  Otherwise the buffer
     //  is copied so that the line can be represented contiguously between multiple
     //  buffer reads.
-    Memory Decoder::line( ReadBuffer & buffer )
+    Memory Decoder::line( DataBuffer & buffer )
     {
         maybeCopyBuffer( buffer );
         return m_line.length() 
@@ -1206,10 +1206,10 @@ namespace cpp::bit
             : buffer.getable().substr(0, m_pos);
     }            
     
-    Memory Decoder::token( ReadBuffer & buffer )
+    Memory Decoder::token( DataBuffer & buffer )
     {
         if ( m_tokenBegin == Memory::npos )
-            { return Memory::Null; }
+            { return nullptr; }
         if ( m_tokenEnd != Memory::npos )
             { return line( buffer ).substr( m_tokenBegin, m_tokenEnd - m_tokenBegin ); }
         return ( m_tokenBegin < m_line.length() )
@@ -1217,42 +1217,42 @@ namespace cpp::bit
             : buffer.getable( ).substr( m_tokenBegin, m_pos - m_tokenBegin );;
     }
 
-    Memory Decoder::record( ReadBuffer & buffer )
+    Memory Decoder::record( DataBuffer & buffer )
     {
         return ( m_recordBegin != Memory::npos && m_recordEnd != Memory::npos )
             ? line( buffer ).substr( m_recordBegin, m_recordEnd - m_recordBegin )
-            : Memory::Null;
+            : nullptr;
     }
 
-    Memory Decoder::key( ReadBuffer & buffer )
+    Memory Decoder::key( DataBuffer & buffer )
     {
         return ( m_keyBegin != Memory::npos && m_keyEnd != Memory::npos )
             ? line( buffer ).substr( m_keyBegin, m_keyEnd - m_keyBegin )
-            : Memory::Null;
+            : nullptr;
     }
 
-    Memory Decoder::valueSpec( ReadBuffer & buffer )
+    Memory Decoder::valueSpec( DataBuffer & buffer )
     {
         return ( m_valueSpecBegin != Memory::npos && m_valueSpecEnd != Memory::npos )
             ? line( buffer ).substr( m_valueSpecBegin, m_valueSpecEnd - m_valueSpecBegin )
-            : Memory::Null;
+            : nullptr;
     }
 
-    Memory Decoder::value( ReadBuffer & buffer )
+    Memory Decoder::value( DataBuffer & buffer )
     {
         return ( m_valueBegin != Memory::npos && m_valueEnd != Memory::npos )
             ? line( buffer ).substr( m_valueBegin, m_valueEnd - m_valueBegin )
             : m_value;
     }
 
-    Memory Decoder::comment( ReadBuffer & buffer )
+    Memory Decoder::comment( DataBuffer & buffer )
     {
         return ( m_commentPos != Memory::npos )
             ? line( buffer ).substr( m_commentPos )
-            : Memory::Null;
+            : nullptr;
     }
 
-    Decoder::Error Decoder::decode( ReadBuffer & buffer )
+    Decoder::Error Decoder::decode( DataBuffer & buffer )
     {
         m_error = Error::Null;
 
@@ -1289,7 +1289,7 @@ namespace cpp::bit
         return m_error;
     }
        
-    bool Decoder::step( ReadBuffer & buffer )
+    bool Decoder::step( DataBuffer & buffer )
     {
         uint8_t byte = buffer.getable( ).get( m_pos );
 
@@ -1339,12 +1339,12 @@ namespace cpp::bit
         return m_state == State::EOL;
     }
 
-    void Decoder::onBOL( uint8_t byte, ReadBuffer & buffer )
+    void Decoder::onBOL( uint8_t byte, DataBuffer & buffer )
     {
         return onPreToken( byte, buffer );
     }
 
-    void Decoder::onPreToken( uint8_t byte, ReadBuffer & buffer )
+    void Decoder::onPreToken( uint8_t byte, DataBuffer & buffer )
     {
         switch ( byte )
         {
@@ -1374,7 +1374,7 @@ namespace cpp::bit
         m_pos++;
     }
 
-    void Decoder::onToken( uint8_t byte, ReadBuffer & buffer )
+    void Decoder::onToken( uint8_t byte, DataBuffer & buffer )
     {
         switch ( byte )
         {
@@ -1401,7 +1401,7 @@ namespace cpp::bit
         }
     }
 
-    void Decoder::onPostToken( uint8_t byte, ReadBuffer & buffer )
+    void Decoder::onPostToken( uint8_t byte, DataBuffer & buffer )
     {
         switch ( byte )
         {
@@ -1442,7 +1442,7 @@ namespace cpp::bit
         m_pos++;
     }
 
-    void Decoder::onPreValue( uint8_t byte, ReadBuffer & buffer )
+    void Decoder::onPreValue( uint8_t byte, DataBuffer & buffer )
     {
         switch ( byte )
         {
@@ -1490,7 +1490,7 @@ namespace cpp::bit
         m_pos++;
     }
 
-    void Decoder::onNullValue( uint8_t byte, ReadBuffer & buffer )
+    void Decoder::onNullValue( uint8_t byte, DataBuffer & buffer )
     {
         switch ( byte )
         {
@@ -1532,7 +1532,7 @@ namespace cpp::bit
         m_pos++;
     }
     
-    void Decoder::onValueSpec( uint8_t byte, ReadBuffer & buffer )
+    void Decoder::onValueSpec( uint8_t byte, DataBuffer & buffer )
     {
         switch ( byte )
         {
@@ -1562,7 +1562,7 @@ namespace cpp::bit
         m_pos++;
     }
 
-    void Decoder::onFastValue( ReadBuffer & buffer )
+    void Decoder::onFastValue( DataBuffer & buffer )
     {
         assert( m_valueBegin != Memory::npos );
         assert( m_valueEnd != Memory::npos );
@@ -1592,7 +1592,7 @@ namespace cpp::bit
         }
     }
 
-    void Decoder::onValue( uint8_t byte, ReadBuffer & buffer )
+    void Decoder::onValue( uint8_t byte, DataBuffer & buffer )
     {
         if ( m_valueBegin != Memory::npos && m_valueEnd != Memory::npos )
         {
@@ -1661,7 +1661,7 @@ namespace cpp::bit
         m_pos++;
     }
 
-    void Decoder::onPostValue( uint8_t byte, ReadBuffer & buffer )
+    void Decoder::onPostValue( uint8_t byte, DataBuffer & buffer )
     {
         switch ( byte )
         {
@@ -1684,7 +1684,7 @@ namespace cpp::bit
         m_pos++;
     }
 
-    void Decoder::onComment( uint8_t byte, ReadBuffer & buffer )
+    void Decoder::onComment( uint8_t byte, DataBuffer & buffer )
     {
         switch ( byte )
         {
@@ -1697,7 +1697,7 @@ namespace cpp::bit
         }
     }
 
-    void Decoder::onError( uint8_t byte, ReadBuffer & buffer )
+    void Decoder::onError( uint8_t byte, DataBuffer & buffer )
     {
         switch ( byte )
         {
@@ -1763,4 +1763,82 @@ customer[2].name = 'Rick'
 
 */
 
+/*
 
+	try
+	{
+		bit::Object object;
+		object = "value";
+		object["name"] = "McDonalds";
+		object["address"] = "333 East Hell St.";
+		object["phone"] = "555-743-0992";
+
+		object["first[id].second[id].third[id].key"] = "something";
+		object["first[id].second[id].key"] = "something";
+		object["first[id].key"] = "something";
+		size_t count = object["first"].itemCount( );
+		object.remove( "first[id]" );
+		count = object["first"].itemCount( );
+
+
+		String first = object.add( "customer" ).
+			set( "aaa", "true" ).
+			set( "address.city", "San Diego" ).
+			set( "address.state", "CA" ).
+			set( "name", "Tom" ).
+			set( "", "nop" ).
+			key( );
+		object.add( "customer" ).
+			set( "address.city", "Vista" );
+		String last = object.add( "customer" ).
+			set( "name", "Rick" ).
+			key( );
+
+		auto customer0 = object["customer[0]"].clip( );
+		assert( customer0.key( ) == "" );
+		assert( customer0 == "nop" );
+		assert( customer0.parentKey( ) == "" );
+		assert( customer0.valueName( ) == "" );
+		assert( customer0["aaa"] == "true" );
+		assert( customer0["aaa"].valueName() == "aaa" );
+		assert( customer0["aaa"].parentKey( ) == "" );
+		assert( customer0.has( "address" ) );
+		assert( customer0.has( "paymentInfo" ) == false );
+
+		auto objects = customer0.listSubkeys( ).get( );
+		assert( objects.size( ) == 4 );
+
+		objects = customer0.listValues( ).get( );
+		assert( objects.size( ) == 2 );
+
+		objects = customer0.listChildren( ).get( );
+		assert( objects.size( ) == 1 );
+
+		objects = customer0["address"].listValues( ).get( );
+		assert( objects.size( ) == 2 );
+
+
+		object["vendor"] = object["customer[0]"].clip();
+
+		String encoded = object.encode( bit::Object::EncodeRow::Object );
+		cpp::print( "\nobject row: % bytes\n%", encoded.length(), encoded );
+		object = bit::decode( encoded );
+
+		encoded = object.encode( bit::Object::EncodeRow::Child );
+		cpp::print( "\nchild row: % bytes\n%", encoded.length( ), encoded );
+		object = bit::decode( encoded );
+
+		encoded = object.encode( bit::Object::EncodeRow::Leaf );
+		cpp::print( "\nleaf row: % bytes\n%", encoded.length( ), encoded );
+		object = bit::decode( encoded );
+
+		encoded = object.encode( bit::Object::EncodeRow::Value );
+		cpp::print( "\nvalue row: % bytes\n%", encoded.length( ), encoded );
+		object = bit::decode( encoded );
+	}
+	catch ( std::exception & e )
+	{
+		cpp::print( "error: %\n", e.what( ) );
+	}
+
+*/

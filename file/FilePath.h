@@ -9,7 +9,7 @@
 namespace cpp
 {
     class FilePath
-        : public cpp::Comparable<FilePath>
+        : public cpp::Comparable<const FilePath &>
     {
     public:
         using path_t = Path<'/'>;

@@ -190,6 +190,8 @@
     <ClInclude Include="data\Comparable.h">
       <Filter>util</Filter>
     </ClInclude>
+    <ClInclude Include="util\Bit.h" />
+    <ClInclude Include="file\MemoryFile.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="io">
@@ -370,6 +372,8 @@
     </ClCompile>
     <ClCompile Include="data\Float.cpp" />
     <ClCompile Include="data\Integer.cpp" />
+    <ClCompile Include="util\Bit.cpp" />
+    <ClCompile Include="file\MemoryFile.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="meta\cpp.natvis">

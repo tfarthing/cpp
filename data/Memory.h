@@ -3,32 +3,37 @@
 /*
 
 	Memory is like a std::span<char> but includes C-style memory operations commonly associated
-	with strings.  A Memory object can be thought of as a String that does not own its memory.
+	with strings.  A Memory object can be thought of as a String that does not own its data.
 
 	(1) composed pointer to beginning and end of memory range.
 	(2) converts to and from std::string and cpp::String
-	(3) can emulate C string with single ptr to null-terminated string.  end is unknown until first use of strlen().
+	(3) can emulate C string with single ptr to null-terminated string.  end is null until first use of strlen().
 	(4) implements traditional string operations (i.e. substr, split, trim, regex, find).
 	(5) implements standard C memory operations (i.e. memcmp, memcpy, memmove, byte swap).
+	(6) implements decoder methods (asText, asDecimal, asHex, asBase64, and asBinary).
 
 */
 
 #include <string>
 #include <vector>
 
-#include <cpp/data/Comparable.h>
-#include <cpp/data/ByteOrder.h>
-#include <cpp/data/RegexMatch.h>
+#include "ByteOrder.h"
+#include "RegexMatch.h"
 
 
 
 namespace cpp
 {
 
-	class Memory : 
-		public Comparable<Memory>, 
-		public Comparable<Memory, const std::string &>,
-		public Comparable<Memory, const char *>
+	struct EncodedText;
+	struct EncodedDecimal;
+	struct EncodedHex;
+	struct EncodedBase64;
+	struct EncodedBinary;
+
+
+
+	class Memory
 	{
 	public:
 									Memory( );
@@ -36,7 +41,6 @@ namespace cpp
 									Memory( const char * ptr, size_t len );
 									Memory( const char * begin, const char * end );
 									Memory( const std::string & string );
-									Memory( const std::wstring & string );
 									Memory( const Memory & copy );
 
 		Memory &					operator=( nullptr_t );
@@ -114,9 +118,13 @@ namespace cpp
 		template<typename T>
 		static T					trySwap( T value, ByteOrder byteOrder );
 
-		static int					compare( const Memory & lhs, const char * rhs );
-		static int					compare( const Memory & lhs, const std::string & rhs );
 		static int					compare( const Memory & lhs, const Memory & rhs );
+
+		EncodedText					asText( ) const;
+		EncodedDecimal				asDecimal( ) const;
+		EncodedHex					asHex( ) const;
+		EncodedBase64				asBase64( ) const;
+		EncodedBinary				asBinary( ByteOrder byteOrder = ByteOrder::Host ) const;
 
     private:
 		void						ensureEnd( ) const;
@@ -126,217 +134,265 @@ namespace cpp
 		mutable const char *		m_end;
 	};
 
+
     template<class T>
     T copy( const Memory::Array & src )
         { return T{ src.begin(), src.end() }; }
 
-	Memory::Memory( )
+	inline Memory::Memory( )
 		: m_begin( nullptr ), m_end( nullptr ) { }
-	Memory::Memory( const char * cstring )
+	
+	inline Memory::Memory( const char * cstring )
 		: m_begin( cstring ), m_end( nullptr ) { }
-	Memory::Memory( const char * ptr, size_t len )
+	
+	inline Memory::Memory( const char * ptr, size_t len )
 		: m_begin( ptr ), m_end( ptr + len ) { }
-	Memory::Memory( const char * begin, const char * end )
+	
+	inline Memory::Memory( const char * begin, const char * end )
 		: m_begin( begin ), m_end( end ) { }
-	Memory::Memory( const std::string & string )
+	
+	inline Memory::Memory( const std::string & string )
 		: m_begin( string.c_str( ) ), m_end( string.c_str( ) + string.length( ) ) { }
-	Memory::Memory( const std::wstring & string )
-		: m_begin( (const char *)string.c_str( ) ), m_end( (const char *)string.c_str( ) + string.length( ) * sizeof( wchar_t ) ) { }
-	Memory::Memory( const Memory & copy )
+	
+	inline Memory::Memory( const Memory & copy )
 		: m_begin( copy.m_begin ), m_end( copy.m_end ) { }
 
 	template<class T, typename>
 	Memory Memory::ofValue( const T & value )
-	{
-		return Memory{ (char *)&value, sizeof( value ) };
-	}
+		{ return Memory{ (char *)&value, sizeof( value ) }; }
 
-	Memory & Memory::operator=( nullptr_t )
-	{
-		m_begin = nullptr; m_end = nullptr; return *this;
-	}
-	Memory & Memory::operator=( const char * cstring )
-	{
-		m_begin = cstring; m_end = nullptr; return *this;
-	}
-	Memory & Memory::operator=( const std::string & string )
-	{
-		m_begin = string.c_str( ); m_end = string.c_str( ) + string.length( ); return *this;
-	}
-	Memory & Memory::operator=( const Memory & memory )
-	{
-		m_begin = memory.m_begin; m_end = memory.m_end; return *this;
-	}
+	inline Memory & Memory::operator=( nullptr_t )
+		{ m_begin = nullptr; m_end = nullptr; return *this; }
 
-	bool Memory::operator!( ) const
-	{
-		return isEmpty( );
-	}
-	Memory::operator bool( ) const
-	{
-		return !isEmpty( );
-	}
+	inline Memory & Memory::operator=( const char * cstring )
+		{ m_begin = cstring; m_end = nullptr; return *this; }
 
-	char Memory::at( size_t pos ) const
-	{
-		return ( pos < length( ) ) ? *( m_begin + pos ) : 0;
-	}
-	char Memory::operator[]( size_t pos ) const
-	{
-		return at( pos );
-	}
+	inline Memory & Memory::operator=( const std::string & string )
+		{ m_begin = string.c_str( ); m_end = string.c_str( ) + string.length( ); return *this; }
 
-	const char * Memory::data( ) const
-	{
-		return m_begin;
-	}
-	const char * Memory::begin( ) const
-	{
-		return m_begin;
-	}
-	const char * Memory::end( ) const
-	{
-		ensureEnd( ); return m_end;
-	}
+	inline Memory & Memory::operator=( const Memory & memory )
+		{ m_begin = memory.m_begin; m_end = memory.m_end; return *this; }
 
-	size_t Memory::length( ) const
-	{
-		ensureEnd( ); return m_end - m_begin;
-	}
-	bool Memory::isEmpty( ) const
-	{
-		return m_end == m_begin || ( !m_end && *m_begin == 0 );
-	}
-	bool Memory::isNull( ) const
-	{
-		return begin( ) == nullptr;
-	}
+	inline bool Memory::operator!( ) const
+		{ return isEmpty( ); }
 
-	std::string Memory::toString( ) const
-	{
-		return isNull( ) ? "(null)" : std::string{ m_begin, m_end };
-	}
+	inline Memory::operator bool( ) const
+		{ return notEmpty( ); }
 
-	void Memory::put( size_t pos, char ch )
-	{
-		*( (char *)m_begin + pos ) = ch;
-	}
+	inline char Memory::at( size_t pos ) const
+		{ return ( pos < length( ) ) ? *( m_begin + pos ) : 0; }
+
+	inline char Memory::operator[]( size_t pos ) const
+		{ return at( pos ); }
+
+	inline const char * Memory::data( ) const
+		{ return m_begin; }
+
+	inline const char * Memory::begin( ) const
+		{ return m_begin; }
+
+	inline const char * Memory::end( ) const
+		{ ensureEnd( ); return m_end; }
+
+	inline size_t Memory::length( ) const
+		{ ensureEnd( ); return end( ) - begin( ); }
+
+	inline bool Memory::isEmpty( ) const
+		{ return begin( ) == nullptr || end( ) == begin( ); }
+
+	inline bool Memory::notEmpty( ) const
+		{ return begin( ) != nullptr && end( ) != begin( ); }
+
+	inline bool Memory::isNull( ) const
+		{ return begin( ) == nullptr; }
+
+	inline bool Memory::notNull( ) const
+		{ return begin( ) != nullptr; }
+
+	inline std::string Memory::toString( ) const
+		{ return isNull( ) ? "(null)" : std::string{ begin( ), end( ) }; }
+
+	inline void Memory::put( size_t pos, char ch )
+		{ *( (char *)begin( ) + pos ) = ch; }
+
 
 	template<typename T> T Memory::trySwap( T value, ByteOrder byteOrder )
+		{ return ( byteOrder != ByteOrder::Host ) ? (T)swap( value ) : value; }
+
+	inline int8_t Memory::swap( int8_t value )
+		{ return value; }
+
+	inline uint8_t Memory::swap( uint8_t value )
+		{ return value; }
+
+	inline int16_t Memory::swap( int16_t value )
+		{ return (int16_t)_byteswap_ushort( value ); }
+
+	inline uint16_t Memory::swap( uint16_t value )
+		{ return _byteswap_ushort( value ); }
+
+	inline int32_t Memory::swap( int32_t value )
+		{ return (int32_t)_byteswap_ulong( value ); }
+
+	inline uint32_t Memory::swap( uint32_t value )
+		{ return _byteswap_ulong( value ); }
+
+	inline int64_t Memory::swap( int64_t value )
+		{ return (int64_t)_byteswap_uint64( value ); }
+
+	inline uint64_t Memory::swap( uint64_t value )
+		{ return _byteswap_uint64( value ); }
+
+	inline void Memory::ensureEnd( ) const
+		{ if ( !end( ) && begin( ) ) { m_end = begin( ) + strlen( begin( ) ); } }
+
+
+
+	struct EncodedMemory
 	{
-		return ( byteOrder != ByteOrder::Host ) ? (T)swap( value ) : value;
-	}
+		EncodedMemory( Memory data_ )
+			: data( data_ ) { }
+		Memory data;
+	};
 
-	int8_t Memory::swap( int8_t value )
+
+
+	struct EncodedText : public EncodedMemory
 	{
-		return value;
-	}
-	uint8_t Memory::swap( uint8_t value )
+		using EncodedMemory::EncodedMemory;
+		operator int8_t( ) const;
+		operator uint8_t( ) const;
+		operator int16_t( ) const;
+		operator uint16_t( ) const;
+		operator int32_t( ) const;
+		operator uint32_t( ) const;
+		operator int64_t( ) const;
+		operator uint64_t( ) const;
+		operator float( ) const;
+		operator double( ) const;
+		operator bool( ) const;
+	};
+
+
+
+	struct EncodedDecimal : public EncodedMemory
 	{
-		return value;
-	}
-	int16_t Memory::swap( int16_t value )
+		using EncodedMemory::EncodedMemory;
+		operator int8_t( ) const;
+		operator uint8_t( ) const;
+		operator int16_t( ) const;
+		operator uint16_t( ) const;
+		operator int32_t( ) const;
+		operator uint32_t( ) const;
+		operator int64_t( ) const;
+		operator uint64_t( ) const;
+		operator float( ) const;
+		operator double( ) const;
+	};
+
+
+
+	struct EncodedHex : public EncodedMemory
 	{
-		return (int16_t)_byteswap_ushort( value );
-	}
-	uint16_t Memory::swap( uint16_t value )
+		using EncodedMemory::EncodedMemory;
+		operator uint8_t( ) const;
+		operator uint16_t( ) const;
+		operator uint32_t( ) const;
+		operator uint64_t( ) const;
+		operator std::string( ) const;
+	};
+
+
+
+	struct EncodedBase64 : public EncodedMemory
 	{
-		return _byteswap_ushort( value );
-	}
-	int32_t Memory::swap( int32_t value )
+		using EncodedMemory::EncodedMemory;
+		operator uint8_t( ) const;
+		operator uint16_t( ) const;
+		operator uint32_t( ) const;
+		operator uint64_t( ) const;
+		operator std::string( ) const;
+	};
+
+
+
+	struct EncodedBinary : public EncodedMemory
 	{
-		return (int32_t)_byteswap_ulong( value );
-	}
-	uint32_t Memory::swap( uint32_t value )
-	{
-		return _byteswap_ulong( value );
-	}
-	int64_t Memory::swap( int64_t value )
-	{
-		return (int64_t)_byteswap_uint64( value );
-	}
-	uint64_t Memory::swap( uint64_t value )
-	{
-		return _byteswap_uint64( value );
-	}
+		EncodedBinary( Memory data_, ByteOrder byteOrder_ )
+			: EncodedMemory( data_ ), byteOrder( byteOrder_ ) { };
 
-	void Memory::ensureEnd( ) const
-	{
-		if ( !m_end && m_begin ) { m_end = m_begin + strlen( m_begin ); }
-	}
+		operator int8_t( ) const;
+		operator uint8_t( ) const;
+		operator int16_t( ) const;
+		operator uint16_t( ) const;
+		operator int32_t( ) const;
+		operator uint32_t( ) const;
+		operator int64_t( ) const;
+		operator uint64_t( ) const;
+		operator float( ) const;
+		operator double( ) const;
+		operator bool( ) const;
 
-	int	Memory::compare( const Memory & lhs, const char * rhs )
-	{
-        if ( lhs.isNull( ) )
-            { return ( rhs == nullptr ) ? 0 : -1; }
-        if ( rhs == nullptr )
-            { return 1; }
-
-        if ( !lhs.m_end )
-            { return strcmp( lhs.data( ), rhs ); }
-
-        int result = memcmp( lhs.data( ), rhs, lhs.length( ) );
-		if ( result == 0 && rhs[lhs.length( )] != 0 )
-			{ return -1; }
-        return result;
-	}
-
-	int	Memory::compare( const Memory & lhs, const std::string & rhs )
-	{
-		if ( lhs.isNull( ) )
-            { return -1; }
-    
-		if ( !lhs.m_end )
-            { return strcmp( lhs.data( ), rhs.data( ) ); }
-
-		size_t len1 = lhs.length( );
-        size_t len2 = rhs.length( );
-        int result = memcmp( lhs.data( ), rhs.data( ), std::min( len1, len2 ) );
-		if ( result == 0 && len1 != len2 )
-			{ return ( len1 < len2 ) ? -1 : 1; }
-        return result;
-	}
-
-	int	Memory::compare( const Memory & lhs, const Memory & rhs )
-	{
-		if ( lhs.isNull( ) )
-            { return rhs.isNull( ) ? 0 : -1; }
-        if ( rhs.isNull( ) )
-            { return 1; }
-    
-		if ( !rhs.m_end )
-			{ return strcmp( lhs.data( ), rhs.data( ) ); }
-		if ( !lhs.m_end )
-            { return strcmp( lhs.data( ), rhs.data( ) ); }
-
-		size_t len1 = lhs.length( );
-        size_t len2 = rhs.length( );
-        int result = memcmp( lhs.data( ), rhs.data( ), std::min( len1, len2 ) );
-		if ( result == 0 && len1 != len2 )
-			{ return ( len1 < len2 ) ? -1 : 1; }
-        return result;
-	}
+		ByteOrder byteOrder;
+	};
 
 
 
-    inline bool operator==( const char * lhs, Memory rhs )
-        { return Memory{ lhs } == rhs; }
-    inline bool operator==( const std::string & lhs, Memory rhs )
-        { return Memory{ lhs } == rhs; }
+	inline EncodedText Memory::asText( ) const
+		{ return EncodedText{ *this }; }
 
-    inline bool operator!=( const char * lhs, Memory rhs )
-        { return Memory{ lhs } != rhs; }
+	inline EncodedDecimal Memory::asDecimal( ) const
+		{ return EncodedDecimal{ *this }; }
 
-    inline bool operator<( const char * lhs, Memory rhs )
-        { return Memory{ lhs } < rhs; }
+	inline EncodedHex Memory::asHex( ) const
+		{ return EncodedHex{ *this }; }
 
-    inline bool operator<=( const char * lhs, Memory rhs )
-        { return Memory{ lhs } <= rhs; }
+	inline EncodedBase64 Memory::asBase64( ) const
+		{ return EncodedBase64{ *this }; }
 
-    inline bool operator>( const char * lhs, Memory rhs )
-        { return Memory{ lhs } > rhs; }
-
-    inline bool operator>=( const char * lhs, Memory rhs )
-        { return Memory{ lhs } >= rhs; }
+	inline EncodedBinary Memory::asBinary( ByteOrder byteOrder ) const
+		{ return EncodedBinary{ *this, byteOrder }; }
 
 }
+
+
+inline bool operator==( const cpp::Memory & lhs, const cpp::Memory & rhs )
+    { return cpp::Memory::compare( lhs, rhs ) == 0; }
+inline bool operator!=( const cpp::Memory & lhs, const cpp::Memory & rhs )
+    { return cpp::Memory::compare( lhs, rhs ) != 0; }
+inline bool operator<( const cpp::Memory & lhs, const cpp::Memory & rhs )
+    { return cpp::Memory::compare( lhs, rhs ) < 0; }
+inline bool operator<=( const cpp::Memory & lhs, const cpp::Memory & rhs )
+    { return cpp::Memory::compare( lhs, rhs ) <= 0; }
+inline bool operator>( const cpp::Memory & lhs, const cpp::Memory & rhs )
+    { return cpp::Memory::compare( lhs, rhs ) > 0; }
+inline bool operator>=( const cpp::Memory & lhs, const cpp::Memory & rhs )
+    { return cpp::Memory::compare( lhs, rhs ) >= 0; }
+
+
+inline bool operator==( const cpp::Memory & lhs, const char * rhs )
+    { return cpp::Memory::compare( lhs, rhs ) == 0; }
+inline bool operator!=( const cpp::Memory & lhs, const char * rhs )
+    { return cpp::Memory::compare( lhs, rhs ) != 0; }
+inline bool operator<( const cpp::Memory & lhs, const char * rhs )
+    { return cpp::Memory::compare( lhs, rhs ) < 0; }
+inline bool operator<=( const cpp::Memory & lhs, const char * rhs )
+    { return cpp::Memory::compare( lhs, rhs ) <= 0; }
+inline bool operator>( const cpp::Memory & lhs, const char * rhs )
+    { return cpp::Memory::compare( lhs, rhs ) > 0; }
+inline bool operator>=( const cpp::Memory & lhs, const char * rhs )
+    { return cpp::Memory::compare( lhs, rhs ) >= 0; }
+
+
+inline bool operator==( const char * lhs, const cpp::Memory & rhs )
+    { return cpp::Memory::compare( lhs, rhs ) == 0; }
+inline bool operator!=( const char * lhs, const cpp::Memory & rhs )
+    { return cpp::Memory::compare( lhs, rhs ) != 0; }
+inline bool operator<( const char * lhs, const cpp::Memory & rhs )
+    { return cpp::Memory::compare( lhs, rhs ) < 0; }
+inline bool operator<=( const char * lhs, const cpp::Memory & rhs )
+    { return cpp::Memory::compare( lhs, rhs ) <= 0; }
+inline bool operator>( const char * lhs, const cpp::Memory & rhs )
+    { return cpp::Memory::compare( lhs, rhs ) > 0; }
+inline bool operator>=( const char * lhs, const cpp::Memory & rhs )
+    { return cpp::Memory::compare( lhs, rhs ) >= 0; }

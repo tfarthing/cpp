@@ -1,7 +1,6 @@
 #pragma once
 
-#include <cpp/Integer.h>
-#include <cpp/String.h>
+#include "Integer.h"
 
 namespace cpp
 {

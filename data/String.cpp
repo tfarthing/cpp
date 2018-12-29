@@ -2,24 +2,22 @@
 
 #include <cstdarg>
 #include <algorithm>
-#include <cpp/String.h>
-#include <cpp/io/MemoryInput.h>
+
+#include "String.h"
+
+
 
 namespace cpp
 {
-
-    const String String::whitespace = " \t\n\r";
 
     String & String::replaceAll( const Memory & pattern, const Memory & dst, size_t pos )
     {
         while ( pos < length( ) )
         {
-            size_t offset = find( pattern.c_str(), pos, pattern.length() );
+            size_t offset = find( pattern.data(), pos, pattern.length() );
             if ( offset == npos )
-            {
-                break;
-            }
-            replace( offset, pattern.length( ), dst.c_str(), dst.length() );
+				{ break; }
+            replace( offset, pattern.length( ), dst.data(), dst.length() );
             pos = offset + dst.length( );
         }
         return *this;
@@ -27,20 +25,20 @@ namespace cpp
 
     String & String::replaceFirst( const Memory & pattern, const Memory & dst, size_t pos )
     {
-        size_t offset = find( pattern.c_str( ), pos, pattern.length( ) );
+        size_t offset = find( pattern.data( ), pos, pattern.length( ) );
         if ( offset != npos )
         {
-            replace( offset, pattern.length( ), dst.c_str( ), dst.length( ) );
+            replace( offset, pattern.length( ), dst.data( ), dst.length( ) );
         }
         return *this;
     }
 
     String & String::replaceLast( const Memory & pattern, const Memory & dst, size_t pos )
     {
-        size_t offset = rfind( pattern.c_str( ), pos, pattern.length( ) );
+        size_t offset = rfind( pattern.data( ), pos, pattern.length( ) );
         if ( offset != npos )
         {
-            replace( offset, pattern.length( ), dst.c_str( ), dst.length( ) );
+            replace( offset, pattern.length( ), dst.data( ), dst.length( ) );
         }
         return *this;
     }
@@ -65,7 +63,7 @@ namespace cpp
 
 	String String::printf(const char * fmt, ...)
 	{
-		String result(64, '\0');
+		String result(22, '\0');
 
 		va_list args;
 		va_start(args, fmt);
@@ -81,12 +79,6 @@ namespace cpp
 
 		return result;
 	}
-
-    String String::pad( String s, int width, bool isLeftAligned, char ch )
-    {
-        String padding( width < s.length() ? width - s.length() : 0, ch );
-        return isLeftAligned ? s + padding : padding + s;
-    }
 
 }
 

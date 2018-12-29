@@ -1,90 +1,73 @@
-#include <cpp/data/Integer.h>
-#include <cpp/data/String.h>
+#include "../process/Exception.h"
+#include "Integer.h"
+#include "String.h"
 
 namespace cpp
 {
 
-	static int64_t parse( Memory text, int radix = 10 )
+	int64_t Integer::parse( Memory text, int radix, bool checkEnding )
 	{
-		int64_t result = strtoll( text.data( ), nullptr, radix );
-		check<Exception>( errno != ERANGE, "range error while parsing integer" );
+		char * end = nullptr;
+		int64_t result = strtoll( text.data( ), &end, radix );
+		check<DecodeException>( errno != ERANGE, "Integer::parse() : range error while parsing integer" );
+		if ( checkEnding )
+			{ check<DecodeException>( end == text.end(), "Integer::parse() : parse ended before the buffer's end" ); }
 		return result;
 	}
 
-	static uint64_t parseUnsigned( Memory text, int radix = 10 )
+	uint64_t Integer::parseUnsigned( Memory text, int radix, bool checkEnding )
 	{
-		uint64_t result = strtoull( text.data( ), nullptr, radix );
-		check<Exception>( errno != ERANGE, "range error while parsing integer" );
+		char * end = nullptr;
+		uint64_t result = strtoull( text.data( ), &end, radix );
+		check<DecodeException>( errno != ERANGE, "Integer::parseUnsigned() : range error while parsing integer" );
+		if ( checkEnding )
+			{ check<DecodeException>( end == text.end(), "Integer::parseUnsigned() : parse ended before the buffer's end" ); }
 		return result;
 	}
 
-	static std::string toHex( uint64_t value, int width = 8, int precision = 0, bool upper = false, bool zeroed = true, bool prefix = true )
+	std::string Integer::toHex( uint64_t value, int width, int precision, bool upper, bool zeroed, bool prefix )
 	{
 		String fmt = "%";
 		if ( prefix )
-		{
-			fmt += "#";
-		}
+			{ fmt += "#"; }
 		if ( zeroed )
-		{
-			fmt += "0";
-		}
+			{ fmt += "0"; }
 		if ( width > 0 )
-		{
-			fmt += Integer::toDecimal( (int64_t)width );
-		}
+			{ fmt += std::to_string( width ); }
 		if ( precision > 0 )
-		{
-			fmt += "." + Integer::toDecimal( (int64_t)precision );
-		}
+			{ fmt += "." + std::to_string( precision ); }
 		fmt += upper ? "llX" : "llx";
 
 		return String::printf( fmt.c_str( ), value );
 	}
 
-	static std::string toDecimal( int64_t value, int width = 0, int precision = 0, bool zeroed = false, bool sign = false )
+	std::string Integer::toDecimal( int64_t value, int width, int precision, bool zeroed, bool sign )
 	{
 		String fmt = "%";
 		if ( sign )
-		{
-			fmt += "+";
-		}
+			{ fmt += "+"; }
 		if ( zeroed )
-		{
-			fmt += "0";
-		}
+			{ fmt += "0"; }
 		if ( width > 0 )
-		{
-			fmt += Integer::toDecimal( width );
-		}
+			{ fmt += std::to_string( width ); }
 		if ( precision > 0 )
-		{
-			fmt += "." + Integer::toDecimal( precision );
-		}
+			{ fmt += "." + std::to_string( precision ); }
 		fmt += "lli";
 
 		return String::printf( fmt.c_str( ), value );
 	}
 
-	static std::string toDecimal( uint64_t value, int width = 0, int precision = 0, bool zeroed = false, bool sign = false )
+	std::string Integer::toDecimal( uint64_t value, int width, int precision, bool zeroed, bool sign )
 	{
 		String fmt = "%";
 		if ( sign )
-		{
-			fmt += "+";
-		}
+			{ fmt += "+"; }
 		if ( zeroed )
-		{
-			fmt += "0";
-		}
+			{ fmt += "0"; }
 		if ( width > 0 )
-		{
-			fmt += Integer::toDecimal( (int64_t)width );
-		}
+			{ fmt += std::to_string( width ); }
 		if ( precision > 0 )
-		{
-			fmt += "." + Integer::toDecimal( (int64_t)precision );
-		}
+			{ fmt += "." + std::to_string( precision ); }
 		fmt += "llu";
 
 		return String::printf( fmt.c_str( ), value );

@@ -1,7 +1,9 @@
 #pragma once
 
-#include <cpp/String.h>
-#include <cpp/Exception.h>
+#include "String.h"
+#include "../process/Exception.h"
+
+
 
 namespace cpp
 {
@@ -23,7 +25,10 @@ namespace cpp
         static Memory element( const Memory & path );
         static Memory element( const Memory & path, int parentDepth );
 
-        static Memory::Array split( const Memory & path );
+		static Memory first( const Memory & path );
+		static Memory last( const Memory & path );
+
+		static Memory::Array split( const Memory & path );
 
     };
 

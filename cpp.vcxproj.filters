@@ -114,7 +114,6 @@
     <ClInclude Include="data\Float.h" />
     <ClInclude Include="data\Integer.h" />
     <ClInclude Include="data\Memory.h" />
-    <ClInclude Include="data\Platform.h" />
     <ClInclude Include="data\RegexMatch.h" />
     <ClInclude Include="data\Size.h" />
     <ClInclude Include="data\String.h" />
@@ -192,6 +191,8 @@
     </ClInclude>
     <ClInclude Include="util\Bit.h" />
     <ClInclude Include="file\MemoryFile.h" />
+    <ClInclude Include="data\DataArray.h" />
+    <ClInclude Include="process\Platform.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="io">
@@ -374,6 +375,7 @@
     <ClCompile Include="data\Integer.cpp" />
     <ClCompile Include="util\Bit.cpp" />
     <ClCompile Include="file\MemoryFile.cpp" />
+    <ClCompile Include="data\DataArray.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="meta\cpp.natvis">

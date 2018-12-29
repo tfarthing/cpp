@@ -7,25 +7,40 @@
 #include <cpp/data/Memory.h>
 #include <cpp/data/Float.h>
 #include <cpp/process/Exception.h>
-//#include <cpp/data/String.h>
 
 namespace cpp
 {
 
     const Memory Memory::WhitespaceList = " \t\r\n";
 
-	/*
-    Memory::Memory( const String & string )
-        : m_begin( string.c_str( ) ), m_end( string.c_str( ) + string.length( ) ) { }
 
-    Memory & Memory::operator=( const String & string )
-        { m_begin = string.c_str( ); m_end = string.c_str( ) + string.length( ); return *this; }
-	*/
+	int	Memory::compare( const Memory & lhs, const Memory & rhs )
+	{
+		// treat null like empty string
+		if ( lhs.isNull( ) )
+			{ return rhs.isNull( ) ? 0 : -1; }
+		if ( rhs.isNull( ) )
+			{ return 1; }
+
+		// use strcmp if either side is null terminated
+		if ( !rhs.end( ) && !lhs.end( ) )
+			{ return strcmp( lhs.data( ), rhs.data( ) ); }
+
+		// otherwise use memcmp
+		size_t len1 = lhs.length( );
+		size_t len2 = rhs.length( );
+		int result = memcmp( lhs.data( ), rhs.data( ), std::min( len1, len2 ) );
+		if ( result == 0 && len1 != len2 )
+			{ return ( len1 < len2 ) ? -1 : 1; }
+		return result;
+	}
+
 
     Memory::Match Memory::match( Memory regex ) const
     {
         return match( std::regex{ regex.begin( ), regex.end( ) } );
     }
+
 
     Memory::Match Memory::match( const std::regex & regex ) const
     {
@@ -38,10 +53,12 @@ namespace cpp
         return result;
     }
 
-    Memory::Match Memory::searchOne( Memory regex, bool isContinuous ) const
+    
+	Memory::Match Memory::searchOne( Memory regex, bool isContinuous ) const
     {
         return searchOne( std::regex{ regex.begin( ), regex.end( ) }, isContinuous );
     }
+
 
     Memory::Match Memory::searchOne( const std::regex & regex, bool isContinuous ) const
     {
@@ -57,10 +74,12 @@ namespace cpp
         return result;
     }
 
+
     Memory::Matches Memory::searchAll( Memory regex ) const
     {
         return searchAll( std::regex{ regex.begin( ), regex.end( ) } );
     }
+
 
     Memory::Matches Memory::searchAll( const std::regex & regex ) const
     {
@@ -81,10 +100,12 @@ namespace cpp
         return results;
     }
 
+
     std::string Memory::replace( Memory regex, Memory ecmaFormat ) const
     {
         return replace( std::regex{ regex.begin( ), regex.end( ) }, ecmaFormat );
     }
+
 
     std::string Memory::replace( const std::regex & regex, Memory ecmaFormat ) const
     {
@@ -93,9 +114,10 @@ namespace cpp
         return result;
     }
 
+
     size_t Memory::find( char ch, size_t pos ) const
     {
-        if ( !isNull( ) )
+        if ( notEmpty( ) )
         {
             for ( const char * ptr = begin( ) + pos; ptr < end( ); ptr++ )
             {
@@ -106,12 +128,13 @@ namespace cpp
         return npos;
     }
 
+
     size_t Memory::find( Memory sequence, size_t pos ) const
     {
-        if ( length( ) >= sequence.length( ) && !sequence.isEmpty( ) )
+        if ( length( ) >= sequence.length( ) && sequence.notEmpty( ) )
         {
-            const char * end = m_end - sequence.length( );
-            for ( const char * ptr = begin( ) + pos; ptr <= end; ptr++ )
+            const char * last = end( ) - sequence.length( );
+            for ( const char * ptr = begin( ) + pos; ptr <= last; ptr++ )
             {
                 if ( sequence == Memory{ ptr, sequence.length( ) } )
                     { return ptr - begin( ); }
@@ -120,11 +143,15 @@ namespace cpp
         return npos;
     }
 
+
     size_t Memory::rfind( char ch, size_t pos ) const
     {
-        if ( length( ) > 0 )
+        if ( notEmpty( ) )
         {
-            for ( const char * ptr = begin( ) + ( pos > length( ) - 1 ? length( ) - 1 : pos ); ptr >= begin( ); ptr-- )
+			if ( pos > length( ) - 1 )
+				{ pos = length( ) - 1; }
+
+			for ( const char * ptr = begin( ) + pos; ptr >= begin( ); ptr-- )
             {
                 if ( *ptr == ch )
                     { return ptr - begin( ); }
@@ -133,12 +160,15 @@ namespace cpp
         return npos;
     }
 
+
     size_t Memory::rfind( Memory pattern, size_t pos ) const
     {
         if ( length( ) >= pattern.length( ) && !pattern.isEmpty( ) )
         {
-            size_t last = length( ) - pattern.length( );
-            for ( const char * ptr = begin( ) + ( pos > last ? last : pos ); ptr >= begin( ); ptr-- )
+			if ( pos > length( ) - pattern.length( ) )
+				{ pos = length( ) - pattern.length( ); }
+
+            for ( const char * ptr = begin( ) + pos; ptr >= begin( ); ptr-- )
             {
                 if ( pattern == Memory{ ptr, pattern.length( ) } )
                     { return ptr - begin( ); }
@@ -147,9 +177,10 @@ namespace cpp
         return npos;
     }
 
+
     size_t Memory::find_first_of( Memory matchset, size_t pos ) const
     {
-        if ( !isNull( ) && !matchset.isEmpty( ) && pos != npos )
+        if ( notEmpty( ) && matchset.notEmpty( ) && pos < length( ) )
         {
             for ( const char * ptr = begin( ) + pos; ptr < end( ); ptr++ )
             {
@@ -159,13 +190,15 @@ namespace cpp
         }
         return npos;
     }
+
 
     size_t Memory::find_last_of( Memory matchset, size_t pos ) const
     {
-        if ( !isNull( ) && !matchset.isEmpty( ) )
+        if ( notEmpty( ) && matchset.notEmpty( ) )
         {
             if ( pos >= length( ) )
                 { pos = length( ) - 1; }
+
             for ( const char * ptr = begin( ) + pos; ptr >= begin( ); ptr-- )
             {
                 if ( memchr( matchset.data( ), *ptr, matchset.length( ) ) )
@@ -175,9 +208,10 @@ namespace cpp
         return npos;
     }
 
+
     size_t Memory::find_first_not_of( Memory matchset, size_t pos ) const
     {
-        if ( !isNull( ) && !matchset.isEmpty( ) )
+        if ( notEmpty( ) && matchset.notEmpty( ) && pos < length( ) )
         {
             for ( const char * ptr = begin( ) + pos; ptr < end( ); ptr++ )
             {
@@ -188,12 +222,14 @@ namespace cpp
         return npos;
     }
 
+
     size_t Memory::find_last_not_of( Memory matchset, size_t pos ) const
     {
-        if ( !isNull( ) && !matchset.isEmpty( ) )
+        if ( notEmpty( ) && matchset.notEmpty( ) )
         {
             if ( pos >= length( ) )
                 { pos = length( ) - 1; }
+
             for ( const char * ptr = begin( ) + pos; ptr >= begin( ); ptr-- )
             {
                 if ( !memchr( matchset.data( ), *ptr, matchset.length( ) ) )
@@ -202,27 +238,34 @@ namespace cpp
         }
         return npos;
     }
+
 
     Memory Memory::substr( size_t pos, size_t len ) const
     {
         if ( isNull( ) )
             { return nullptr; }
+
         if ( pos > length( ) )
             { pos = length( ); }
+
         if ( len > length( ) - pos )
             { len = length( ) - pos; }
+
         return Memory{ begin( ) + pos, len };
     }
+
 
     Memory Memory::trim( Memory trimlist ) const
     {
         if ( trimlist.isEmpty( ) )
             { return *this; }
+
         size_t pos = find_first_not_of( trimlist );
         if ( pos == npos )
             { return substr( length( ), 0 ); }
         return substr( pos, find_last_not_of( trimlist ) - pos + 1 );
     }
+
 
     Memory::Array Memory::split( Memory delimiter, Memory trimlist, bool ignoreEmpty ) const
     {
@@ -235,7 +278,7 @@ namespace cpp
             if ( offset == npos )
                 { offset = length( ); }
             Memory str = substr( pos, offset - pos ).trim( trimlist );
-            if ( !str.isEmpty( ) || !ignoreEmpty )
+            if ( str.notEmpty( ) || !ignoreEmpty )
                 { results.push_back( str ); }
             pos = offset + 1;
         } 
@@ -244,11 +287,14 @@ namespace cpp
         return results;
     }
 
+
     float Memory::swap( float value )
         { return Float::fromBits( swap( Float::toBits( value ) ) ); }
     
+
     double Memory::swap( double value )
         { return Float::fromBits( swap( Float::toBits( value ) ) ); }
+
 
     bool Memory::isEscaped( size_t pos ) const
     {
@@ -258,6 +304,7 @@ namespace cpp
         return escapeFlag;
     }
 
+
     Memory Memory::copy( Memory & dst, const Memory & src )
     {
 		assert( dst.length( ) >= src.length( ) );
@@ -265,11 +312,53 @@ namespace cpp
 		return Memory{ dst.begin( ), src.length( ) };
     }
 
+
 	Memory Memory::move( Memory & dst, const Memory & src )
 	{
 		assert( dst.length( ) >= src.length( ) );
 		memmove( (char *)dst.begin( ), src.begin( ), src.length( ) );
 		return Memory{ dst.begin( ), src.length( ) };
+	}
+
+
+
+	EncodedText::operator int8_t( ) const
+		{ return (int8_t)Integer::parse( data ); }
+
+	EncodedText::operator uint8_t( ) const
+		{ return (int8_t)Integer::parseUnsigned( data ); }
+
+	EncodedText::operator int16_t( ) const
+		{ return (int16_t)Integer::parse( data ); }
+
+	EncodedText::operator uint16_t( ) const
+		{ return (uint16_t)Integer::parseUnsigned( data ); }
+
+	EncodedText::operator int32_t( ) const
+		{ return (int32_t)Integer::parse( data ); }
+
+	EncodedText::operator uint32_t( ) const
+		{ return (uint32_t)Integer::parseUnsigned( data ); }
+
+	EncodedText::operator int64_t( ) const
+		{ return Integer::parse( data ); }
+
+	EncodedText::operator uint64_t( ) const
+		{ return Integer::parseUnsigned( data ); }
+
+	EncodedText::operator float( ) const
+		{ return (float)Float::parse( data ); }
+
+	EncodedText::operator double( ) const
+		{ return Float::parse( data ); }
+
+	EncodedText::operator bool( ) const
+	{  
+		if ( stricmp( data.begin( ), "true" ) == 0 && data.length( ) == 4 )
+			{ return true; }
+		if ( stricmp( data.begin( ), "false" ) == 0 && data.length( ) == 5 );
+			{ return false; }
+		throw DecodeException{ "EncodedText::bool() : unable to decode boolean text value" };
 	}
 
 }

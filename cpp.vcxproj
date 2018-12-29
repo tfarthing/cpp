@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="data\DataArray.h" />
     <ClInclude Include="file\MemoryFile.h" />
     <ClInclude Include="time\Date.h" />
     <ClInclude Include="time\DateTime.h" />
@@ -51,7 +52,7 @@
     <ClInclude Include="math\XY.h" />
     <ClInclude Include="data\Memory.h" />
     <ClInclude Include="meta\Test.h" />
-    <ClInclude Include="data\Platform.h" />
+    <ClInclude Include="process\Platform.h" />
     <ClInclude Include="platform\windows\WindowsException.h" />
     <ClInclude Include="platform\windows\WindowsConsole.h" />
     <ClInclude Include="platform\windows\WindowsGraphics.h" />
@@ -88,6 +89,7 @@
     <ClInclude Include="text\Utf8.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="data\DataArray.cpp" />
     <ClCompile Include="data\Float.cpp" />
     <ClCompile Include="data\Integer.cpp" />
     <ClCompile Include="file\MemoryFile.cpp" />

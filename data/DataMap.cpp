@@ -6,31 +6,6 @@
 namespace cpp
 {
 
-    uint64_t RecordMap::getUint( Memory key ) const
-        { return BitData::decodeUint( get( key ) ); }
-    uint64_t RecordMap::getHex( Memory key ) const
-        { return BitData::decodeHex( get( key ) ); }
-    int64_t RecordMap::getInt( Memory key ) const
-        { return BitData::decodeInt( get( key ) ); }
-    f64_t RecordMap::getFloat( Memory key ) const
-        { return BitData::decodeF64( get( key ) ); }
-    bool RecordMap::getBool( Memory key ) const
-        { return BitData::decodeBool( get( key ) ); }
-    DateTime RecordMap::getTime( Memory key ) const
-        { return BitData::decodeTime( get( key ) ); }
-
-    void RecordMap::setUint( Memory key, uint64_t value )
-        { set( key, BitData::encodeUint( value ) ); }
-    void RecordMap::setHex( Memory key, uint64_t value )
-        { set( key, BitData::encodeHex( value ) ); }
-    void RecordMap::setInt( Memory key, int64_t value )
-        { set( key, BitData::encodeInt( value ) ); }
-    void RecordMap::setFloat( Memory key, f64_t value )
-        { set( key, BitData::encodeF64( value ) ); }
-    void RecordMap::setBool( Memory key, bool value )
-        { set( key, BitData::encodeBool( value ) ); }
-    void RecordMap::setTime( Memory key, DateTime value )
-        { set( key, BitData::encodeTime( value ) ); }
     
     void encodeBinary( ReadBuffer & buffer, const cpp::DataMap & value, ByteOrder byteOrder )
     {

@@ -8,13 +8,10 @@
 
 */
 
-#include <cpp/data/Comparable.h>
-
 namespace cpp
 {
 
     class ByteOrder
-        : public Comparable<ByteOrder>
     {
     public:
         static const ByteOrder		LittleEndian;
@@ -22,7 +19,8 @@ namespace cpp
         static const ByteOrder		Network;
         static const ByteOrder		Host;
 
-		static int					compare( ByteOrder lhs, ByteOrder rhs );
+		bool operator==( ByteOrder other );
+		bool operator!=( ByteOrder other );
 
     private:
 		enum Endianess { Little, Big };
@@ -41,12 +39,14 @@ namespace cpp
 	}
 
 
-	inline int ByteOrder::compare( ByteOrder lhs, ByteOrder rhs )
+	inline bool ByteOrder::operator==( ByteOrder other )
 	{
-		if ( lhs.value == rhs.value )
-			{ return 0; }
-		else
-			{ return lhs.value < rhs.value ? -1 : 1; }
+		return value == other.value;
+	}
+
+	inline bool ByteOrder::operator!=( ByteOrder other )
+	{
+		return value != other.value;
 	}
 
 }

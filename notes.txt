@@ -1,8 +1,27 @@
+
+
+2018-12-28
+	* Text Encoding
+		* Includes "decimal", "hex", and "base64" as variations of general TextEncoding.  Some 
+			types require this distinction (e.g. int var = Memory{"1234"}.asHex()).
+		* Accomplishes what "to_string" is generally used for.  Encoding as text is generally 
+			provided through toString() member function.
+		* Text Encoding is almost always used for discrete values, not for streamed operations.  
+			For this reason encoding is performed to/from String/Memory objects, and the decode
+			operation is performed using a constructor from a EncodedText type.
+	* Binary Encoding
+		* Binary Encoding is almost always used for streaming values, not for discrete operations.
+			For this reason encoding is performed to/from DataBuffer objects.
+		* Objects that support Binary Encoding generally provide a static fromBinary() decode 
+			function and a toBinary() member function.
+
+
+
 Main Features
-* Useful Types: String, Memory, Unicode, Properties, DataBuffer
-* Program Structure: Program, Log, Bus
-* IO: Abstract Input/Output, Abstract Readers, Sync & Async, Synchronous Timeouts, Interruptable IO, FileIO, PipeIO, HttpIO, TcpIo
-* Threads: Interruptable Threads, Thread Group, Future, Interruptable Lock
+	* Program object: provide access to general functionality (i.e. args, env, random, logging, process IO, exit handling)
+	* Useful Types: Memory, String, DataBuffer, Unicode
+	* Interruptable Threads
+	* Abstract IO & Readers, asio implementations
 
 
 
@@ -74,3 +93,5 @@ Main Features
 			{
 			},
 		Program::bus() );
+
+	

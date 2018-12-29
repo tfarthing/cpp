@@ -6,25 +6,21 @@
 namespace cpp
 {
     template<typename T>
-    class RegexMatch
+    struct RegexMatch
     {
-    public:
-        RegexMatch( );
-        RegexMatch( const std::cmatch & source );
-        RegexMatch( std::vector<T> source );
+							RegexMatch( );
+							RegexMatch( const std::cmatch & source );
 
-        RegexMatch operator=( const std::cmatch & source );
+        RegexMatch			operator=( const std::cmatch & source );
 
-        bool operator!( ) const;
-        explicit operator bool( ) const;
+        bool				operator!( ) const;
+							explicit operator bool( ) const;
 
-        bool hasMatch( ) const;
-        const T & at( size_t index ) const;
-        const T & operator[]( size_t index ) const;
-        const std::vector<T> & groups( ) const;
+        bool				hasMatch( ) const;
+        const T &			at( size_t index ) const;
+        const T &			operator[]( size_t index ) const;
 
-    private:
-        std::vector<T> m_groups;
+		std::vector<T>		groups;
     };
 
 
@@ -32,13 +28,10 @@ namespace cpp
         {}
 
     template<typename T> RegexMatch<T>::RegexMatch( const std::cmatch & source )
-        { for ( auto m : source ) { m_groups.push_back( Memory{ m.first, m.second } ); } }
-
-    template<typename T> RegexMatch<T>::RegexMatch( std::vector<T> groups )
-        : m_groups( std::move( groups ) ) {}
+        { for ( auto m : source ) { groups.push_back( Memory{ m.first, m.second } ); } }
 
     template<typename T> RegexMatch<T> RegexMatch<T>::operator=( const std::cmatch & source )
-        { m_groups.clear( ); for ( auto m : source ) { m_groups.push_back( Memory{ m.first, m.second } ); } return *this; }
+        { m_groups.clear( ); for ( auto m : source ) { groups.push_back( Memory{ m.first, m.second } ); } return *this; }
 
     template<typename T> bool RegexMatch<T>::operator!( ) const
         { return !hasMatch( ); }
@@ -47,15 +40,12 @@ namespace cpp
         { return hasMatch( ); }
 
     template<typename T> bool RegexMatch<T>::hasMatch( ) const
-        { return m_groups.size() > 0; }
+        { return groups.size() > 0; }
 
     template<typename T> const T & RegexMatch<T>::at( size_t index ) const
-        { return m_groups[index]; }
+        { return groups[index]; }
 
     template<typename T> const T & RegexMatch<T>::operator[]( size_t index ) const
-        { return m_groups[index]; }
-
-    template<typename T> const std::vector<T> & RegexMatch<T>::groups( ) const
-        { return m_groups; }
+        { return groups[index]; }
 
 }

@@ -62,6 +62,7 @@ namespace cpp
 		String & operator+=( const Memory & memory );
 		String & operator+=( char ch );
 
+		bool notEmpty( ) const;
 		bool isEmpty( ) const;
 
 		Memory substr( size_t offset, size_t count = npos ) const;
@@ -168,6 +169,9 @@ namespace cpp
 
 	inline String & String::operator+=( char ch )
 		{ std::string::append( 1, ch ); return *this; }
+
+	inline bool String::notEmpty( ) const
+		{ return !empty( ); }
 
 	inline bool String::isEmpty( ) const
 		{ return empty( ); }

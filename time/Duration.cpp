@@ -1,5 +1,8 @@
-#include <cpp/data/Integer.h>
-#include <cpp/time/Duration.h>
+#include "../data/Integer.h"
+#include "../data/String.h"
+#include "Duration.h"
+
+
 
 namespace cpp
 {
@@ -7,56 +10,54 @@ namespace cpp
     const Duration Duration::Zero{ 0 };
     const Duration Duration::Infinite{ INT64_MAX };
 
-    cpp::String Duration::toString( ) const
+
+	//	4:57:45.765432
+	std::string Duration::toString( ) const
 	{
 		String result;
 
-		auto ndays = days();
-		auto nhours = hours() % 24;
-		auto nminutes = minutes() % 60;
-		auto nseconds = seconds() % 60;
-		auto nmillis = millis() % 1000;
-		auto nmicros = micros() % 1000;
+		auto nyears = days( ) / 365;
+		auto ndays = days( ) % 365;
+		auto nhours = hours( ) % 24;
+		auto nminutes = minutes( ) % 60;
+		auto nseconds = seconds( ) % 60;
+		auto nmicros = micros( ) % 1000000;
 
-		if (ndays != 0)
+		if ( nyears != 0 )
 		{
-			result += format("% day", ndays);
-            if ( ndays > 1)
-                { text += "s"; }
-			if (!nhours && !nminutes && !nseconds && !nmillis && !nmicros)
-				{ return text; }
-			text += ", ";
+			result += format( "%y", nyears );
 		}
-		if (nhours != 0)
+		if ( result.notEmpty( ) || ndays != 0 )
 		{
-			text += format("% hour", nhours);
-            if ( nhours > 1)
-                { text += "s"; }
-			if (!nminutes && !nseconds && !nmillis && !nmicros)
-				{ return text; }
-			text += ", ";
-		}
-		if (nminutes != 0)
-		{
-			text += String::format("% minute", nminutes);
-            if ( nminutes > 1)
-                { text += "s"; }
-			if (!nseconds && !nmillis && !nmicros)
-				{ return text; }
-			text += ", ";
-		}
+			if ( result.notEmpty( ) )
+				{ result += ":"; }
 
-		text += Integer::toDecimal(nseconds, text.isEmpty() ? 1 : 2, true);
-		if (nmillis || nmicros)
-		{
-			text += "." + Integer::toDecimal(nmillis, 3, 3, true);
-			if (nmicros)
-				{ text += Integer::toDecimal(nmicros, 3, 3, true); }
+			result += Integer::toDecimal( ndays, 2, true );
 		}
-        text += " second";
-        if ( nseconds != 1 || nmillis || nmicros )
-            { text += "s"; }
-        return text;
+		if ( result.notEmpty( ) || nhours != 0 )
+		{
+			if ( result.notEmpty( ) )
+				{ result += ":"; }
+
+			result += Integer::toDecimal( nhours, 2, true );
+		}
+		if ( result.notEmpty( ) || nminutes != 0 )
+		{
+			if ( result.notEmpty( ) )
+				{ result += ":"; }
+
+			result += Integer::toDecimal( nminutes, 2, true );
+		}
+		if ( result.notEmpty( ) )
+			{ result += ":"; }
+		result += Integer::toDecimal( nseconds, result.isEmpty( ) ? 0 : 2, true );
+		
+		if ( nmicros )
+			{ result += "." + Integer::toDecimal( nmicros, 6, true ); }
+
+		result.trim( "0" );
+
+		return result;
 	}
 
 }

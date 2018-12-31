@@ -25,7 +25,7 @@ namespace cpp
 		return result;
 	}
 
-	std::string Integer::toHex( uint64_t value, int width, int precision, bool upper, bool zeroed, bool prefix )
+	std::string Integer::toHex( uint64_t value, int width, bool upper, bool zeroed, bool prefix )
 	{
 		String fmt = "%";
 		if ( prefix )
@@ -34,14 +34,12 @@ namespace cpp
 			{ fmt += "0"; }
 		if ( width > 0 )
 			{ fmt += std::to_string( width ); }
-		if ( precision > 0 )
-			{ fmt += "." + std::to_string( precision ); }
 		fmt += upper ? "llX" : "llx";
 
 		return String::printf( fmt.c_str( ), value );
 	}
 
-	std::string Integer::toDecimal( int64_t value, int width, int precision, bool zeroed, bool sign )
+	std::string Integer::toDecimal( int64_t value, int width, bool zeroed, bool sign )
 	{
 		String fmt = "%";
 		if ( sign )
@@ -50,14 +48,12 @@ namespace cpp
 			{ fmt += "0"; }
 		if ( width > 0 )
 			{ fmt += std::to_string( width ); }
-		if ( precision > 0 )
-			{ fmt += "." + std::to_string( precision ); }
 		fmt += "lli";
 
 		return String::printf( fmt.c_str( ), value );
 	}
 
-	std::string Integer::toDecimal( uint64_t value, int width, int precision, bool zeroed, bool sign )
+	std::string Integer::toDecimal( uint64_t value, int width, bool zeroed, bool sign )
 	{
 		String fmt = "%";
 		if ( sign )
@@ -66,8 +62,6 @@ namespace cpp
 			{ fmt += "0"; }
 		if ( width > 0 )
 			{ fmt += std::to_string( width ); }
-		if ( precision > 0 )
-			{ fmt += "." + std::to_string( precision ); }
 		fmt += "llu";
 
 		return String::printf( fmt.c_str( ), value );

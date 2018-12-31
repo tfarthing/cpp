@@ -16,9 +16,6 @@
     <ClInclude Include="process\System.h">
       <Filter>process</Filter>
     </ClInclude>
-    <ClInclude Include="process\Future.h">
-      <Filter>process</Filter>
-    </ClInclude>
     <ClInclude Include="util\Properties.h">
       <Filter>util</Filter>
     </ClInclude>
@@ -36,9 +33,6 @@
     </ClInclude>
     <ClInclude Include="io\StandardOutput.h">
       <Filter>io</Filter>
-    </ClInclude>
-    <ClInclude Include="process\Bus.h">
-      <Filter>process</Filter>
     </ClInclude>
     <ClInclude Include="process\ThreadGroup.h">
       <Filter>process</Filter>
@@ -186,9 +180,6 @@
     <ClInclude Include="io\reader\LineReader.h">
       <Filter>io\reader</Filter>
     </ClInclude>
-    <ClInclude Include="data\Comparable.h">
-      <Filter>util</Filter>
-    </ClInclude>
     <ClInclude Include="util\Bit.h" />
     <ClInclude Include="file\MemoryFile.h" />
     <ClInclude Include="data\DataArray.h" />
@@ -246,9 +237,6 @@
       <Filter>io</Filter>
     </ClCompile>
     <ClCompile Include="process\ThreadGroup.cpp">
-      <Filter>process</Filter>
-    </ClCompile>
-    <ClCompile Include="process\Bus.cpp">
       <Filter>process</Filter>
     </ClCompile>
     <ClCompile Include="math\Alignment.cpp">

@@ -59,8 +59,6 @@
     <ClInclude Include="platform\windows\WindowsMutex.h" />
     <ClInclude Include="platform\windows\WindowsRegistry.h" />
     <ClInclude Include="platform\windows\WindowsShell.h" />
-    <ClInclude Include="process\Bus.h" />
-    <ClInclude Include="process\Future.h" />
     <ClInclude Include="process\Lock.h" />
     <ClInclude Include="process\Process.h" />
     <ClInclude Include="process\System.h" />
@@ -71,7 +69,6 @@
     <ClInclude Include="util\Bit.h" />
     <ClInclude Include="util\BitData.h" />
     <ClInclude Include="util\BitDB.h" />
-    <ClInclude Include="data\Comparable.h" />
     <ClInclude Include="data\DataBuffer.h" />
     <ClInclude Include="util\DataFile.h" />
     <ClInclude Include="data\DataMap.h" />
@@ -122,7 +119,6 @@
     <ClCompile Include="platform\windows\WindowsConsole.cpp" />
     <ClCompile Include="platform\windows\WindowsGraphics.cpp" />
     <ClCompile Include="platform\windows\WindowsShell.cpp" />
-    <ClCompile Include="process\Bus.cpp" />
     <ClCompile Include="process\Lock.cpp" />
     <ClCompile Include="process\Process.cpp" />
     <ClCompile Include="process\Thread.cpp" />

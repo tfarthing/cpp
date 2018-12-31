@@ -1,7 +1,7 @@
 #ifndef TEST
 
-#include <cpp/Platform.h>
-#include <cpp/process/Thread.h>
+#include "Platform.h"
+#include "Thread.h"
 
 namespace cpp
 {

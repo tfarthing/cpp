@@ -1,42 +1,55 @@
 #pragma once
 
-#include <cpp/Program.h>
-#include <cpp/chrono/Duration.h>
-#include <cpp/io/Input.h>
-#include <cpp/io/Output.h>
-#include <cpp/io/file/FilePath.h>
+#include <functional>
+#include <memory>
+#include <chrono>
 
-namespace cpp
+#include "lib/asio/asio.hpp"
+
+
+
+class Process
 {
+public:
+	typedef std::function<void( std::string & recvBuffer )> RecvHandler;
+	typedef std::function<void( int32_t exitValue )> ExitHandler;
+	typedef std::chrono::milliseconds Duration;
+	typedef std::chrono::steady_clock::time_point Time;
 
-    class Process
-    {
-    public:
-        static Process run( FilePath exe, String cmdline, FilePath workingPath = FilePath{ } );
-        static Process runChild( FilePath exe, String cmdline, FilePath workingPath = FilePath{ } );
+	static Process run( 
+		asio::io_context & io, 
+		std::string cmdline, 
+		std::string workingPath, 
+		RecvHandler onStdout, 
+		RecvHandler onStderr,
+		ExitHandler onExit );
+	
+	static Process runDetached( 
+		asio::io_context & io, 
+		std::string cmdline, 
+		std::string workingPath,
+		ExitHandler onExit);
 
-        Process( );
-        ~Process( );
+	Process( );
+	Process( Process && move );
+	~Process( );
 
-        bool isRunning( ) const;
-        void wait( );
-        bool waitFor( Duration timeout );
-        bool waitUntil( Time time );
-        void detach( );
-        void close( );
+	Process & operator=( Process && move );
 
-        Output input( );
-        Input output( );
-        Input error( );
+	bool isRunning( ) const;
+	void send( std::string msg );
+	void detach( );
+	void close( );
 
-        FilePath exe( ) const;
-        String cmdline( ) const;
+	void wait( );
+	bool waitFor( Duration timeout );
+	bool waitUntil( Time time );
 
-    private:
-        struct Detail;
-        Process( std::shared_ptr<Detail> && detail );
+	int32_t exitValue( ) const;
 
-        std::shared_ptr<Detail> m_detail;
-    };
+private:
+	struct Detail;
+	Process( std::shared_ptr<Detail> && detail );
 
-}
+	std::shared_ptr<Detail> detail = nullptr;
+};

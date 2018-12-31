@@ -1,5 +1,5 @@
-#include <cpp/process/Lock.h>
-#include <cpp/process/Thread.h>
+#include "Lock.h"
+#include "Thread.h"
 
 namespace cpp
 {

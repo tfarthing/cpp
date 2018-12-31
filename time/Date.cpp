@@ -1,22 +1,7 @@
 #ifndef TEST
 
-#include <cpp/chrono/Date.h>
+#include "Date.h"
 
-namespace cpp
-{
-    cpp::Duration Date::utcDelta( )
-    {
-        time_t now = std::time( nullptr );
-        std::tm local = *std::localtime( &now );
-        std::tm gmt = *std::gmtime( &now );
-        int diff = (int)( now - mktime( &gmt ) );
-
-        if ( local.tm_isdst > 0 )
-            { diff += 1 * 60 * 60; }
-
-        return cpp::Duration::ofSeconds( diff );
-    }
-}
 
 #else
 

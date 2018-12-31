@@ -1,7 +1,7 @@
 #pragma once
 
 #include <exception>
-#include <string.h>
+#include <string>
 
 namespace cpp
 {

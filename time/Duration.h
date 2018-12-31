@@ -1,53 +1,61 @@
 #pragma once
 
+/*
+
+	Duration is an abstraction of std::chrono::microseconds
+	(1) Can also represent an infinite duration (MAX_INT64): isInfinite()
+	(2) Can convert to a double in seconds using toSeconds().
+
+*/
+
 #include <cassert>
 #include <chrono>
-#include <cpp/data/Integer.h>
-#include <cpp/data/String.h>
-#include <cpp/data/Comparable.h>
+#include "../data/Integer.h"
+#include "../process/Exception.h"
+
+
 
 namespace cpp
 {
 
 	class Duration
-		: public Comparable<Duration>
 	{
 	public:
-        static const Duration	Zero;
-        static const Duration	Infinite;
+        static const Duration		Zero;
+        static const Duration		Infinite;
 
-		static Duration			ofDays( int64_t days );
-		static Duration			ofHours( int64_t hours );
-		static Duration			ofMinutes( int64_t minutes );
-		static Duration			ofSeconds( int64_t seconds );
-		static Duration			ofMillis( int64_t milliseconds );
-		static Duration			ofMicros( int64_t microseconds );
+		static Duration				ofDays( int64_t days );
+		static Duration				ofHours( int64_t hours );
+		static Duration				ofMinutes( int64_t minutes );
+		static Duration				ofSeconds( int64_t seconds );
+		static Duration				ofMillis( int64_t milliseconds );
+		static Duration				ofMicros( int64_t microseconds );
 
-								Duration( int64_t microseconds = 0 );
+									Duration( int64_t microseconds = 0 );
 		
-								template<typename T, typename Y> 
-								Duration( const std::chrono::duration<T, Y> & duration );
+									template<typename T, typename Y> 
+									Duration( const std::chrono::duration<T, Y> & duration );
 
-		static int				compare( const Duration & lhs, const Duration & rhs );
+		bool						isZero( ) const;
+		bool						isNegative( ) const;
+		bool						isInfinite( ) const;
 
-		bool					isZero( ) const;
-		bool					isNegative( ) const;
-		bool					isInfinite( ) const;
+		int64_t						days( ) const;
+		int64_t						hours( ) const;
+		int64_t						minutes( ) const;
+		int64_t						seconds( ) const;
+		int64_t						millis( ) const;
+		int64_t						micros( ) const;
 
-		int64_t					days( ) const;
-		int64_t					hours( ) const;
-		int64_t					minutes( ) const;
-		int64_t					seconds( ) const;
-		int64_t					millis( ) const;
-		int64_t					micros( ) const;
+		double						toSeconds( ) const;
+									operator std::chrono::microseconds( ) const;
 
-		double					toSeconds( ) const;
-								Duration::operator std::chrono::microseconds( ) const;
+		std::string					toString( ) const;
 
-		cpp::String				toString( ) const;
+		static int					compare( const Duration & lhs, const Duration & rhs );
 
 	private:
-		int64_t m_microseconds;
+		int64_t						m_microseconds;
 	};
 
 
@@ -55,7 +63,7 @@ namespace cpp
 	struct DurationException
 		: public cpp::Exception
 	{
-		DurationException( String message )
+		DurationException( std::string message )
 			: cpp::Exception( std::move( message ) ) { }
 	};
 
@@ -79,14 +87,11 @@ namespace cpp
 	inline Duration Duration::ofMicros( int64_t microseconds )
 		{ return Duration( microseconds ); }
 
-	inline Duration::Duration( int64_t microseconds = 0 )
+	inline Duration::Duration( int64_t microseconds )
 		: m_microseconds( microseconds ) { }
 
 	template<typename T, typename Y> Duration::Duration( const std::chrono::duration<T, Y> & duration )
 		: m_microseconds( std::chrono::duration_cast<std::chrono::microseconds>( duration ).count( ) ) { }
-
-	inline int Duration::compare( const Duration & lhs, const Duration & rhs )
-		{ return cpp::compare( lhs.m_microseconds, rhs.m_microseconds ); }
 
 	inline bool Duration::isZero( ) const
 		{ return m_microseconds == 0; }
@@ -121,26 +126,46 @@ namespace cpp
 	inline Duration::operator std::chrono::microseconds( ) const
 		{ assert( !isInfinite( ) ); return std::chrono::microseconds{ m_microseconds }; }
 
+	inline int Duration::compare( const Duration & lhs, const Duration & rhs )
+		{ return Integer::compare( lhs.m_microseconds, rhs.m_microseconds ); }
 }
+
+
+inline bool operator==( const cpp::Duration & lhs, const cpp::Duration & rhs )
+    { return cpp::Duration::compare( lhs, rhs ) == 0; }
+inline bool operator!=( const cpp::Duration & lhs, const cpp::Duration & rhs )
+    { return cpp::Duration::compare( lhs, rhs ) != 0; }
+inline bool operator<( const cpp::Duration & lhs, const cpp::Duration & rhs )
+    { return cpp::Duration::compare( lhs, rhs ) < 0; }
+inline bool operator<=( const cpp::Duration & lhs, const cpp::Duration & rhs )
+    { return cpp::Duration::compare( lhs, rhs ) <= 0; }
+inline bool operator>( const cpp::Duration & lhs, const cpp::Duration & rhs )
+    { return cpp::Duration::compare( lhs, rhs ) > 0; }
+inline bool operator>=( const cpp::Duration & lhs, const cpp::Duration & rhs )
+    { return cpp::Duration::compare( lhs, rhs ) >= 0; }
+
 
 inline cpp::Duration operator+( const cpp::Duration d1, const cpp::Duration d2 )
 { 
     if ( d1.isInfinite() || d2.isInfinite() )
-        { return cpp::Duration::infinite; }
+        { return cpp::Duration::Infinite; }
     return cpp::Duration{ d1.micros() + d2.micros( ) };
 }
+
 
 inline cpp::Duration & operator+=( cpp::Duration & d1, const cpp::Duration d2 )
 { 
     return d1 = d1 + d2;
 }
 
+
 inline cpp::Duration operator-( const cpp::Duration d1, const cpp::Duration d2 )
 { 
     if ( d1.isInfinite( ) || d2.isInfinite( ) )
-        { return cpp::Duration::infinite; }
+        { return cpp::Duration::Infinite; }
     return cpp::Duration{ d1.micros( ) - d2.micros( ) }; 
 }
+
 
 inline cpp::Duration & operator-=( cpp::Duration & d1, const cpp::Duration d2 )
 { 

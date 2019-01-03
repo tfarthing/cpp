@@ -2,7 +2,7 @@
 
 /*
 
-	DateTime represents the system clock in UTC.  
+	DateTime is an abstraction of system_clock::time_point, and represents the system clock in UTC.  
 	(1) The duration since epoch is always in UTC, not adjusted for local time.
 	(2) Date conversions to DateTime are from local time by default.
 	(3) Date conversions from DateTime are to local time by default.
@@ -24,7 +24,7 @@ namespace cpp
     public:
 		static DateTime						now( );
 		static DateTime						epoch( );
-		static DateTime						ofDate( int year, int month, int day, int hour = 0, int min = 0, int sec = 0 );
+		static DateTime						ofDate( int year, int month, int day, int hour = 0, int min = 0, int sec = 0, int micros = 0 );
 
         typedef std::chrono::system_clock	clock_t;
 
@@ -41,8 +41,7 @@ namespace cpp
 
 		Duration							sinceEpoch( ) const;
 
-											operator DateTime::clock_t::time_point( ) const;
-		
+		DateTime::clock_t::time_point		to_time_point( ) const;
 		time_t								to_time_t( ) const;
 		Date								toDate( bool localTime = true ) const;
 		std::string							toString( bool localTime = true ) const;
@@ -73,7 +72,7 @@ namespace cpp
 	}
 
 
-	inline DateTime DateTime::ofDate( int year, int month, int day, int hour, int min, int sec )
+	inline DateTime DateTime::ofDate( int year, int month, int day, int hour, int min, int sec, int micros )
 	{
 		std::tm input{ };
 		input.tm_year = year - 1900;
@@ -85,7 +84,7 @@ namespace cpp
 		input.tm_isdst = -1;
 		time_t epochSeconds = mktime( &input );
 		//	adjust the time to UTC by removing the local time difference
-		return DateTime{ Duration::ofSeconds( epochSeconds ) - localTimeDelta( ) };
+		return DateTime{ Duration::ofSeconds( epochSeconds ) + Duration::ofMicros( micros ) - localTimeDelta( ) };
 	}
 
 

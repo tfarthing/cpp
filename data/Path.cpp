@@ -1,8 +1,7 @@
 
 #ifndef TEST
 
-#include <cpp/Exception.h>
-#include <cpp/util/Path.h>
+#include "Path.h"
 
 namespace cpp
 {

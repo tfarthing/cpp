@@ -20,7 +20,7 @@ namespace cpp
     void Lock::wait( )
     { 
         if ( m_allowInterrupt )
-            { Thread::enterWait( &m_mutex ); }
+            { Thread::enterWait( [=]( ) { m_mutex.notifyAll( ); } ); }
         m_mutex.getCvar( ).wait( m_lock ); 
         if ( m_allowInterrupt )
             { Thread::leaveWait( ); }
@@ -29,8 +29,8 @@ namespace cpp
     std::cv_status Lock::waitUntil( Time time )
     {
         if ( m_allowInterrupt )
-            { Thread::enterWait( &m_mutex ); }
-        std::cv_status status = m_mutex.getCvar( ).wait_until( m_lock, time.toTimePoint( ) );
+			{ Thread::enterWait( [=]( ) { m_mutex.notifyAll( ); } ); }
+        std::cv_status status = m_mutex.getCvar( ).wait_until( m_lock, (std::chrono::steady_clock::time_point)time );
         if ( m_allowInterrupt )
             { Thread::leaveWait( ); }
         return status;
@@ -77,7 +77,7 @@ namespace cpp
     void RecursiveLock::wait( )
     { 
         if ( m_allowInterrupt )
-            { Thread::enterWait( &m_mutex ); }
+            { Thread::enterWait( [=]( ) { m_mutex.notifyAll( ); } ); }
         m_mutex.getCvar( ).wait( m_lock ); 
         if ( m_allowInterrupt )
             { Thread::leaveWait( ); }
@@ -86,8 +86,8 @@ namespace cpp
     std::cv_status RecursiveLock::waitUntil( Time time )
     {
         if ( m_allowInterrupt )
-            { Thread::enterWait( &m_mutex ); }
-        std::cv_status status = m_mutex.getCvar( ).wait_until( m_lock, time.toTimePoint( ) );
+            { Thread::enterWait( [=]( ) { m_mutex.notifyAll( ); } ); }
+        std::cv_status status = m_mutex.getCvar( ).wait_until( m_lock, (std::chrono::steady_clock::time_point)time );
         if ( m_allowInterrupt )
             { Thread::leaveWait( ); }
         return status;

@@ -32,12 +32,12 @@ namespace cpp
         }
     }
 
-    String Thread::name( )
+    std::string Thread::name( )
     {
         return s_info->m_name;
     }
 
-    void Thread::setName( String name )
+    void Thread::setName( std::string name )
     {
         s_info->m_name = name;
         setThreadName( name.c_str( ) );

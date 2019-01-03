@@ -13,13 +13,13 @@
 
 */
 
-#include <cpp/data/ByteOrder.h>
-#include <cpp/data/RegexMatch.h>
-#include <cpp/data/Integer.h>
-#include <cpp/data/Float.h>
-#include <cpp/process/Exception.h>
-#include <cpp/data/Memory.h>
-#include <cpp/data/String.h>
+#include "ByteOrder.h"
+#include "RegexMatch.h"
+#include "Integer.h"
+#include "Float.h"
+#include "Memory.h"
+#include "String.h"
+#include "../process/Exception.h"
 
 
 

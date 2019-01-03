@@ -1,6 +1,6 @@
-#include "../process/Exception.h"
 #include "Integer.h"
 #include "String.h"
+#include "../process/Exception.h"
 
 namespace cpp
 {

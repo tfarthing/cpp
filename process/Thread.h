@@ -40,13 +40,13 @@ namespace cpp
 		static bool					isInterrupted( );
 		static void					checkInterrupt( );
 		static void					clearInterrupt( );
-        static String				name( );
-        static void					setName( String name );
+        static std::string			name( );
+        static void					setName( std::string name );
 
     private:
         friend class Lock;
         friend class RecursiveLock;
-		static void					enterWait( LockEvent * waitEvent );
+		static void					enterWait( std::function<void( )> waitEvent );
 		static void					leaveWait( );
 
     private:
@@ -59,10 +59,10 @@ namespace cpp
 			void					checkInterrupt( );
 			void					checkException( );
 
-			String					m_name;
+			std::string				m_name;
             std::exception_ptr		m_exception;
             std::atomic_bool		m_isInterrupted;
-            LockEvent *				m_waitEvent;
+            std::function<void()>	m_waitEvent;
         };
 
 	private:
@@ -125,7 +125,7 @@ namespace cpp
 	}
 
 
-	void Thread::join( bool checkFlag = false )
+	void Thread::join( bool checkFlag )
 	{
 		if ( isRunning( ) ) 
 			{ m_thread.join( ); } 
@@ -197,10 +197,10 @@ namespace cpp
 		{ s_info->m_isInterrupted = false; }
 
 
-	void Thread::enterWait( LockEvent * waitEvent )
+	void Thread::enterWait( std::function<void( )> waitEvent )
 	{ 
 		assert( s_info->m_waitEvent == nullptr ); 
-		s_info->m_waitEvent = waitEvent; 
+		s_info->m_waitEvent = std::move( waitEvent ); 
 		checkInterrupt( ); 
 	}
 
@@ -223,7 +223,7 @@ namespace cpp
 	{
 		m_isInterrupted.store( true ); 
 		if ( m_waitEvent ) 
-			{ m_waitEvent->notifyAll( ); }
+			{ m_waitEvent( ); }
 	}
 
 

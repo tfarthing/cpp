@@ -1,12 +1,13 @@
 #ifndef TEST
 
-#include <cpp/util/BitData.h>
 #include "DataMap.h"
 
 namespace cpp
 {
 
     
+
+	/*
     void encodeBinary( ReadBuffer & buffer, const cpp::DataMap & value, ByteOrder byteOrder )
     {
         buffer.putBinary( (uint32_t)value.size( ), byteOrder );
@@ -32,6 +33,7 @@ namespace cpp
             value.insert_or_assign( k, v );
         }
     }
+	*/
 
 }
 

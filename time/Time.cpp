@@ -31,9 +31,9 @@ namespace cpp
 	}
 
 
-	Time::operator Time::clock_t::time_point( ) const
+	Time::clock_t::time_point Time::to_time_point( ) const
 	{
-		return clock_t::time_point{ ( std::chrono::microseconds )m_sinceEpoch };
+		return clock_t::time_point{ m_sinceEpoch.to_duration( ) };
 	}
 
 

@@ -48,8 +48,7 @@ namespace cpp
 		int64_t						micros( ) const;
 
 		double						toSeconds( ) const;
-									operator std::chrono::microseconds( ) const;
-
+		std::chrono::microseconds	to_duration( ) const;
 		std::string					toString( ) const;
 
 		static int					compare( const Duration & lhs, const Duration & rhs );
@@ -123,7 +122,7 @@ namespace cpp
 	inline double Duration::toSeconds( ) const
 		{ assert( !isInfinite( ) ); return (double)m_microseconds / 1000000.0; }
 
-	inline Duration::operator std::chrono::microseconds( ) const
+	inline std::chrono::microseconds Duration::to_duration( ) const
 		{ assert( !isInfinite( ) ); return std::chrono::microseconds{ m_microseconds }; }
 
 	inline int Duration::compare( const Duration & lhs, const Duration & rhs )

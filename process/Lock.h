@@ -10,12 +10,6 @@
 namespace cpp
 {
 
-    struct LockEvent
-    {
-        virtual void notifyOne( ) = 0;
-        virtual void notifyAll( ) = 0;
-    };
-
     class Mutex;
     class Lock
     {
@@ -62,14 +56,13 @@ namespace cpp
     };
 
     class Mutex
-        : public LockEvent
     {
     public:
         Lock lock( bool allowInterrupt = true );
         Lock tryLock( bool allowInterrupt = true );
 
-        void notifyOne( ) override;
-        void notifyAll( ) override;
+        void notifyOne( );
+        void notifyAll( );
 
         std::mutex & getMutex( );
         std::condition_variable & getCvar( );
@@ -126,14 +119,13 @@ namespace cpp
     };
 
     class RecursiveMutex
-        : public LockEvent
     {
     public:
         RecursiveLock lock( bool allowInterrupt = true );
         RecursiveLock tryLock( bool allowInterrupt = true );
 
-        void notifyOne( ) override;
-        void notifyAll( ) override;
+        void notifyOne( );
+        void notifyAll( );
 
         std::recursive_mutex & getMutex( );
         std::condition_variable_any & getCvar( );

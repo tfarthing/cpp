@@ -79,12 +79,6 @@
     <ClInclude Include="platform\windows\WindowsRegistry.h">
       <Filter>platform\windows</Filter>
     </ClInclude>
-    <ClInclude Include="util\Log.h">
-      <Filter>util</Filter>
-    </ClInclude>
-    <ClInclude Include="util\LogFilter.h">
-      <Filter>util</Filter>
-    </ClInclude>
     <ClInclude Include="util\PropertyFile.h">
       <Filter>util</Filter>
     </ClInclude>
@@ -98,67 +92,19 @@
       <Filter>util</Filter>
     </ClInclude>
     <ClInclude Include="util\TimeoutSet.h" />
-    <ClInclude Include="util\DataFile.h" />
     <ClInclude Include="meta\Test.h">
       <Filter>meta</Filter>
     </ClInclude>
     <ClInclude Include="cpp.h" />
     <ClInclude Include="Data.h" />
-    <ClInclude Include="data\ByteOrder.h" />
-    <ClInclude Include="data\Float.h" />
-    <ClInclude Include="data\Integer.h" />
-    <ClInclude Include="data\Memory.h" />
-    <ClInclude Include="data\RegexMatch.h" />
-    <ClInclude Include="data\Size.h" />
-    <ClInclude Include="data\String.h" />
-    <ClInclude Include="data\DataMap.h" />
-    <ClInclude Include="data\DataBuffer.h">
-      <Filter>util</Filter>
-    </ClInclude>
-    <ClInclude Include="data\IndexedSet.h">
-      <Filter>util</Filter>
-    </ClInclude>
     <ClInclude Include="data\Path.h">
       <Filter>util</Filter>
     </ClInclude>
-    <ClInclude Include="text\Utf16.h">
-      <Filter>util</Filter>
-    </ClInclude>
-    <ClInclude Include="text\Unicode.h">
-      <Filter>util</Filter>
-    </ClInclude>
-    <ClInclude Include="text\Utf8.h">
-      <Filter>util</Filter>
-    </ClInclude>
-    <ClInclude Include="time\Date.h">
-      <Filter>chrono</Filter>
-    </ClInclude>
-    <ClInclude Include="time\DateTime.h">
-      <Filter>chrono</Filter>
-    </ClInclude>
-    <ClInclude Include="time\Duration.h">
-      <Filter>chrono</Filter>
-    </ClInclude>
-    <ClInclude Include="time\Time.h">
-      <Filter>chrono</Filter>
-    </ClInclude>
-    <ClInclude Include="time\Timer.h">
-      <Filter>chrono</Filter>
-    </ClInclude>
-    <ClInclude Include="file\File.h">
-      <Filter>io\file</Filter>
-    </ClInclude>
-    <ClInclude Include="file\FileInfo.h">
-      <Filter>io\file</Filter>
-    </ClInclude>
-    <ClInclude Include="file\FilePath.h">
-      <Filter>io\file</Filter>
-    </ClInclude>
     <ClInclude Include="network\Http.h">
-      <Filter>io\network</Filter>
+      <Filter>network</Filter>
     </ClInclude>
     <ClInclude Include="network\Tcp.h">
-      <Filter>io\network</Filter>
+      <Filter>network</Filter>
     </ClInclude>
     <ClInclude Include="io\Input.h">
       <Filter>io</Filter>
@@ -169,8 +115,6 @@
     <ClInclude Include="io\AsyncIO.h">
       <Filter>io</Filter>
     </ClInclude>
-    <ClInclude Include="process\Program.h" />
-    <ClInclude Include="process\Exception.h" />
     <ClInclude Include="io\reader\ByteReader.h">
       <Filter>io\reader</Filter>
     </ClInclude>
@@ -181,16 +125,91 @@
       <Filter>io\reader</Filter>
     </ClInclude>
     <ClInclude Include="util\Bit.h" />
-    <ClInclude Include="file\MemoryFile.h" />
-    <ClInclude Include="data\DataArray.h" />
-    <ClInclude Include="process\Platform.h" />
+    <ClInclude Include="time\Date.h">
+      <Filter>time</Filter>
+    </ClInclude>
+    <ClInclude Include="time\DateTime.h">
+      <Filter>time</Filter>
+    </ClInclude>
+    <ClInclude Include="time\Duration.h">
+      <Filter>time</Filter>
+    </ClInclude>
+    <ClInclude Include="time\Time.h">
+      <Filter>time</Filter>
+    </ClInclude>
+    <ClInclude Include="time\Timer.h">
+      <Filter>time</Filter>
+    </ClInclude>
+    <ClInclude Include="data\String.h">
+      <Filter>data</Filter>
+    </ClInclude>
+    <ClInclude Include="data\Size.h">
+      <Filter>data</Filter>
+    </ClInclude>
+    <ClInclude Include="data\RegexMatch.h">
+      <Filter>data</Filter>
+    </ClInclude>
+    <ClInclude Include="data\Memory.h">
+      <Filter>data</Filter>
+    </ClInclude>
+    <ClInclude Include="data\Integer.h">
+      <Filter>data</Filter>
+    </ClInclude>
+    <ClInclude Include="data\Float.h">
+      <Filter>data</Filter>
+    </ClInclude>
+    <ClInclude Include="data\DataMap.h">
+      <Filter>data</Filter>
+    </ClInclude>
+    <ClInclude Include="data\DataArray.h">
+      <Filter>data</Filter>
+    </ClInclude>
+    <ClInclude Include="data\ByteOrder.h">
+      <Filter>data</Filter>
+    </ClInclude>
+    <ClInclude Include="process\Program.h">
+      <Filter>process</Filter>
+    </ClInclude>
+    <ClInclude Include="process\Exception.h">
+      <Filter>process</Filter>
+    </ClInclude>
+    <ClInclude Include="process\Platform.h">
+      <Filter>process</Filter>
+    </ClInclude>
+    <ClInclude Include="text\Utf16.h">
+      <Filter>text</Filter>
+    </ClInclude>
+    <ClInclude Include="text\Unicode.h">
+      <Filter>text</Filter>
+    </ClInclude>
+    <ClInclude Include="text\Utf8.h">
+      <Filter>text</Filter>
+    </ClInclude>
+    <ClInclude Include="data\DataBuffer.h">
+      <Filter>data</Filter>
+    </ClInclude>
+    <ClInclude Include="data\IndexedSet.h">
+      <Filter>data</Filter>
+    </ClInclude>
+    <ClInclude Include="util\Log.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="util\LogFilter.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="file\MemoryFile.h">
+      <Filter>file</Filter>
+    </ClInclude>
+    <ClInclude Include="util\DataFile.h">
+      <Filter>file</Filter>
+    </ClInclude>
+    <ClInclude Include="process\Process-Pipe.h" />
+    <ClInclude Include="process\Bus.h" />
+    <ClInclude Include="file\Files.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="io">
       <UniqueIdentifier>{9af4e036-ea04-4e0c-96b4-0d657b854f66}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="chrono">
-      <UniqueIdentifier>{7ab2b932-33cd-4db8-96a9-74926206deaa}</UniqueIdentifier>
     </Filter>
     <Filter Include="util">
       <UniqueIdentifier>{e9d0db51-5e43-4381-9f4d-e53c0b9d82b3}</UniqueIdentifier>
@@ -213,14 +232,20 @@
     <Filter Include="platform\windows">
       <UniqueIdentifier>{6e79ccef-1391-4d0e-9a9d-cfc7e20bdd6d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ui">
-      <UniqueIdentifier>{af946762-96be-4cdd-9f97-bb0e7a307394}</UniqueIdentifier>
+    <Filter Include="time">
+      <UniqueIdentifier>{3544d44a-2ce0-4ce4-8cc0-b1def9a77061}</UniqueIdentifier>
     </Filter>
-    <Filter Include="io\network">
+    <Filter Include="data">
+      <UniqueIdentifier>{4b8e3ac2-a7d2-4aeb-994a-f8e7404b969f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="file">
+      <UniqueIdentifier>{7ff68d5d-8e29-447f-9625-793e990cec9c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="network">
       <UniqueIdentifier>{ba952aee-0777-4a3e-b2a3-6f4319e4c75e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="io\file">
-      <UniqueIdentifier>{7ff68d5d-8e29-447f-9625-793e990cec9c}</UniqueIdentifier>
+    <Filter Include="text">
+      <UniqueIdentifier>{f6ce26d3-7490-40e7-9783-8a892091160b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -266,12 +291,6 @@
     <ClCompile Include="io\IOPipe.cpp">
       <Filter>io</Filter>
     </ClCompile>
-    <ClCompile Include="util\Log.cpp">
-      <Filter>util</Filter>
-    </ClCompile>
-    <ClCompile Include="util\LogFilter.cpp">
-      <Filter>util</Filter>
-    </ClCompile>
     <ClCompile Include="io\StandardIO.cpp">
       <Filter>io</Filter>
     </ClCompile>
@@ -290,55 +309,17 @@
     <ClCompile Include="util\BitDB.cpp">
       <Filter>util</Filter>
     </ClCompile>
-    <ClCompile Include="util\DataFile.cpp" />
     <ClCompile Include="meta\Test.cpp">
       <Filter>meta</Filter>
-    </ClCompile>
-    <ClCompile Include="data\ByteOrder.cpp" />
-    <ClCompile Include="data\Memory.cpp" />
-    <ClCompile Include="data\String.cpp" />
-    <ClCompile Include="data\DataMap.cpp" />
-    <ClCompile Include="data\DataBuffer.cpp">
-      <Filter>util</Filter>
-    </ClCompile>
-    <ClCompile Include="data\IndexedSet.cpp">
-      <Filter>util</Filter>
     </ClCompile>
     <ClCompile Include="data\Path.cpp">
       <Filter>util</Filter>
     </ClCompile>
-    <ClCompile Include="text\Utf8.cpp">
-      <Filter>util</Filter>
-    </ClCompile>
-    <ClCompile Include="text\Utf16.cpp">
-      <Filter>util</Filter>
-    </ClCompile>
-    <ClCompile Include="time\Date.cpp">
-      <Filter>chrono</Filter>
-    </ClCompile>
-    <ClCompile Include="time\DateTime.cpp">
-      <Filter>chrono</Filter>
-    </ClCompile>
-    <ClCompile Include="time\Duration.cpp">
-      <Filter>chrono</Filter>
-    </ClCompile>
-    <ClCompile Include="time\Time.cpp">
-      <Filter>chrono</Filter>
-    </ClCompile>
-    <ClCompile Include="file\File.cpp">
-      <Filter>io\file</Filter>
-    </ClCompile>
-    <ClCompile Include="file\FileInfo.cpp">
-      <Filter>io\file</Filter>
-    </ClCompile>
-    <ClCompile Include="file\FilePath.cpp">
-      <Filter>io\file</Filter>
-    </ClCompile>
     <ClCompile Include="network\Http.cpp">
-      <Filter>io\network</Filter>
+      <Filter>network</Filter>
     </ClCompile>
     <ClCompile Include="network\Tcp.cpp">
-      <Filter>io\network</Filter>
+      <Filter>network</Filter>
     </ClCompile>
     <ClCompile Include="io\Input.cpp">
       <Filter>io</Filter>
@@ -349,7 +330,6 @@
     <ClCompile Include="io\AsyncIO.cpp">
       <Filter>io</Filter>
     </ClCompile>
-    <ClCompile Include="process\Program.cpp" />
     <ClCompile Include="io\reader\ByteReader.cpp">
       <Filter>io\reader</Filter>
     </ClCompile>
@@ -359,11 +339,67 @@
     <ClCompile Include="io\reader\LineReader.cpp">
       <Filter>io\reader</Filter>
     </ClCompile>
-    <ClCompile Include="data\Float.cpp" />
-    <ClCompile Include="data\Integer.cpp" />
     <ClCompile Include="util\Bit.cpp" />
-    <ClCompile Include="file\MemoryFile.cpp" />
-    <ClCompile Include="data\DataArray.cpp" />
+    <ClCompile Include="time\Date.cpp">
+      <Filter>time</Filter>
+    </ClCompile>
+    <ClCompile Include="time\DateTime.cpp">
+      <Filter>time</Filter>
+    </ClCompile>
+    <ClCompile Include="time\Duration.cpp">
+      <Filter>time</Filter>
+    </ClCompile>
+    <ClCompile Include="time\Time.cpp">
+      <Filter>time</Filter>
+    </ClCompile>
+    <ClCompile Include="data\String.cpp">
+      <Filter>data</Filter>
+    </ClCompile>
+    <ClCompile Include="data\Memory.cpp">
+      <Filter>data</Filter>
+    </ClCompile>
+    <ClCompile Include="data\Integer.cpp">
+      <Filter>data</Filter>
+    </ClCompile>
+    <ClCompile Include="data\Float.cpp">
+      <Filter>data</Filter>
+    </ClCompile>
+    <ClCompile Include="data\DataMap.cpp">
+      <Filter>data</Filter>
+    </ClCompile>
+    <ClCompile Include="data\DataArray.cpp">
+      <Filter>data</Filter>
+    </ClCompile>
+    <ClCompile Include="data\ByteOrder.cpp">
+      <Filter>data</Filter>
+    </ClCompile>
+    <ClCompile Include="process\Program.cpp">
+      <Filter>process</Filter>
+    </ClCompile>
+    <ClCompile Include="text\Utf8.cpp">
+      <Filter>text</Filter>
+    </ClCompile>
+    <ClCompile Include="text\Utf16.cpp">
+      <Filter>text</Filter>
+    </ClCompile>
+    <ClCompile Include="data\DataBuffer.cpp">
+      <Filter>data</Filter>
+    </ClCompile>
+    <ClCompile Include="data\IndexedSet.cpp">
+      <Filter>data</Filter>
+    </ClCompile>
+    <ClCompile Include="util\Log.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="util\LogFilter.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="file\MemoryFile.cpp">
+      <Filter>file</Filter>
+    </ClCompile>
+    <ClCompile Include="util\DataFile.cpp">
+      <Filter>file</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="meta\cpp.natvis">

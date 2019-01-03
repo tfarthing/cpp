@@ -16,30 +16,29 @@ namespace cpp
     public:
         typedef std::chrono::steady_clock clock_t;
 
-		static Time				now( );
-		static Time				inFuture( Duration duration );
-		static Time				inPast( Duration duration );
+		static Time						now( );
+		static Time						inFuture( Duration duration );
+		static Time						inPast( Duration duration );
 
-								Time( );
-								Time( const Time & copy );
-								Time( const DateTime & dateTime );
-								Time( const clock_t::time_point & timepoint );
-								Time( Duration sinceEpoch );
+										Time( );
+										Time( const Time & copy );
+										Time( const DateTime & dateTime );
+										Time( const clock_t::time_point & timepoint );
+										Time( Duration sinceEpoch );
 
-		Time &					operator=( const Time & copy );
-		Time &					operator=( const DateTime & datetime );
+		Time &							operator=( const Time & copy );
+		Time &							operator=( const DateTime & datetime );
 
-								operator Time::clock_t::time_point( ) const;
+		Duration						sinceEpoch( ) const;
 
-		Duration				sinceEpoch( ) const;
+		Time::clock_t::time_point		to_time_point( ) const;
+		std::string						toString( const char * format ) const;
+		std::string						toString( ) const;
 
-		std::string				toString( const char * format ) const;
-		std::string				toString( ) const;
-
-		static int				compare( const Time & lhs, const Time & rhs );
+		static int						compare( const Time & lhs, const Time & rhs );
 
     private:
-        Duration				m_sinceEpoch;
+        Duration						m_sinceEpoch;
     };
 
 

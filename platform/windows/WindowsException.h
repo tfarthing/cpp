@@ -1,9 +1,10 @@
 #pragma once
 
-#include <cpp/Exception.h>
-#include <cpp/Integer.h>
-#include <cpp/Platform.h>
-#include <cpp/util/Utf16.h>
+#include "../../data/Integer.h"
+#include "../../data/String.h"
+#include "../../process/Exception.h"
+#include "../../text/Utf16.h"
+#include "../../process/Platform.h"
 
 namespace cpp
 {

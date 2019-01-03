@@ -1,7 +1,7 @@
 #pragma once
 
-#include <cpp/data/Integer.h>
-#include <cpp/process/Exception.h>
+#include "Integer.h"
+#include "../process/Exception.h"
 
 namespace cpp
 {

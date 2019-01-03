@@ -2,8 +2,7 @@
 
 #include <map>
 
-#include <cpp/types.h>
-#include <cpp/Exception.h>
+#include "../process/Exception.h"
 
 namespace cpp
 {

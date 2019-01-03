@@ -12,7 +12,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="data\DataArray.h" />
+    <ClInclude Include="file\Files.h" />
     <ClInclude Include="file\MemoryFile.h" />
+    <ClInclude Include="process\Bus.h" />
+    <ClInclude Include="process\Process-Pipe.h" />
     <ClInclude Include="time\Date.h" />
     <ClInclude Include="time\DateTime.h" />
     <ClInclude Include="time\Duration.h" />
@@ -27,9 +30,6 @@
     <ClInclude Include="data\Float.h" />
     <ClInclude Include="data\Integer.h" />
     <ClInclude Include="io\AsyncIO.h" />
-    <ClInclude Include="file\File.h" />
-    <ClInclude Include="file\FileInfo.h" />
-    <ClInclude Include="file\FilePath.h" />
     <ClInclude Include="io\IOBuffer.h" />
     <ClInclude Include="io\Input.h" />
     <ClInclude Include="io\MemoryInput.h" />
@@ -96,9 +96,6 @@
     <ClCompile Include="time\Time.cpp" />
     <ClCompile Include="data\ByteOrder.cpp" />
     <ClCompile Include="io\AsyncIO.cpp" />
-    <ClCompile Include="file\File.cpp" />
-    <ClCompile Include="file\FileInfo.cpp" />
-    <ClCompile Include="file\FilePath.cpp" />
     <ClCompile Include="io\Input.cpp" />
     <ClCompile Include="io\IOBuffer.cpp" />
     <ClCompile Include="io\IOPipe.cpp" />

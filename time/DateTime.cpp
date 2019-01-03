@@ -90,14 +90,14 @@ namespace cpp
 	}
 
 
-	DateTime::operator DateTime::clock_t::time_point( ) const
+	DateTime::clock_t::time_point DateTime::to_time_point( ) const
 	{
-		return clock_t::time_point{ (std::chrono::microseconds)m_sinceEpoch };
+		return clock_t::time_point{ m_sinceEpoch.to_duration( ) };
 	}
 
 	time_t DateTime::to_time_t( ) const
 	{
-		return clock_t::to_time_t( clock_t::time_point{ ( std::chrono::microseconds )m_sinceEpoch } );
+		return clock_t::to_time_t( clock_t::time_point{ m_sinceEpoch.to_duration( ) } );
 	}
 
 	Date DateTime::toDate( bool isLocalTime ) const
@@ -115,7 +115,9 @@ namespace cpp
 
 	std::string DateTime::toString( bool isLocalTime ) const
 	{
-		return toString( "%F %X", isLocalTime );
+		std::string result = toString( "%Y-%m-%d %H:%M:%S", isLocalTime );
+		result += "." + Integer::toDecimal( m_sinceEpoch.millis( ), 3, true );
+		return result;
 	}
 
 

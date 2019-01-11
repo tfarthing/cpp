@@ -3,67 +3,68 @@
 #include <atomic>
 
 #include "Exception.h"
-#include <Windows.h>
+#include "Platform.h"
 
 
 
 BOOL APIENTRY MyCreatePipeEx( OUT LPHANDLE lpReadPipe, OUT LPHANDLE lpWritePipe, IN LPSECURITY_ATTRIBUTES lpPipeAttributes, IN DWORD nSize, DWORD dwReadMode, DWORD dwWriteMode );
 
-
-
-struct Pipe
+namespace cpp
 {
-	Pipe( )
-		: input( INVALID_HANDLE_VALUE ), output( INVALID_HANDLE_VALUE )
-	{
-	}
 
-	Pipe( size_t buflen )
-		: input( INVALID_HANDLE_VALUE ), output( INVALID_HANDLE_VALUE )
+	struct Pipe
 	{
-		SECURITY_ATTRIBUTES attrs;
-		attrs.nLength = sizeof( SECURITY_ATTRIBUTES );
-		attrs.bInheritHandle = TRUE;
-		attrs.lpSecurityDescriptor = NULL;
-
-		check<std::exception>( MyCreatePipeEx( &input, &output, &attrs, (DWORD)buflen, FILE_FLAG_OVERLAPPED, FILE_FLAG_OVERLAPPED ), 
-			"Pipe::MyCreatePipeEx() failed" );
-	}
-
-	void close( )
-	{
-		releaseInput( );
-		releaseOutput( );
-	}
-
-	void releaseInput( )
-	{
-		if ( input != INVALID_HANDLE_VALUE )
+		Pipe( )
+			: input( INVALID_HANDLE_VALUE ), output( INVALID_HANDLE_VALUE )
 		{
-			CloseHandle( input );
-			input = INVALID_HANDLE_VALUE;
 		}
-	}
 
-	void releaseOutput( )
-	{
-		if ( output != INVALID_HANDLE_VALUE )
+		Pipe( size_t buflen )
+			: input( INVALID_HANDLE_VALUE ), output( INVALID_HANDLE_VALUE )
 		{
-			CloseHandle( output );
-			output = INVALID_HANDLE_VALUE;
+			SECURITY_ATTRIBUTES attrs;
+			attrs.nLength = sizeof( SECURITY_ATTRIBUTES );
+			attrs.bInheritHandle = TRUE;
+			attrs.lpSecurityDescriptor = NULL;
+
+			check<std::exception>( MyCreatePipeEx( &input, &output, &attrs, (DWORD)buflen, FILE_FLAG_OVERLAPPED, FILE_FLAG_OVERLAPPED ),
+				"Pipe::MyCreatePipeEx() failed" );
 		}
-	}
 
-	static void setNoInherit( HANDLE handle )
-	{
-		check<std::exception>( SetHandleInformation( handle, HANDLE_FLAG_INHERIT, 0 ), "Pipe::SetHandleInformation() failed" );
-	}
+		void close( )
+		{
+			releaseInput( );
+			releaseOutput( );
+		}
 
-	HANDLE input;
-	HANDLE output;
-};
+		void releaseInput( )
+		{
+			if ( input != INVALID_HANDLE_VALUE )
+			{
+				CloseHandle( input );
+				input = INVALID_HANDLE_VALUE;
+			}
+		}
 
+		void releaseOutput( )
+		{
+			if ( output != INVALID_HANDLE_VALUE )
+			{
+				CloseHandle( output );
+				output = INVALID_HANDLE_VALUE;
+			}
+		}
 
+		static void setNoInherit( HANDLE handle )
+		{
+			check<std::exception>( SetHandleInformation( handle, HANDLE_FLAG_INHERIT, 0 ), "Pipe::SetHandleInformation() failed" );
+		}
+
+		HANDLE input;
+		HANDLE output;
+	};
+
+}
 
 /*++
 Routine Description:

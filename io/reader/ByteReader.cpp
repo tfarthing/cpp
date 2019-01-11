@@ -1,5 +1,5 @@
-#include <cpp/io/Input.h>
-#include <cpp/io/reader/ByteReader.h>
+#include "../Input.h"
+#include "ByteReader.h"
 
 namespace cpp
 {
@@ -30,8 +30,8 @@ namespace cpp
         Duration m_timeout;
     };
 
-    ByteReader::ByteReader( const Input & input, size_t buflen, Duration timeout )
-        : m_detail( input, buflen, timeout ) 
+	ByteReader::ByteReader( const Input & input, size_t buflen, Duration timeout )
+		: m_detail( std::make_shared<Detail>( input, buflen, timeout ) )
     { 
     }
 
@@ -58,7 +58,7 @@ namespace cpp
             m_detail->m_position += result.data( ).length( );
             return result;
         }
-        return Cursor{ m_detail->m_position, Memory::Null };
+        return Cursor{ m_detail->m_position, nullptr };
     }
 
     String ByteReader::getAll( )

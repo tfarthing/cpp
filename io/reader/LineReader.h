@@ -1,8 +1,6 @@
 #pragma once
 
-#include <cpp/Object.h>
-#include <cpp/String.h>
-#include <cpp/util/Handle.h>
+#include "../../data/String.h"
 
 namespace cpp
 {
@@ -10,7 +8,6 @@ namespace cpp
     class Input;
 
     class LineReader
-        : public Object
     {
     public:
         class Cursor
@@ -64,7 +61,7 @@ namespace cpp
         };
 
     public:
-        LineReader( const Input & input, size_t buflen, Duration timeout = Duration::infinite );
+        LineReader( const Input & input, size_t buflen, Duration timeout = Duration::Infinite );
 
         bool isOpen( ) const;
         iterator begin( );
@@ -76,7 +73,7 @@ namespace cpp
 
     private:
         struct Detail;
-        Handle<Detail> m_detail;
+        std::shared_ptr<Detail> m_detail;
     };
 
 }

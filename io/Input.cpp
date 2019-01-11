@@ -1,6 +1,6 @@
-#include <cpp/Exception.h>
-#include <cpp/io/Input.h>
-#include <cpp/util/DataBuffer.h>
+#include "../process/Exception.h"
+#include "Input.h"
+#include "../data/DataBuffer.h"
 
 namespace cpp
 {
@@ -8,7 +8,7 @@ namespace cpp
     //  
     String Input::getAll( )
     {
-        DataBuffer result{ 64 * 1024 };
+        StringBuffer result{ 64 * 1024 };
         while ( read( result ).length( ) > 0 )
         {
             if ( result.putable( ).isEmpty( ) )

@@ -13,29 +13,8 @@
     <ClInclude Include="process\Lock.h">
       <Filter>process</Filter>
     </ClInclude>
-    <ClInclude Include="process\System.h">
-      <Filter>process</Filter>
-    </ClInclude>
     <ClInclude Include="util\Properties.h">
       <Filter>util</Filter>
-    </ClInclude>
-    <ClInclude Include="io\StandardInput.h">
-      <Filter>io</Filter>
-    </ClInclude>
-    <ClInclude Include="io\StringInput.h">
-      <Filter>io</Filter>
-    </ClInclude>
-    <ClInclude Include="io\MemoryInput.h">
-      <Filter>io</Filter>
-    </ClInclude>
-    <ClInclude Include="io\IOBuffer.h">
-      <Filter>io</Filter>
-    </ClInclude>
-    <ClInclude Include="io\StandardOutput.h">
-      <Filter>io</Filter>
-    </ClInclude>
-    <ClInclude Include="process\ThreadGroup.h">
-      <Filter>process</Filter>
     </ClInclude>
     <ClInclude Include="math\XY.h">
       <Filter>math</Filter>
@@ -73,17 +52,11 @@
     <ClInclude Include="platform\windows\WindowsMutex.h">
       <Filter>platform\windows</Filter>
     </ClInclude>
-    <ClInclude Include="io\IOPipe.h">
-      <Filter>io</Filter>
-    </ClInclude>
     <ClInclude Include="platform\windows\WindowsRegistry.h">
       <Filter>platform\windows</Filter>
     </ClInclude>
     <ClInclude Include="util\PropertyFile.h">
       <Filter>util</Filter>
-    </ClInclude>
-    <ClInclude Include="io\StringOutput.h">
-      <Filter>io</Filter>
     </ClInclude>
     <ClInclude Include="util\BitData.h">
       <Filter>util</Filter>
@@ -110,9 +83,6 @@
       <Filter>io</Filter>
     </ClInclude>
     <ClInclude Include="io\Output.h">
-      <Filter>io</Filter>
-    </ClInclude>
-    <ClInclude Include="io\AsyncIO.h">
       <Filter>io</Filter>
     </ClInclude>
     <ClInclude Include="io\reader\ByteReader.h">
@@ -204,8 +174,8 @@
       <Filter>file</Filter>
     </ClInclude>
     <ClInclude Include="process\Process-Pipe.h" />
-    <ClInclude Include="process\Bus.h" />
     <ClInclude Include="file\Files.h" />
+    <ClInclude Include="process\AsyncIO.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="io">
@@ -258,12 +228,6 @@
     <ClCompile Include="util\Properties.cpp">
       <Filter>util</Filter>
     </ClCompile>
-    <ClCompile Include="io\IOBuffer.cpp">
-      <Filter>io</Filter>
-    </ClCompile>
-    <ClCompile Include="process\ThreadGroup.cpp">
-      <Filter>process</Filter>
-    </ClCompile>
     <ClCompile Include="math\Alignment.cpp">
       <Filter>math</Filter>
     </ClCompile>
@@ -287,12 +251,6 @@
     </ClCompile>
     <ClCompile Include="process\Process.cpp">
       <Filter>process</Filter>
-    </ClCompile>
-    <ClCompile Include="io\IOPipe.cpp">
-      <Filter>io</Filter>
-    </ClCompile>
-    <ClCompile Include="io\StandardIO.cpp">
-      <Filter>io</Filter>
     </ClCompile>
     <ClCompile Include="platform\windows\WindowsGraphics.cpp">
       <Filter>platform\windows</Filter>
@@ -325,9 +283,6 @@
       <Filter>io</Filter>
     </ClCompile>
     <ClCompile Include="io\Output.cpp">
-      <Filter>io</Filter>
-    </ClCompile>
-    <ClCompile Include="io\AsyncIO.cpp">
       <Filter>io</Filter>
     </ClCompile>
     <ClCompile Include="io\reader\ByteReader.cpp">

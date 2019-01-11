@@ -1,8 +1,8 @@
 #pragma once
 
 #include <memory>
-#include <cpp/Memory.h>
-#include <cpp/String.h>
+#include "../data/Memory.h"
+#include "../data/String.h"
 
 namespace cpp
 {
@@ -31,7 +31,7 @@ namespace cpp
         
         //  block until something is written
         Memory write( const Memory & src )
-            { return m_sink ? m_sink->write( src ) : Memory::Null; }
+            { return m_sink ? m_sink->write( src ) : nullptr; }
 
         //  block until all is written
         Memory put( const Memory & src );

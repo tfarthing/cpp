@@ -1,9 +1,7 @@
 #pragma once
 
 #include <regex>
-#include <cpp/Object.h>
-#include <cpp/String.h>
-#include <cpp/util/Handle.h>
+#include "../../data/String.h"
 
 namespace cpp
 {
@@ -11,7 +9,6 @@ namespace cpp
     class Input;
 
     class SearchReader
-        : public Object
     {
     public:
         class Cursor
@@ -65,7 +62,7 @@ namespace cpp
         };
 
     public:
-        SearchReader( const Memory & regex, const Input & input, size_t buflen, Duration timeout = Duration::infinite );
+        SearchReader( const Memory & regex, const Input & input, size_t buflen, Duration timeout = Duration::Infinite );
 
         bool isOpen( ) const;
         iterator begin( );
@@ -75,7 +72,7 @@ namespace cpp
 
     private:
         struct Detail;
-        Handle<Detail> m_detail;
+        std::shared_ptr<Detail> m_detail;
     };
 
 }

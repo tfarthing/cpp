@@ -1,11 +1,11 @@
 #pragma once
 
 #include <memory>
-#include <cpp/Memory.h>
-#include <cpp/chrono/Duration.h>
-#include <cpp/io/reader/ByteReader.h>
-#include <cpp/io/reader/LineReader.h>
-#include <cpp/io/reader/SearchReader.h>
+#include "../data/Memory.h"
+#include "../time/Duration.h"
+#include "reader/ByteReader.h"
+#include "reader/LineReader.h"
+#include "reader/SearchReader.h"
 
 namespace cpp
 {
@@ -33,9 +33,9 @@ namespace cpp
             { return m_source && m_source->isOpen( ); }
         
         //  block until something is read, or null if timeout expires
-        Memory read( Memory dst, Duration timeout = Duration::infinite )
-            { return m_source ? m_source->read( dst, timeout ) : Memory::Null; }
-        Memory read( DataBuffer & dst, Duration timeout = Duration::infinite );
+        Memory read( Memory dst, Duration timeout = Duration::Infinite )
+            { return m_source ? m_source->read( dst, timeout ) : nullptr; }
+        Memory read( DataBuffer & dst, Duration timeout = Duration::Infinite );
 
         //  block until all is read
         Memory get( Memory dst );
@@ -54,11 +54,11 @@ namespace cpp
         */
 
         //  readers
-        ByteReader bytes( size_t buflen = 64 * 1024, Duration timeout = Duration::infinite )
+        ByteReader bytes( size_t buflen = 64 * 1024, Duration timeout = Duration::Infinite )
             { return ByteReader{ *this, buflen, timeout }; }
-        LineReader lines( size_t buflen = 64 * 1024, Duration timeout = Duration::infinite )
+        LineReader lines( size_t buflen = 64 * 1024, Duration timeout = Duration::Infinite )
             { return LineReader{ *this, buflen, timeout }; }
-        SearchReader search( Memory regex, size_t buflen = 64 * 1024, Duration timeout = Duration::infinite )
+        SearchReader search( Memory regex, size_t buflen = 64 * 1024, Duration timeout = Duration::Infinite )
             { return SearchReader{ regex, *this, buflen, timeout }; }
 
     public:

@@ -1,8 +1,8 @@
 #pragma once
 
-#include <cpp/types.h>
-#include <cpp/String.h>
-#include <cpp/math/XY.h>
+#include "../data/Float.h"
+#include "../data/String.h"
+#include "XY.h"
 
 namespace cpp
 {

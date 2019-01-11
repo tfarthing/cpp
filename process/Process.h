@@ -4,52 +4,54 @@
 #include <memory>
 #include <chrono>
 
-#include <asio/asio.hpp>
+#include "AsyncIO.h"
+#include "../time/Duration.h"
 
 
-
-class Process
+namespace cpp
 {
-public:
-	typedef std::function<void( std::string & recvBuffer )> RecvHandler;
-	typedef std::function<void( int32_t exitValue )> ExitHandler;
-	typedef std::chrono::milliseconds Duration;
-	typedef std::chrono::steady_clock::time_point Time;
 
-	static Process run( 
-		asio::io_context & io, 
-		std::string cmdline, 
-		std::string workingPath, 
-		RecvHandler onStdout, 
-		RecvHandler onStderr,
-		ExitHandler onExit );
-	
-	static Process runDetached( 
-		asio::io_context & io, 
-		std::string cmdline, 
-		std::string workingPath,
-		ExitHandler onExit);
+	class AsyncProcess
+	{
+	public:
+		typedef std::function<void( std::string & recvBuffer )> RecvHandler;
+		typedef std::function<void( int32_t exitValue )> ExitHandler;
+		typedef std::chrono::milliseconds Duration;
+		typedef std::chrono::steady_clock::time_point Time;
 
-	Process( );
-	Process( Process && move );
-	~Process( );
+		static AsyncProcess run(
+			asio::io_context & io,
+			std::string cmdline,
+			std::string workingPath,
+			RecvHandler onStdout,
+			RecvHandler onStderr,
+			ExitHandler onExit );
 
-	Process & operator=( Process && move );
+		static AsyncProcess runDetached(
+			asio::io_context & io,
+			std::string cmdline,
+			std::string workingPath,
+			ExitHandler onExit );
 
-	bool isRunning( ) const;
-	void send( std::string msg );
-	void detach( );
-	void close( );
+		AsyncProcess( );
+		AsyncProcess( AsyncProcess && move );
+		~AsyncProcess( );
 
-	void wait( );
-	bool waitFor( Duration timeout );
-	bool waitUntil( Time time );
+		AsyncProcess & operator=( AsyncProcess && move );
 
-	int32_t exitValue( ) const;
+		bool isRunning( ) const;
+		void send( std::string msg );
+		void detach( );
+		void close( );
 
-private:
-	struct Detail;
-	Process( std::shared_ptr<Detail> && detail );
+		int32_t exitValue( ) const;
 
-	std::shared_ptr<Detail> detail = nullptr;
-};
+	private:
+		struct Detail;
+		AsyncProcess( std::shared_ptr<Detail> && detail );
+
+		std::shared_ptr<Detail> detail = nullptr;
+	};
+
+
+}

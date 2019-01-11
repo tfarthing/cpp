@@ -1,8 +1,8 @@
 #ifndef TEST
 
-#include <cpp/io/Input.h>
-#include <cpp/io/reader/LineReader.h>
-#include <cpp/util/DataBuffer.h>
+#include "../../data/DataBuffer.h"
+#include "../Input.h"
+#include "LineReader.h"
 
 namespace cpp
 {
@@ -29,7 +29,7 @@ namespace cpp
         Input m_input;
         size_t m_position = 0;
         size_t m_lineNumber = 1;
-        DataBuffer m_buffer;
+		StringBuffer m_buffer;
         size_t m_findPos = 0;
         String m_fragment;
         bool m_resetFlag = false;
@@ -37,7 +37,7 @@ namespace cpp
     };
 
     LineReader::LineReader( const Input & input, size_t buflen, Duration timeout )
-        : m_detail(input, buflen, timeout)
+        : m_detail( std::make_shared<Detail>( input, buflen, timeout ) )
     {
         m_detail->m_input = input;
         m_detail->m_buffer.resize( buflen );

@@ -1,6 +1,6 @@
-#include <cpp/io/Input.h>
-#include <cpp/io/reader/SearchReader.h>
-#include <cpp/util/DataBuffer.h>
+#include "../../data/DataBuffer.h"
+#include "../Input.h"
+#include "SearchReader.h"
 
 namespace cpp
 {
@@ -28,7 +28,7 @@ namespace cpp
         std::regex m_regex;
         size_t m_position = 0;
         size_t m_lineNumber = 1;
-        DataBuffer m_buffer;
+        StringBuffer m_buffer;
         size_t m_findPos = 0;
         String m_fragment;
         bool m_resetFlag = false;
@@ -36,7 +36,7 @@ namespace cpp
     };
 
     SearchReader::SearchReader( const Memory & regex, const Input & input, size_t buflen, Duration timeout )
-        : m_detail( regex, input, buflen, timeout ) { }
+        : m_detail( std::make_shared<Detail>( regex, input, buflen, timeout ) ) { }
 
     bool SearchReader::isOpen( ) const
     {

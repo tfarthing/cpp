@@ -12,28 +12,28 @@ namespace cpp
 	class MemoryFile
 	{
 	public:
-		MemoryFile( );
-		MemoryFile( FilePath filename );
-		MemoryFile( FilePath filename, size_t maxSize, bool overwrite );
-		~MemoryFile( );
+								MemoryFile( );
+								MemoryFile( FilePath filename );
+								MemoryFile( FilePath filename, size_t maxSize, bool overwrite );
+								~MemoryFile( );
 
-		MemoryFile & open( FilePath filename );
-		MemoryFile & open( FilePath filename, size_t maxSize, bool overwrite );
-		void flush( );
-		void close( );
+		MemoryFile &			open( FilePath filename );
+		MemoryFile &			open( FilePath filename, size_t maxSize, bool overwrite );
+		void					flush( );
+		void					close( );
 
-		Memory get( );
-		const Memory get( ) const;
+		Memory					get( );
+		const Memory			get( ) const;
 
-		size_t length( ) const;
-
-	private:
-		void mapFile( );
+		size_t					length( ) const;
 
 	private:
-		HANDLE m_fileHandle = nullptr;
-		HANDLE m_mapHandle = nullptr;
-		char * m_mapView = nullptr;
+		void					mapFile( );
+
+	private:
+		HANDLE					m_fileHandle = nullptr;
+		HANDLE					m_mapHandle = nullptr;
+		char *					m_mapView = nullptr;
 	};
 
 

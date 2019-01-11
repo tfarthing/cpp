@@ -21,465 +21,440 @@ BOOL CreateProcessWithExplicitHandles(
 	__in         DWORD cHandlesToInherit,
 	__in_ecount( cHandlesToInherit ) HANDLE *rgHandlesToInherit );
 
-
-
-Process Process::run(
-	asio::io_context & io,
-	std::string cmdline,
-	std::string workingPath,
-	RecvHandler onStdout,
-	RecvHandler onStderr,
-	ExitHandler onExit )
+namespace cpp
 {
-	return Process{ std::make_shared<Detail>( io, cmdline, workingPath, onStdout, onStderr, onExit ) };
-}
 
-
-Process Process::runDetached(
-	asio::io_context & io,
-	std::string cmdline,
-	std::string workingPath,
-	ExitHandler onExit )
-{
-	return Process{ std::make_shared<Detail>( io, cmdline, workingPath, nullptr, nullptr, onExit ) };
-}
-
-
-
-std::wstring toUtf16( const std::string & utf8 )
-{
-	std::wstring utf16( utf8.size( ), L'\0' );
-	int len = MultiByteToWideChar( CP_UTF8, 0, utf8.data( ), (int)utf8.size( ), (LPWSTR)utf16.data( ), (int)utf16.size( ) );
-	utf16.resize( len );
-	return utf16;
-}
-
-
-
-struct Process::Detail
-	: public std::enable_shared_from_this<Process::Detail>
-{
-	Detail( 
+	AsyncProcess AsyncProcess::run(
 		asio::io_context & io,
 		std::string cmdline,
 		std::string workingPath,
 		RecvHandler onStdout,
 		RecvHandler onStderr,
-		ExitHandler onExit );
-	~Detail( );
+		ExitHandler onExit )
+	{
+		return AsyncProcess{ std::make_shared<Detail>( io, cmdline, workingPath, onStdout, onStderr, onExit ) };
+	}
 
-	void open( );
-	void recv( asio::windows::stream_handle & stream, std::string & buffer, RecvHandler & handler );
-	void send( std::string data );
-	void send( );
-	void wait( );
-	void waitUntil( Time time );
-	void close( bool wait = true );
-	void detach( );
-	bool isRunning( ) const;
-	
-	asio::io_context & io;
-	std::string cmdline;
-	std::string workingPath;
-	RecvHandler outputHandler;
-	RecvHandler errorHandler;
-	ExitHandler exitHandler;
 
-	bool runningFlag = false;
-	HANDLE processHandle = INVALID_HANDLE_VALUE;
-	Pipe inputPipe;
-	Pipe outputPipe;
-	Pipe errorPipe;
-	int32_t exitCode = -1;
-
-	asio::windows::object_handle processEvent;
-	asio::windows::stream_handle inputStream;
-	asio::windows::stream_handle outputStream;
-	asio::windows::stream_handle errorStream;
-	std::deque<std::string> inputBuffers;
-	std::string outputBuffer;
-	std::string errorBuffer;
-	bool isSending = false;
-
-	static HANDLE currentProcessGroup( );
-};
+	AsyncProcess AsyncProcess::runDetached(
+		asio::io_context & io,
+		std::string cmdline,
+		std::string workingPath,
+		ExitHandler onExit )
+	{
+		return AsyncProcess{ std::make_shared<Detail>( io, cmdline, workingPath, nullptr, nullptr, onExit ) };
+	}
 
 
 
-Process::Detail::Detail( 
-	asio::io_context & io_,
-	std::string cmdline_,
-	std::string workingPath_,
-	RecvHandler onStdout,
-	RecvHandler onStderr,
-	ExitHandler onExit ) : 
-		io( io_ ), 
-		cmdline( cmdline_ ), 
-		workingPath( workingPath_ ), 
-		outputHandler( onStdout ), 
-		errorHandler( onStderr ), 
-		exitHandler( onExit ), 
+	std::wstring toUtf16( const std::string & utf8 )
+	{
+		std::wstring utf16( utf8.size( ), L'\0' );
+		int len = MultiByteToWideChar( CP_UTF8, 0, utf8.data( ), (int)utf8.size( ), (LPWSTR)utf16.data( ), (int)utf16.size( ) );
+		utf16.resize( len );
+		return utf16;
+	}
+
+
+
+	struct AsyncProcess::Detail
+		: public std::enable_shared_from_this<AsyncProcess::Detail>
+	{
+		Detail(
+			asio::io_context & io,
+			std::string cmdline,
+			std::string workingPath,
+			RecvHandler onStdout,
+			RecvHandler onStderr,
+			ExitHandler onExit );
+		~Detail( );
+
+		void open( );
+		void recv( asio::windows::stream_handle & stream, std::string & buffer, RecvHandler & handler );
+		void send( std::string data );
+		void send( );
+		void close( );
+		void detach( );
+		bool isRunning( ) const;
+
+		asio::io_context & io;
+		std::string cmdline;
+		std::string workingPath;
+		RecvHandler outputHandler;
+		RecvHandler errorHandler;
+		ExitHandler exitHandler;
+
+		bool runningFlag = false;
+		HANDLE processHandle = INVALID_HANDLE_VALUE;
+		Pipe inputPipe;
+		Pipe outputPipe;
+		Pipe errorPipe;
+		int32_t exitCode = -1;
+
+		asio::windows::object_handle processEvent;
+		asio::windows::stream_handle inputStream;
+		asio::windows::stream_handle outputStream;
+		asio::windows::stream_handle errorStream;
+		std::deque<std::string> inputBuffers;
+		std::string outputBuffer;
+		std::string errorBuffer;
+		bool isSending = false;
+
+		static HANDLE currentProcessGroup( );
+	};
+
+
+
+	AsyncProcess::Detail::Detail(
+		asio::io_context & io_,
+		std::string cmdline_,
+		std::string workingPath_,
+		RecvHandler onStdout,
+		RecvHandler onStderr,
+		ExitHandler onExit ) :
+		io( io_ ),
+		cmdline( cmdline_ ),
+		workingPath( workingPath_ ),
+		outputHandler( onStdout ),
+		errorHandler( onStderr ),
+		exitHandler( onExit ),
 		processEvent( io ),
 		inputStream( io ),
 		outputStream( io ),
 		errorStream( io )
-{ 
-}
-
-Process::Detail::~Detail( )
-{
-	try
-	{
-		close( );
-	}
-	catch ( ... )
 	{
 	}
-}
 
-void Process::Detail::open( )
-{
-	PROCESS_INFORMATION piProcInfo = { 0 };
-	STARTUPINFO siStartInfo = { 0 };
-	siStartInfo.cb = sizeof( STARTUPINFO );
 
-	bool isDetached = ( !outputHandler && !errorHandler );
-
-	if ( !isDetached )
+	AsyncProcess::Detail::~Detail( )
 	{
-		inputPipe = Pipe{ 4096 };
-		outputPipe = Pipe{ 4096 };
-		errorPipe = Pipe{ 4096 };
-
-		Pipe::setNoInherit( inputPipe.output );
-		Pipe::setNoInherit( outputPipe.input );
-		Pipe::setNoInherit( errorPipe.input );
-
-		// Set up members of the STARTUPINFO structure. 
-		// This structure specifies the STDIN and STDOUT handles for redirection.
-		siStartInfo.hStdInput = inputPipe.input;
-		siStartInfo.hStdOutput = outputPipe.output;
-		siStartInfo.hStdError = errorPipe.output;
-		siStartInfo.dwFlags |= STARTF_USESTDHANDLES;
+		try
+		{
+			close( );
+		}
+		catch ( ... )
+		{
+		}
 	}
 
-	// Create the child process. 
-	std::wstring cmd = toUtf16( cmdline );
-	std::wstring dir = toUtf16( workingPath );
 
-	HANDLE childHandles[3] = { inputPipe.input, outputPipe.output, errorPipe.output };
-	BOOL result = CreateProcessWithExplicitHandles(
-		NULL,
-		(LPWSTR)cmd.data( ),		// command line 
-		NULL,                       // process security attributes 
-		NULL,                       // primary thread security attributes 
-		TRUE,                       // handles are inherited 
-		isDetached ? CREATE_BREAKAWAY_FROM_JOB|CREATE_NEW_CONSOLE : CREATE_NO_WINDOW,           // creation flags 
-		NULL,                       // use parent's environment 
-		dir.empty() ? NULL : dir.data( ),
-		&siStartInfo,
-		&piProcInfo,
-		isDetached ? 0 : 3,
-		isDetached ? nullptr : childHandles );
-
-	check<std::exception>( result, "Process::CreateProcess() failed" );
-
-	if ( !isDetached )
+	void AsyncProcess::Detail::open( )
 	{
-		// prevent any subsequent child from inheriting remaining handles
-		Pipe::setNoInherit( inputPipe.input );
-		Pipe::setNoInherit( outputPipe.output );
-		Pipe::setNoInherit( errorPipe.output );
-		// release the remote side of the pipes
-		inputPipe.releaseInput( );
-		outputPipe.releaseOutput( );
-		errorPipe.releaseOutput( );
-	}
+		PROCESS_INFORMATION piProcInfo = { 0 };
+		STARTUPINFO siStartInfo = { 0 };
+		siStartInfo.cb = sizeof( STARTUPINFO );
 
-	//ResumeThread( piProcInfo.hThread );
-	CloseHandle( piProcInfo.hThread );
+		bool isDetached = ( !outputHandler && !errorHandler );
 
-	processHandle = piProcInfo.hProcess;
+		if ( !isDetached )
+		{
+			inputPipe = Pipe{ 4096 };
+			outputPipe = Pipe{ 4096 };
+			errorPipe = Pipe{ 4096 };
 
-	//	add this child process to the current process group (job)
-	if ( !isDetached )
-		{ AssignProcessToJobObject( Detail::currentProcessGroup( ), processHandle ); }
+			Pipe::setNoInherit( inputPipe.output );
+			Pipe::setNoInherit( outputPipe.input );
+			Pipe::setNoInherit( errorPipe.input );
 
-	auto self = shared_from_this( );
-	processEvent = asio::windows::object_handle{ io, processHandle };
-	processEvent.async_wait( [this, self]( std::error_code ec )
-	{
-		runningFlag = false;
-			
-		DWORD value;
-		GetExitCodeProcess( processHandle, &value );
-		exitCode = (int32_t)value;
-
-		if ( exitHandler )
-		{ 
-			exitHandler( exitCode ); 
+			// Set up members of the STARTUPINFO structure. 
+			// This structure specifies the STDIN and STDOUT handles for redirection.
+			siStartInfo.hStdInput = inputPipe.input;
+			siStartInfo.hStdOutput = outputPipe.output;
+			siStartInfo.hStdError = errorPipe.output;
+			siStartInfo.dwFlags |= STARTF_USESTDHANDLES;
 		}
 
-		exitHandler = nullptr;
-		outputHandler = nullptr;
-		errorHandler = nullptr;
-	} );
+		// Create the child process. 
+		std::wstring cmd = toUtf16( cmdline );
+		std::wstring dir = toUtf16( workingPath );
 
-	inputStream.assign( inputPipe.output );
+		HANDLE childHandles[3] = { inputPipe.input, outputPipe.output, errorPipe.output };
+		BOOL result = CreateProcessWithExplicitHandles(
+			NULL,
+			(LPWSTR)cmd.data( ),		// command line 
+			NULL,                       // process security attributes 
+			NULL,                       // primary thread security attributes 
+			TRUE,                       // handles are inherited 
+			isDetached ? CREATE_BREAKAWAY_FROM_JOB | CREATE_NEW_CONSOLE : CREATE_NO_WINDOW,           // creation flags 
+			NULL,                       // use parent's environment 
+			dir.empty( ) ? NULL : dir.data( ),
+			&siStartInfo,
+			&piProcInfo,
+			isDetached ? 0 : 3,
+			isDetached ? nullptr : childHandles );
 
-	if ( outputHandler )
-	{
-		outputStream.assign( outputPipe.input );
-		recv( outputStream, outputBuffer, outputHandler );
-	}
-	else
-	{
-		outputPipe.close( );
-	}
+		check<std::exception>( result, "AsyncProcess::CreateProcess() failed" );
 
-	if ( errorHandler )
-	{
-		errorStream.assign( errorPipe.input );
-		recv( errorStream, errorBuffer, errorHandler );
-	}
-	else
-	{
-		errorPipe.close( );
-	}
-
-	runningFlag = true;
-}
-
-
-void Process::Detail::recv( asio::windows::stream_handle & stream, std::string & buffer, RecvHandler & handler )
-{
-	using namespace std::placeholders;
-
-	size_t offset = buffer.length( );
-	if ( buffer.length( ) - offset < 4096 )
-		{ buffer.resize( buffer.length( ) + 4096 ); }
-
-	auto self = shared_from_this( );
-	asio::mutable_buffer buf{ (char *)buffer.data( ) + offset, buffer.length( ) - offset };
-	stream.async_read_some( buf, [this, self, offset, &stream, &buffer, &handler]( const std::error_code & error, std::size_t bytes )
+		if ( !isDetached )
 		{
-			if ( !error )
-			{
-				buffer.resize( offset + bytes );
-				handler( buffer );
-
-				recv( stream, buffer, handler );
-			}
-		} );
-}
-
-
-void Process::Detail::send( std::string data )
-{
-	inputBuffers.push_back( std::move( data ) );
-	send( );
-}
-
-void Process::Detail::send( )
-{
-	using namespace std::placeholders;
-
-	if ( isSending || inputBuffers.empty( ) )
-		{ return; }
-
-	isSending = true;
-	auto self = shared_from_this( );
-	asio::const_buffer buf{ (const char *)inputBuffers[0].data( ), inputBuffers[0].length( ) };
-	inputStream.async_write_some( buf, [this, self]( const std::error_code & error, std::size_t bytes )
-		{
-			isSending = false;
-			if ( !error )
-			{
-				if ( bytes == inputBuffers[0].length( ) )
-					{ inputBuffers.pop_front( ); }
-				else
-					{ inputBuffers[0].erase( 0, bytes ); }
-				send( );
-			}
-		} );
-}
-
-void Process::Detail::wait( )
-{
-	// blocks until exitHandler is called
-	while ( exitHandler )
-	{
-		io.run_one( );
-	}
-	// blocks until processHandler is signalled
-	WaitForSingleObject( processHandle, INFINITE );
-}
-
-
-void Process::Detail::waitUntil( Time time )
-{
-	TODO
-	bool timeoutFlag = false;
-	asio::steady_timer timer{ io, time };
-	timer.async_wait( [&timeoutFlag]( std::error_code error )
-		{
-
-		} );
-	// blocks until exitHandler is called
-	while ( exitHandler )
-	{
-		io.run_one( );
-	}
-	timer.cancel( );
-	// blocks until processHandler is signalled
-	WaitForSingleObject( processHandle, INFINITE );
-}
-
-
-void Process::Detail::close( bool waitFlag )
-{
-	std::error_code result;
-
-	if ( isRunning( ) )
-	{
-		check<std::exception>( TerminateProcess( processHandle, 0 ), "Process::TerminateProcess() failed" );
-		if ( waitFlag )
-		{
-			wait( );
+			// prevent any subsequent child from inheriting remaining handles
+			Pipe::setNoInherit( inputPipe.input );
+			Pipe::setNoInherit( outputPipe.output );
+			Pipe::setNoInherit( errorPipe.output );
+			// release the remote side of the pipes
+			inputPipe.releaseInput( );
+			outputPipe.releaseOutput( );
+			errorPipe.releaseOutput( );
 		}
-		detach( );
-	}
-}
 
-void Process::Detail::detach( )
-{
-	if ( processHandle != INVALID_HANDLE_VALUE )
+		//ResumeThread( piProcInfo.hThread );
+		CloseHandle( piProcInfo.hThread );
+
+		processHandle = piProcInfo.hProcess;
+
+		//	add this child process to the current process group (job)
+		if ( !isDetached )
+		{
+			AssignProcessToJobObject( Detail::currentProcessGroup( ), processHandle );
+		}
+
+		auto self = shared_from_this( );
+		processEvent = asio::windows::object_handle{ io, processHandle };
+		processEvent.async_wait( [this, self]( std::error_code ec )
+			{
+				runningFlag = false;
+
+				DWORD value;
+				GetExitCodeProcess( processHandle, &value );
+				exitCode = (int32_t)value;
+
+				if ( exitHandler )
+				{
+					exitHandler( exitCode );
+				}
+
+				exitHandler = nullptr;
+				outputHandler = nullptr;
+				errorHandler = nullptr;
+			} );
+
+		inputStream.assign( inputPipe.output );
+
+		if ( outputHandler )
+		{
+			outputStream.assign( outputPipe.input );
+			recv( outputStream, outputBuffer, outputHandler );
+		}
+		else
+		{
+			outputPipe.close( );
+		}
+
+		if ( errorHandler )
+		{
+			errorStream.assign( errorPipe.input );
+			recv( errorStream, errorBuffer, errorHandler );
+		}
+		else
+		{
+			errorPipe.close( );
+		}
+
+		runningFlag = true;
+	}
+
+
+	void AsyncProcess::Detail::recv( asio::windows::stream_handle & stream, std::string & buffer, RecvHandler & handler )
 	{
-		processEvent.close( );  // CloseHandle( processHandle )
-		inputStream.close( );	// CloseHandle( inputPipe.output )
-		outputStream.close( );	// CloseHandle( outputPipe.input )
-		errorStream.close( );   // CloseHandle( errorPipe.input )
+		using namespace std::placeholders;
 
-		processHandle = INVALID_HANDLE_VALUE;
+		size_t offset = buffer.length( );
+		if ( buffer.length( ) - offset < 4096 )
+		{
+			buffer.resize( buffer.length( ) + 4096 );
+		}
 
-		runningFlag = false;
+		auto self = shared_from_this( );
+		asio::mutable_buffer buf{ (char *)buffer.data( ) + offset, buffer.length( ) - offset };
+		stream.async_read_some( buf, [this, self, offset, &stream, &buffer, &handler]( const std::error_code & error, std::size_t bytes )
+			{
+				if ( !error )
+				{
+					buffer.resize( offset + bytes );
+					if ( handler )
+					{
+						handler( buffer );
+
+						recv( stream, buffer, handler );
+					}
+				}
+			} );
 	}
-}
-
-bool Process::Detail::isRunning( ) const
-{
-	return runningFlag;
-}
-
-HANDLE createJob( ) {
-	HANDLE job = CreateJobObject( NULL, NULL );
-	check<std::exception>( job != NULL, "cpp::Process::createProgramJob() - Unable to create a job" );
-
-	// Configure all child processes associated with the job to terminate when the
-	JOBOBJECT_EXTENDED_LIMIT_INFORMATION jeli = { 0 };
-	jeli.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
-	BOOL ret = SetInformationJobObject( job, JobObjectExtendedLimitInformation, &jeli, sizeof( jeli ) );
-	check<std::exception>( ret != FALSE, "cpp::Process::createProgramJob() - Unable to set limit information for the Program's job" );
-
-	return job;
-}
-
-HANDLE Process::Detail::currentProcessGroup( ) {
-	static HANDLE s_job = createJob( );
-	return s_job;
-}
 
 
-Process::Process( )
-{
-}
-
-Process::Process( std::shared_ptr<Detail> && detail_ )
-	: detail( std::move( detail_ ) )
-{
-	detail->open( );
-}
-
-Process::Process( Process && move )
-	: detail( std::move( move.detail ) )
-{
-}
-
-Process::~Process( )
-{
-	try
-		{ close( ); }
-	catch ( ... )
-		{ }
-}
-
-Process & Process::operator=( Process && move )
-{
-	detail = std::move( move.detail );
-	return *this;
-}
-
-bool Process::isRunning( ) const
-{
-	return detail ? detail->isRunning( ) : false;
-}
-
-void Process::send( std::string msg )
-{
-	if ( detail )
+	void AsyncProcess::Detail::send( std::string data )
 	{
-		detail->send( std::move( msg ) );
+		inputBuffers.push_back( std::move( data ) );
+		send( );
 	}
-}
 
-void Process::detach( )
-{
-	if ( detail )
+
+	void AsyncProcess::Detail::send( )
 	{
-		detail->detach( );
-	}
-}
+		using namespace std::placeholders;
 
-void Process::close( )
-{
-	if ( detail )
+		if ( isSending || inputBuffers.empty( ) )
+		{
+			return;
+		}
+
+		isSending = true;
+		auto self = shared_from_this( );
+		asio::const_buffer buf{ (const char *)inputBuffers[0].data( ), inputBuffers[0].length( ) };
+		inputStream.async_write_some( buf, [this, self]( const std::error_code & error, std::size_t bytes )
+			{
+				isSending = false;
+				if ( !error )
+				{
+					if ( bytes == inputBuffers[0].length( ) )
+					{
+						inputBuffers.pop_front( );
+					}
+					else
+					{
+						inputBuffers[0].erase( 0, bytes );
+					}
+					send( );
+				}
+			} );
+	}
+
+
+	void AsyncProcess::Detail::close( )
 	{
-		detail->close( );
-	}
-}
+		std::error_code result;
 
-void Process::wait( )
-{
-	if ( detail )
+		if ( isRunning( ) )
+		{
+			check<std::exception>( TerminateProcess( processHandle, 0 ), "AsyncProcess::TerminateProcess() failed" );
+			detach( );
+		}
+	}
+
+
+	void AsyncProcess::Detail::detach( )
 	{
-		detail->wait( );
-	}
-}
+		if ( processHandle != INVALID_HANDLE_VALUE )
+		{
+			exitHandler = nullptr;
+			outputHandler = nullptr;
+			errorHandler = nullptr;
 
-bool Process::waitFor( Duration timeout )
-{
-	if ( detail )
+			processEvent.close( );  // CloseHandle( processHandle )
+			inputStream.close( );	// CloseHandle( inputPipe.output )
+			outputStream.close( );	// CloseHandle( outputPipe.input )
+			errorStream.close( );   // CloseHandle( errorPipe.input )
+
+			processHandle = INVALID_HANDLE_VALUE;
+
+			runningFlag = false;
+		}
+	}
+
+
+	bool AsyncProcess::Detail::isRunning( ) const
 	{
-		detail->waitUntil( Time::clock::now() + timeout );
+		return runningFlag;
 	}
-	return !isRunning( );
-}
 
-bool Process::waitUntil( Time time )
-{
-	if ( detail )
+
+	HANDLE createJob( ) {
+		HANDLE job = CreateJobObject( NULL, NULL );
+		check<std::exception>( job != NULL, "cpp::AsyncProcess::createProgramJob() - Unable to create a job" );
+
+		// Configure all child processes associated with the job to terminate when the
+		JOBOBJECT_EXTENDED_LIMIT_INFORMATION jeli = { 0 };
+		jeli.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
+		BOOL ret = SetInformationJobObject( job, JobObjectExtendedLimitInformation, &jeli, sizeof( jeli ) );
+		check<std::exception>( ret != FALSE, "cpp::AsyncProcess::createProgramJob() - Unable to set limit information for the Program's job" );
+
+		return job;
+	}
+
+
+	HANDLE AsyncProcess::Detail::currentProcessGroup( ) {
+		static HANDLE s_job = createJob( );
+		return s_job;
+	}
+
+
+
+	AsyncProcess::AsyncProcess( )
 	{
-		detail->waitUntil( time );
 	}
-	return !isRunning( );
+
+
+	AsyncProcess::AsyncProcess( std::shared_ptr<Detail> && detail_ )
+		: detail( std::move( detail_ ) )
+	{
+		detail->open( );
+	}
+
+
+	AsyncProcess::AsyncProcess( AsyncProcess && move )
+		: detail( std::move( move.detail ) )
+	{
+	}
+
+
+	AsyncProcess::~AsyncProcess( )
+	{
+		try
+		{
+			close( );
+		}
+		catch ( ... )
+		{
+		}
+	}
+
+
+	AsyncProcess & AsyncProcess::operator=( AsyncProcess && move )
+	{
+		detail = std::move( move.detail );
+		return *this;
+	}
+
+
+	bool AsyncProcess::isRunning( ) const
+	{
+		return detail ? detail->isRunning( ) : false;
+	}
+
+
+	void AsyncProcess::send( std::string msg )
+	{
+		if ( detail )
+		{
+			detail->send( std::move( msg ) );
+		}
+	}
+
+
+	void AsyncProcess::detach( )
+	{
+		if ( detail )
+		{
+			detail->detach( );
+		}
+	}
+
+
+	void AsyncProcess::close( )
+	{
+		if ( detail )
+		{
+			detail->close( );
+		}
+	}
+
+
+	int32_t AsyncProcess::exitValue( ) const
+	{
+		return detail ? detail->exitCode : 0;
+	}
+
 }
-
-
-int32_t Process::exitValue( ) const
-{
-	return detail ? detail->exitCode : 0;
-}
-
 
 
 

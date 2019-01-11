@@ -1,16 +1,15 @@
 #pragma once
 
-#include <cpp/String.h>
-#include <cpp/Platform.h>
-#include <cpp/Program.h>
-#include <cpp/chrono/Duration.h>
-#include <cpp/process/Future.h>
+#include "../data/String.h"
+#include "../process/Platform.h"
+#include "../process/Program.h>
+#include "../time/Duration.h>
 #include <cpp/io/Input.h>
 #include <cpp/io/Output.h>
 
 #define ASIO_STANDALONE
 #define ASIO_HAS_STD_CHRONO
-#include <lib/asio/asio.hpp>
+#include <asio/asio.hpp>
 
 namespace cpp
 {

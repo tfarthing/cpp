@@ -1,5 +1,5 @@
-#include <cpp/Exception.h>
-#include <cpp/io/Output.h>
+#include "../process/Exception.h"
+#include "Output.h"
 
 namespace cpp
 {

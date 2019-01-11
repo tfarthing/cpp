@@ -1,5 +1,16 @@
 #pragma once
 
+/*
+
+	Thread is an encapsulation of std::thread which also provides the
+	ability to interrupt a thread.
+	(1) Can interrupt a thread which will cause an InterruptException if
+		the interrupted thread calls yield(), sleep(), or locks a Mutex.
+	(2) Can check for an unhandled exception in the thread using check();
+	(3) Can name the thread for debugging purposes.
+
+*/
+
 #include <cassert>
 #include <thread>
 #include <future>
@@ -26,7 +37,7 @@ namespace cpp
 		Thread &					operator=( Thread && move );
 
 		bool						isRunning( ) const;
-		void						join( bool checkFlag = false );
+		void						join( );
 		void						interrupt( );
 		void						check( );
 		void						detach( );
@@ -125,12 +136,10 @@ namespace cpp
 	}
 
 
-	void Thread::join( bool checkFlag )
+	void Thread::join( )
 	{
 		if ( isRunning( ) ) 
 			{ m_thread.join( ); } 
-		if ( checkFlag ) 
-			{ check( ); }
 	}
 
 

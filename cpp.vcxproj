@@ -12,6 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="data\DataArray.h" />
+    <ClInclude Include="file\AsyncFile.h" />
     <ClInclude Include="file\Files.h" />
     <ClInclude Include="file\MemoryFile.h" />
     <ClInclude Include="process\AsyncIO.h" />
@@ -79,6 +80,7 @@
     <ClCompile Include="data\DataArray.cpp" />
     <ClCompile Include="data\Float.cpp" />
     <ClCompile Include="data\Integer.cpp" />
+    <ClCompile Include="file\AsyncFile.cpp" />
     <ClCompile Include="file\MemoryFile.cpp" />
     <ClCompile Include="time\Date.cpp" />
     <ClCompile Include="time\DateTime.cpp" />

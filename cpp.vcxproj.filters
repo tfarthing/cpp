@@ -176,6 +176,7 @@
     <ClInclude Include="process\Process-Pipe.h" />
     <ClInclude Include="file\Files.h" />
     <ClInclude Include="process\AsyncIO.h" />
+    <ClInclude Include="file\AsyncFile.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="io">
@@ -355,6 +356,7 @@
     <ClCompile Include="util\DataFile.cpp">
       <Filter>file</Filter>
     </ClCompile>
+    <ClCompile Include="file\AsyncFile.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="meta\cpp.natvis">

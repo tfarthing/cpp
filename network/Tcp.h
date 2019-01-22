@@ -2,14 +2,14 @@
 
 #include "../data/String.h"
 #include "../process/Platform.h"
-#include "../process/Program.h>
-#include "../time/Duration.h>
-#include <cpp/io/Input.h>
-#include <cpp/io/Output.h>
+#include "../process/Program.h"
+#include "../time/Duration.h"
+#include "../io/Input.h"
+#include "../io/Output.h"
 
-#define ASIO_STANDALONE
-#define ASIO_HAS_STD_CHRONO
-#include <asio/asio.hpp>
+#include "../process/AsyncIO.h"
+
+
 
 namespace cpp
 {

@@ -1,9 +1,6 @@
 #pragma once
 
-#include "../../data/Integer.h"
-#include "../../data/String.h"
 #include "../../process/Exception.h"
-#include "../../text/Utf16.h"
 #include "../../process/Platform.h"
 
 namespace cpp
@@ -16,23 +13,47 @@ namespace cpp
             : public cpp::Exception
         { 
         public:
-            Exception( cpp::String msg = "" )
-                : cpp::Exception( "" ), m_error( GetLastError( ) ), m_hresult( S_OK ) { m_what = msg + getErrorMessage( m_error ); }
-            Exception( HRESULT hresult, cpp::String msg = "" )
-                : cpp::Exception( "" ), m_error( 0 ), m_hresult( hresult ) { m_what = msg + getHresultMessage(hresult); }
+			Exception( std::string msg = "" );
+			Exception( HRESULT hresult, std::string msg = "" );
 
-            DWORD error( ) const
-                { return m_error; }
-            HRESULT hresult( ) const
-                { return m_hresult; }
+			DWORD error( ) const;
+			HRESULT hresult( ) const;
 
-            static String getErrorMessage( DWORD error );
-            static String getHresultMessage( HRESULT hresult );
+            static std::string getErrorMessage( DWORD error );
+            static std::string getHresultMessage( HRESULT hresult );
 
         private:
             DWORD m_error;
             HRESULT m_hresult;
         };
+
+
+		inline Exception::Exception( std::string msg )
+			: cpp::Exception( "" ), m_error( GetLastError( ) ), m_hresult( S_OK ) 
+		{ 
+			m_what = msg + getErrorMessage( m_error ); 
+		}
+
+
+		inline Exception::Exception( HRESULT hresult, std::string msg )
+			: cpp::Exception( "" ), m_error( 0 ), m_hresult( hresult ) 
+		{ 
+			m_what = msg + getHresultMessage( hresult ); 
+		}
+
+
+		inline DWORD Exception::error( ) const
+		{
+			return m_error;
+		}
+
+
+		inline HRESULT Exception::hresult( ) const
+		{
+			return m_hresult;
+		}
+
+
 
         inline bool isSuccess(HRESULT hresult) 
             { return hresult >= S_OK; }
@@ -43,41 +64,8 @@ namespace cpp
         inline void check( HRESULT hresult )
             { if ( !isSuccess( hresult ) ) { throw Exception( hresult ); } }
 
-        inline void check( HRESULT hresult, cpp::String msg )
+        inline void check( HRESULT hresult, std::string msg )
             { if ( !isSuccess( hresult ) ) { throw Exception( hresult, msg ); } }
-
-        inline String Exception::getErrorMessage( DWORD error )
-        {
-            switch ( error )
-            {
-            case 12055:
-                return "ERROR_WINHTTP_INVALID_URL - The URL is not valid.";
-            default:
-                break;
-            }
-
-            std::wstring text( 1024, L'\0' );
-            text.resize( FormatMessage( FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-                NULL,
-                error,
-                MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ),
-                (LPTSTR)text.c_str( ), (DWORD)text.size( ), NULL ) );
-            if ( text.size( ) == 0 )
-                { return String::format( "error code: % (%)", (uint32_t)error, Integer::toHex(error, 8) ); }
-            return toUtf8( text );
-        }
-
-        inline String Exception::getHresultMessage( HRESULT hresult )
-        {
-            if ( (hresult & 0xFFFF0000) == MAKE_HRESULT( SEVERITY_ERROR, FACILITY_WIN32, 0 ) )
-                { return getErrorMessage( HRESULT_CODE( hresult ) ); }
-
-            if (hresult == S_OK)
-                { return "ERROR_SUCCESS"; }
-
-            // Not a Win32 HRESULT so return a generic error code.
-            return String::format( "hresult(%)", Integer::toHex( hresult, 8 ) );
-        }
     
     }
 

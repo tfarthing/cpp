@@ -1,11 +1,12 @@
 #pragma once
 
 #include <set>
-#include <cpp/String.h>
-#include <cpp/chrono/Duration.h>
-#include <cpp/chrono/DateTime.h>
-#include <cpp/process/Thread.h>
-#include <cpp/io/file/FilePath.h>
+
+#include "../data/String.h"
+#include "../time/Duration.h"
+#include "../time/DateTime.h"
+#include "../process/Thread.h"
+#include "../file/Files.h"
 
 namespace cpp
 {

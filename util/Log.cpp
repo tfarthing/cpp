@@ -1,9 +1,9 @@
 #ifndef TEST
 
-#include <cpp/Program.h>
-#include <cpp/io/StandardOutput.h>
-#include <cpp/util/Log.h>
-#include <cpp/util/LogFilter.h>
+#include "../process/Program.h"
+//#include <cpp/io/StandardOutput.h>
+#include "Log.h"
+#include "LogFilter.h"
 
 
 namespace cpp

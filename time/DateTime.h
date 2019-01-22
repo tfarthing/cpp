@@ -125,13 +125,13 @@ namespace cpp
 
 	inline DateTime DateTime::trimAtHour( DateTime time )
 	{
-		clock_t::time_point t = time;
+		clock_t::time_point t = time.to_time_point();
 		return std::chrono::floor<std::chrono::hours>( t );
 	}
 
 	inline DateTime DateTime::trimAtDay( DateTime time )
 	{
-		clock_t::time_point t = time;
+		clock_t::time_point t = time.to_time_point( );
 		return std::chrono::floor<std::chrono::duration<int64_t, std::ratio<86400>>>( t );
 	}
 

@@ -1,9 +1,9 @@
 ﻿#ifndef TEST
 
-#include <cpp/Exception.h>
-#include <cpp/util/Utf16.h>
-#include <cpp/util/Utf8.h>
-#include <cpp/io/StringInput.h>
+#include "../process/Exception.h"
+#include "Utf16.h"
+#include "Utf8.h"
+//#include <cpp/io/StringInput.h>
 
 namespace cpp
 {
@@ -233,7 +233,7 @@ namespace cpp
 
         Memory Text::data( ) const
         {
-            return Memory{ m_str };
+            return Memory{ (char *)m_str.data(), m_str.length() * sizeof(wchar_t) };
         }
 
         size_t Text::length( ) const
@@ -337,7 +337,7 @@ namespace cpp
 			}
         }
 	
-
+		/*
 		Reader::iterator::iterator( Reader * reader )
 					: m_reader( reader ) { get( ); }
 
@@ -410,7 +410,7 @@ namespace cpp
                 { tryRead( ); }
             return result;
 		}
-
+		*/
 	}
 
     std::wstring toUtf16( const cpp::Memory & utf8 )

@@ -1,11 +1,10 @@
 #pragma once
 
 #include <string>
-#include <cpp/types.h>
 
 namespace cpp
 {
-
+	typedef int32_t unicode_t;
     typedef std::basic_string<unicode_t> Unicode;
 
 }

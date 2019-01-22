@@ -177,6 +177,9 @@
     <ClInclude Include="file\Files.h" />
     <ClInclude Include="process\AsyncIO.h" />
     <ClInclude Include="file\AsyncFile.h" />
+    <ClInclude Include="network\TcpConnection.h" />
+    <ClInclude Include="network\TcpServer.h" />
+    <ClInclude Include="platform\windows\WindowsApp.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="io">
@@ -357,6 +360,10 @@
       <Filter>file</Filter>
     </ClCompile>
     <ClCompile Include="file\AsyncFile.cpp" />
+    <ClCompile Include="process\AsyncIO.cpp" />
+    <ClCompile Include="network\TcpConnection.cpp" />
+    <ClCompile Include="network\TcpServer.cpp" />
+    <ClCompile Include="platform\windows\WindowsException.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="meta\cpp.natvis">

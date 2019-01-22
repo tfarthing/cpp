@@ -48,6 +48,8 @@ namespace cpp
 		Memory &					operator=( const std::string & string );
 		Memory &					operator=( const Memory & memory );
 
+		bool						operator<( const Memory & memory ) const;
+
 		static const size_t			npos = (size_t)-1;
 		typedef std::vector<Memory> Array;
 		static const Memory			WhitespaceList;
@@ -172,6 +174,9 @@ namespace cpp
 
 	inline Memory & Memory::operator=( const Memory & memory )
 		{ m_begin = memory.m_begin; m_end = memory.m_end; return *this; }
+
+	inline bool Memory::operator<( const Memory & memory ) const
+		{ return compare( *this, memory ) < 0; }
 
 	inline bool Memory::operator!( ) const
 		{ return isEmpty( ); }

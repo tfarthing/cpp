@@ -22,16 +22,6 @@ SUITE( SuiteName )
 
 #ifdef TEST
 
-#include <lib/UnitTest++/src/UnitTest++.h>
-
-#include <cpp/util/Log.h>
-
-namespace test
-{
-	inline void log( cpp::String text )
-	{
-		cpp::xlog( cpp::LogLevel::Alert, "test", std::move( text ) );
-	}
-}
+#include <catch2/catch.hpp>
 
 #endif

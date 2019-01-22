@@ -1,9 +1,101 @@
-#include <memory>
-#include <cpp/Program.h>
-#include <cpp/platform/windows/WindowsGraphics.h>
+#include "WindowsApp.h"
 
 namespace cpp
 {
+	namespace windows
+	{
+
+		/*
+		Windows cmdline parsing standards: https://msdn.microsoft.com/en-us/library/17w5ykft.aspx
+		* Arguments are delimited by white space, which is either a space or a tab.
+		* A string surrounded by double quotation marks ("string") is interpreted as a single
+		  argument, regardless of white space contained within. A quoted string can be embedded
+		  in an argument.
+		* A double quotation mark preceded by a backslash (\") is interpreted as a literal double
+		  quotation mark character (").
+		* Backslashes are interpreted literally, unless they immediately precede a double
+		  quotation mark.
+		* If an even number of backslashes is followed by a double quotation mark, one backslash
+		  is placed in the argv array for every pair of backslashes, and the double quotation
+		  mark is interpreted as a string delimiter.
+		* If an odd number of backslashes is followed by a double quotation mark, one backslash
+		  is placed in the argv array for every pair of backslashes, and the double quotation
+		  mark is "escaped" by the remaining backslash, causing a literal double quotation mark
+		  (") to be placed in argv.
+		*/
+		String::Array App::parseCommandLine( const String & cmdline )
+		{
+			String::Array arguments;
+
+			size_t pos = 0;
+			size_t argIndex = 0;
+			bool isQuoted = false;
+			size_t bslashCount = 0;
+			String arg;
+
+			while ( pos < cmdline.length( ) + 1 )
+			{
+				char ch = ( pos < cmdline.length( ) ) ? cmdline[pos] : 0;
+				switch ( ch )
+				{
+				case ' ':
+				case '\t':
+				case '\0':
+					//  quoted string ignores space and tab
+					if ( isQuoted && ch != '\0' )
+					{
+						pos += 1; break;
+					}
+
+					if ( !arg.isEmpty( ) || argIndex < pos )
+					{
+						arg += cmdline.substr( argIndex, pos - argIndex );
+						arguments.push_back( arg );
+						arg.clear( );
+					}
+					bslashCount = 0;
+					pos += 1;
+					argIndex = pos;
+					break;
+
+				case '\"':
+					//  append everything upto quote or first backslash before quote
+					arg += cmdline.substr( argIndex, pos - argIndex - bslashCount );
+
+					//  append a backslash for every two before quote
+					for ( size_t i = 0; i < bslashCount / 2; i++ )
+					{
+						arg += "\\";
+					}
+
+					// odd backslash count == literal quote
+					if ( ( bslashCount % 2 ) != 0 )
+					{
+						arg += "\"";
+					}
+					// else quote is a string delimiter
+					else
+					{
+						isQuoted ^= true;
+					}
+
+					bslashCount = 0;
+					pos += 1;
+					argIndex = pos;
+					break;
+
+				default:
+					bslashCount = ( ch == '\\' ) ? bslashCount + 1 : 0;
+					pos += 1;
+					break;
+				}
+			}
+
+			return arguments;
+		}
+
+	}
+
 
     Program::Console::Console( )
         : Program::Standard( ), m_ui( ) { }

@@ -1,9 +1,9 @@
 #pragma once
 
-#include <cpp/Object.h>
-#include <cpp/Exception.h>
-#include <cpp/String.h>
-#include <cpp/io/Input.h>
+#include "Unicode.h"
+#include "../process/Exception.h"
+#include "../data/String.h"
+#include "../io/Input.h"
 
 namespace cpp
 {
@@ -97,8 +97,8 @@ namespace cpp
 		unicode_t decode(const wchar_t * begin, const wchar_t * end, size_t offset = 0, int * encodedLength = nullptr);
 		Memory encode( unicode_t ch, wchar_t * dstBegin, const wchar_t * dstEnd );
 
+		/*
 		class Reader
-			: public Object
 		{
 		public:
 			class iterator
@@ -137,6 +137,7 @@ namespace cpp
             wchar_t m_buffer[2];
             size_t m_bufferOffset;
 		};
+		*/
 	};
 
 }

@@ -1,10 +1,8 @@
 ﻿#ifndef TEST
 
-#include <cpp/Exception.h>
-#include <cpp/io/StringInput.h>
-#include <cpp/io/MemoryInput.h>
-#include <cpp/util/Utf8.h>
-#include <cpp/util/Utf16.h>
+#include "../process/Exception.h"
+#include "Utf16.h"
+#include "Utf8.h"
 
 namespace cpp
 {
@@ -275,7 +273,7 @@ namespace cpp
             {
                 decode( utf8, byteOffset, &bytes );
                 if ( bytes == 0 )
-                    { return Memory::Empty; }
+                    { return ""; }
                 index++;
                 byteOffset += bytes;
             }
@@ -285,7 +283,7 @@ namespace cpp
             {
                 decode( utf8, byteOffset, &bytes );
                 if ( bytes == 0 )
-                    { return Memory::Empty; }
+                    { return ""; }
                 index++;
                 byteOffset += bytes;
             }
@@ -308,6 +306,7 @@ namespace cpp
             return index;
         }
 
+		/*
         Unicode toUnicode( const Memory & utf8 )
         {
             Unicode result;
@@ -315,13 +314,14 @@ namespace cpp
                 { result += ch; }
             return result;
         }
+		*/
 
         unicode_t decode( const Memory & utf8, size_t offset, int * encodedLength )
 		{
 			int len = 0;
 
 			/* 1-byte sequence */
-			int cp1 = (uint8_t)utf8.get(offset + 0);
+			int cp1 = (uint8_t)utf8.at(offset + 0);
 			if ( cp1 < 0x80 )
 			{
 				return decodeResult( cp1, 1, encodedLength );
@@ -338,7 +338,7 @@ namespace cpp
 				return decodeResult( BadCodePoint, 1, encodedLength );
 			}
 
-			int cp2 = (uint8_t)utf8.get(offset + 1);
+			int cp2 = (uint8_t)utf8.at(offset + 1);
 			if ( cp1 < 0xE0 )
 			{
 				if ( ( cp2 & 0xC0 ) != 0x80 )
@@ -354,7 +354,7 @@ namespace cpp
 				return decodeResult( BadCodePoint, 1, encodedLength );
 			}
 
-			int cp3 = (uint8_t)utf8.get(offset + 2);
+			int cp3 = (uint8_t)utf8.at(offset + 2);
 			if ( cp1 < 0xF0 ) {
 				if ( ( cp2 & 0xC0 ) != 0x80 ||
 					( cp3 & 0xC0 ) != 0x80 ||
@@ -371,7 +371,7 @@ namespace cpp
 				return decodeResult( BadCodePoint, 1, encodedLength );
 			}
 
-			int cp4 = (uint8_t)utf8.get(offset + 3);
+			int cp4 = (uint8_t)utf8.at(offset + 3);
 			if ( cp1 < 0xF5 ) {
 				/* 4-byte sequence */
 				if ( ( cp2 & 0xC0 ) != 0x80 ||
@@ -423,6 +423,7 @@ namespace cpp
 			}
 		}
 
+		/*
         Utf8::Reader::iterator::iterator( Reader * reader )
             : m_reader( reader ) { get( ); }
 
@@ -492,6 +493,7 @@ namespace cpp
                 { tryRead( ); }
             return result;
 		}
+		*/
 
 	}
 

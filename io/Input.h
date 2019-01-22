@@ -67,7 +67,7 @@ namespace cpp
             virtual ~Source_t()
                 { close(); }
             virtual bool isOpen( ) const = 0;
-            virtual Memory read( const Memory & dst, Duration timeout ) = 0;
+            virtual Memory read( Memory dst, Duration timeout ) = 0;
             virtual void close( )
                 { }
             //virtual void async( const ReadFn & readFn, const CloseFn & closeFn, const Bus & bus );

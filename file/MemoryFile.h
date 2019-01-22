@@ -2,7 +2,6 @@
 
 #include "../data/Memory.h"
 #include "Files.h"
-#include "../text/Utf16.h"
 #include "../platform/windows/WindowsException.h"
 
 

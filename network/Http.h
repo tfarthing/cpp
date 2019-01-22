@@ -2,11 +2,12 @@
 
 #include <memory>
 #include <functional>
-#include <cpp/Exception.h>
-#include <cpp/String.h>
-#include <cpp/chrono/Duration.h>
-#include <cpp/io/Input.h>
-#include <cpp/io/Output.h>
+
+#include "../process/Exception.h"
+#include "../data/String.h"
+#include "../time/Duration.h"
+#include "../io/Input.h"
+#include "../io/Output.h"
 
 namespace cpp
 {
@@ -41,9 +42,9 @@ namespace cpp
             Request & writeRequest( String input );
             Request & writeRequest( Input input );
 
-            Input getReply( cpp::Duration timeout = cpp::Duration::infinite );
+            Input getReply( cpp::Duration timeout = cpp::Duration::Infinite );
 
-            void close( cpp::Duration timeout = cpp::Duration::infinite );
+            void close( cpp::Duration timeout = cpp::Duration::Infinite );
 
             int getStatusCode( ) const;
 

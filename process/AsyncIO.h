@@ -4,6 +4,9 @@
 
 	Provides abstraction for asio executor model.  
 	
+	AsyncTimer is an encapsulated asio::steady_timer
+	(1) Can be cancelled or go out of scope without user-handler being subsequently called.
+
 	AsyncIO is a thin wrapper for asio::io_context
 	(1) Allocates io_context with shared_ptr so that users can optionally own the context or 
 		not.  The value is copyable instead of a reference.
@@ -25,57 +28,77 @@ namespace cpp
 {
 
 	class AsyncTimer
-		: public std::enable_shared_from_this<AsyncTimer>
 	{
 	public:
-		void start( asio::io_context * context, std::chrono::steady_clock::time_point & timeout, std::function<void( )> handler );
-		void cancel( );
+		typedef std::chrono::milliseconds duration_t;
+		typedef std::chrono::steady_clock::time_point time_point_t;
+
+		static AsyncTimer					waitFor( 
+												asio::io_context * context, 
+												duration_t timeout,
+												std::function<void( )> handler );
+		static AsyncTimer					waitUntil( 
+												asio::io_context * context, 
+												time_point_t timeout,
+												std::function<void( )> handler );
+
+											AsyncTimer( );
+											AsyncTimer( AsyncTimer && move );
+											~AsyncTimer( );
+
+		AsyncTimer &						operator=( AsyncTimer && move);
+
+		void								cancel( );
 
 	private:
-		std::shared_ptr<asio::steady_timer> timer;
-	};
+		void								start( 
+												asio::io_context * context, 
+												time_point_t & timeout,
+												std::function<void( )> handler );
 
+	private:
+		struct Detail;
+		std::shared_ptr<Detail>				detail;
+	};
 
 
 
 	class AsyncIO
 	{
 	public:
-		AsyncIO( );
-		~AsyncIO( );
+											AsyncIO( );
+											~AsyncIO( );
 
-		asio::io_context & context( );
+		asio::io_context &					context( );
+
+		AsyncTimer							waitFor( std::chrono::milliseconds timeout, std::function<void( )> handler );
+		AsyncTimer							waitUntil( std::chrono::steady_clock::time_point timeout, std::function<void( )> handler );
 
 		//  block caller but call synchronously with the AsyncIO::run() call.
-		void invoke( std::function<void()> fn );
-		template<class T, class Function, class ...Args> T invoke( Function fn, Args && ...args );
-
-		AsyncTimer timer( std::chrono::milliseconds timeout, std::function<void( )> handler );
-		AsyncTimer timer( std::chrono::steady_clock::time_point timeout, std::function<void( )> handler );
+		void								invoke( std::function<void()> fn );
+		
+		template<class T, class Fn, class ...Args> 
+		T									invoke( Fn fn, Args && ...args );
 
 	private:
-		std::shared_ptr<asio::io_context> io;
+		std::shared_ptr<asio::io_context>	io;
 	};
 
 
 
-	void AsyncTimer::start( asio::io_context * context, std::chrono::steady_clock::time_point & timeout, std::function<void( )> handler )
+	AsyncTimer AsyncTimer::waitFor( asio::io_context * context, duration_t timeout, std::function<void( )> handler )
 	{
-		auto self = shared_from_this( );
-		timer = std::make_shared<asio::steady_timer>( *context, timeout );
-		timer->async_wait( [this, self, handler]( std::error_code error )
-			{
-				if ( !error )
-					{ handler( ); }
-			} );
+		return waitUntil( context, std::chrono::steady_clock::now( ) + timeout, std::move( handler ) );
 	}
 
-	void AsyncTimer::cancel( )
-	{
-		timer->cancel( );
-		timer.reset( );
-	}
 
+	AsyncTimer AsyncTimer::waitUntil( asio::io_context * context, time_point_t timeout, std::function<void( )> handler )
+	{
+		AsyncTimer timer;
+		timer.start( context, timeout, std::move( handler ) );
+		return timer;
+	}
+	
 
 
 	void AsyncIO::invoke( std::function<void( )> fn )
@@ -98,6 +121,7 @@ namespace cpp
         while ( !isComplete )
             { lock.wait( ); }
 	}
+
 
 	template<class T, class Function, class ...Args> T AsyncIO::invoke( Function fn, Args && ...args )
 	{

@@ -1,3 +1,5 @@
+#ifndef TEST
+
 #include "../data/DataBuffer.h"
 #include "../time/Timer.h"
 #include "AsyncFile.h"
@@ -9,52 +11,43 @@ namespace cpp
 		: public std::enable_shared_from_this<AsyncFile::Detail>
 	{
 	public:
-		std::shared_ptr<Detail> create( const FilePath & filepath, Access access, size_t origin, Share share, AsyncIO & io, size_t recvBufferSize );
+		static std::shared_ptr<Detail> create( asio::io_context & io, const FilePath & filepath, Access access, Share share );
 
-		Detail( );
+		Detail( asio::io_context & io );
 		~Detail( );
 
-		void doRecvDelay( );
-		void doRecv( );
-		void doSend( );
-
 		bool isOpen( ) const;
-		bool isEOF( ) const;
-		Memory read( const Memory & dst, Duration timeout );
-		Memory write( const Memory & src );
-		void flush( );
+		size_t length( ) const;
+
+		void read( size_t pos, size_t length, ReadHandler handler );
+		void write( size_t pos, std::string data, WriteHandler handler );
+
+		void truncate( size_t length);
 		void close( );
 
-		size_t readTell( ) const;
-		void readSeek( size_t pos );
-		size_t writeTell( ) const;
-		void writeSeek( size_t pos );
-		void truncate( );
+		struct ReadContext
+		{
+			typedef std::shared_ptr<ReadContext> ptr_t;
+			size_t readPos;
+			size_t readLen;
+			std::string buffer;
+			size_t bytes;
+			ReadHandler handler;
+			std::shared_ptr<Detail> self;
+		};
+		typedef std::function<void( std::error_code error, ReadContext::ptr_t readContext )> ReadSomeHandler;
+
+		void readSome( ReadContext::ptr_t context, ReadSomeHandler handler );
+		void readAll( ReadContext::ptr_t context, ReadSomeHandler handler );
+		void writeSome( size_t pos, std::string data, WriteHandler handler );
 
 	private:
-		using SendItem = std::pair<uint64_t, String>;
-
-		AsyncIO m_io;
-		asio::windows::random_access_handle m_handle;
-		AsyncTimer m_delayTimer;
-		bool m_autoCloseFlag;
-		//uint64_t m_autoCloseBytes = 0;
-		std::error_code m_error;
-		StringBuffer m_recvBuffer;
-		std::list<SendItem> m_sendBuffers;
-		uint64_t m_sendBytes;
-
-		bool m_isEOF;
-		bool m_breakRead;
-		uint64_t m_recvOffset;    //  file pos of next file input operation
-		uint64_t m_readOffset;    //  read pos of next buffer read operation
-		uint64_t m_writeOffset;   //  file pos of next write operation
+		mutable asio::windows::random_access_handle handle;
 	};
 
-	AsyncFile::Detail::Detail( const FilePath & filepath, Access access, size_t origin, Share share, AsyncIO & io, size_t recvBufferSize )
-		: m_handle( io.context( ) ), m_io( io ), m_autoCloseFlag( false ), /*m_autoCloseBytes( 0 ),*/ m_recvBuffer( recvBufferSize ), m_sendBytes( 0 ), m_isEOF( false ), m_isRecving( false ), m_breakRead( false ), m_recvOffset( 0 ), m_readOffset( 0 ), m_isSending( false ), m_writeOffset( 0 )
+
+	std::shared_ptr<AsyncFile::Detail> AsyncFile::Detail::create( asio::io_context & io, const FilePath & filepath, Access access, Share share )
 	{
-		Utf16::Text filename = toUtf16( filepath.toString( ) );
 		DWORD accessMode = 0;
 		DWORD creationMode = 0;
 		DWORD shareMode = 0;
@@ -70,7 +63,6 @@ namespace cpp
 			accessMode = GENERIC_WRITE;
 			break;
 		case Access::Read:
-		case Access::Tail:
 			creationMode = OPEN_EXISTING;
 			accessMode = GENERIC_READ;
 			break;
@@ -93,57 +85,115 @@ namespace cpp
 			Files::create_directories( filepath.parent_path( ) );
 		}
 
-		AsyncFile fileAsyncFile = CreateFile( filename, accessMode, shareMode, 0, creationMode, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, 0 );
-		if ( fileAsyncFile == INVALID_AsyncFile_VALUE )
+		HANDLE fileHandle = CreateFile( filepath.c_str( ), accessMode, shareMode, 0, creationMode, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, 0 );
+		if ( fileHandle == INVALID_HANDLE_VALUE )
 		{
 			DWORD err = GetLastError( );
 			throw IOException( String::format( "Unable to open file: error( % )", (uint32_t)err ) );
 		}
-		m_handle.assign( fileAsyncFile );
 
-		BY_AsyncFile_FILE_INFORMATION fileInfo;
-		GetFileInformationByAsyncFile( m_handle.native_AsyncFile( ), &fileInfo );
-		size_t filesize = ( (uint64_t)fileInfo.nFileSizeHigh << 32 ) | fileInfo.nFileSizeLow;
-
-		if ( origin == npos )
-		{
-			origin = filesize;
-		}
-
-		if ( access == Access::Read || access == Access::Tail )
-		{
-			/*
-			m_autoCloseBytes = filesize;
-			*/
-			if ( access == Access::Read )
-			{
-				m_autoCloseFlag = true;
-			}
-			m_recvOffset = origin;
-			m_readOffset = origin;
-			doRecv( );
-		}
-		else
-		{
-			m_writeOffset = origin;
-		}
+		std::shared_ptr<Detail> detail= std::make_shared<Detail>( io );
+		detail->handle.assign( fileHandle );
+		return detail;
 	}
+
+
+	AsyncFile::Detail::Detail( asio::io_context & io )
+		: handle{ io }
+	{
+	}
+
 
 	AsyncFile::Detail::~Detail( )
 	{
 		close( );
 	}
 
-	void AsyncFile::Detail::doRecvDelay( )
+
+	bool AsyncFile::Detail::isOpen( ) const
 	{
-		m_isEOF = true;
-		auto self = std::m
-		m_delayTimer = m_io.timer( cpp::Duration::ofMillis( 50 ), [this, self]( )
-			{
-				doRecv( );
+		return handle.is_open( );
+	}
+
+
+	size_t AsyncFile::Detail::length( ) const
+	{
+		BY_HANDLE_FILE_INFORMATION fileInfo;
+		GetFileInformationByHandle( handle.native_handle( ), &fileInfo );
+		size_t filesize = ( (uint64_t)fileInfo.nFileSizeHigh << 32 ) | fileInfo.nFileSizeLow;
+		return filesize;
+	}
+
+
+	void AsyncFile::Detail::read( size_t pos, size_t length, ReadHandler handler )
+	{
+		ReadContext::ptr_t readContext = std::make_shared<ReadContext>( );
+		readContext->readPos = pos;
+		readContext->readLen = length;
+		readContext->handler = std::move( handler );
+		readContext->buffer.resize( length );
+		readContext->bytes = 0;
+		readContext->self = shared_from_this( );
+
+		readAll( std::move( readContext ), [this]( std::error_code error, ReadContext::ptr_t readContext )
+			{ 
+				readContext->handler( error, readContext->buffer );
 			} );
 	}
 
+
+	void AsyncFile::Detail::write( size_t pos, std::string data, WriteHandler handler )
+	{
+	}
+
+	void AsyncFile::Detail::readSome( ReadContext::ptr_t readContext, ReadSomeHandler handler )
+	{
+		size_t readPos = readContext->readPos + readContext->bytes;
+		char * buffer = readContext->buffer.data( ) + readContext->bytes;
+		size_t buflen = readContext->buffer.length( ) - readContext->bytes;
+		handle.async_read_some_at( readPos, asio::buffer( buffer, buflen ), [this, context = std::move( readContext ), handler = std::move( handler )]( std::error_code error, std::size_t bytes )
+			{
+				if ( !error )
+					{ context->bytes += bytes; }
+
+				handler( error, std::move( context ) );
+			} );
+	}
+
+	void AsyncFile::Detail::readAll( ReadContext::ptr_t readContext, ReadSomeHandler handler )
+	{
+		readSome( std::move( readContext ), [this, handler = std::move( handler )]( std::error_code error, ReadContext::ptr_t context )
+			{
+				if ( error || context->bytes == context->readLen )
+					{ handler( error, std::move( context ) ); }
+				else
+					{ readAll( std::move( context ), std::move( handler ) ); }
+			} );
+	}
+
+
+	void AsyncFile::Detail::writeSome( size_t pos, std::string data, WriteHandler handler )
+	{
+	}
+
+
+	void AsyncFile::Detail::truncate( size_t length )
+	{
+		_LARGE_INTEGER pos;
+		pos.QuadPart = length;
+		check<IOException>( SetFilePointerEx( handle.native_handle( ), pos, NULL, FILE_BEGIN ) != FALSE, 
+			"AsyncFile::truncate() : SetFilePointerEx() failed" );
+		check<IOException>( SetEndOfFile( handle.native_handle( ) ) != FALSE, 
+			"AsyncFile::truncate() : SetEndOfFile() failed" );
+	}
+
+
+	void AsyncFile::Detail::close( )
+	{
+		handle.close( );
+	}
+
+/*
 	void AsyncFile::Detail::doRecv( )
 	{
 		Memory dst = m_recvBuffer.putable( );
@@ -159,7 +209,7 @@ namespace cpp
 				if ( error )
 				{
 					if ( error.value( ) == asio::error::operation_aborted )
-					{ /* do nothing */
+					{
 					}
 					else if ( error.value( ) == asio::error::eof )
 					{
@@ -261,7 +311,7 @@ namespace cpp
 					break;
 				}
 
-				if ( timeout.isInfinite( ) /*|| m_recvOffset < m_autoCloseBytes*/ )
+				if ( timeout.isInfinite( ) )
 				{
 					m_io.runOne( );
 				}
@@ -372,80 +422,116 @@ namespace cpp
 		flush( );
 		m_writeOffset = pos;
 	}
+	*/
 
-	void AsyncFile::Detail::truncate( )
+
+
+	AsyncFile AsyncFile::readAll( asio::io_context & io, const FilePath & filepath, ReadHandler handler, Share share )
 	{
-		_LARGE_INTEGER pos;
-		pos.QuadPart = m_writeOffset;
-		check<IOException>( SetFilePointerEx( m_handle.native( ), pos, NULL, FILE_BEGIN ) != FALSE, "Unable to truncate file (SetFilePointerEx)" );
-		check<IOException>( SetEndOfFile( m_handle.native( ) ) != FALSE, "Unable to truncate file (SetEndOfFile)" );
+		auto file = AsyncFile{ io, filepath, Access::Read, share };
+		file.read( 0, file.length( ), std::move( handler ) );
+		return file;
+	}
+
+
+	AsyncFile AsyncFile::stream( asio::io_context & io, const FilePath & filepath, ReadHandler handler, Share share )
+	{
+		auto file = AsyncFile{ io, filepath, Access::Read, share };
+		return file;
 	}
 
 
 	AsyncFile::AsyncFile( nullptr_t )
 		: m_detail( nullptr ) { }
 
+
 	AsyncFile::AsyncFile( )
 		: m_detail( nullptr ) { }
 
-	AsyncFile::AsyncFile(
-		const FilePath & filepath,
-		Access access,
-		size_t origin,
-		Share share,
-		AsyncIO & io,
-		size_t buflen )
-		: m_detail( std::make_shared<Detail>( filepath, access, origin, share, io, buflen ) ) { }
+
+	AsyncFile::AsyncFile( asio::io_context & io, const FilePath & filepath, Access access, Share share )
+		: m_detail( Detail::create( io, filepath, access, share ) ) { }
+
 
 	AsyncFile::~AsyncFile( )
 	{
 		m_detail->close( );
 	}
 
+
 	bool AsyncFile::isOpen( ) const
 	{
 		return m_detail->isOpen( );
 	}
-	Memory AsyncFile::read( const Memory & dst, Duration timeout )
+
+
+	size_t AsyncFile::length( ) const
 	{
-		return m_detail->read( dst, timeout );
+		return m_detail->length( );
 	}
-	Memory AsyncFile::write( const Memory & src )
+
+
+	void AsyncFile::read( size_t pos, size_t length, ReadHandler handler )
 	{
-		return m_detail->write( src );
+		m_detail->read( pos, length, handler );
 	}
-	void AsyncFile::flush( )
+
+
+	void AsyncFile::write( size_t pos, std::string data, WriteHandler handler )
 	{
-		m_detail->flush( );
+		m_detail->write( pos, data, handler );
 	}
+
+
+	void AsyncFile::readSome( size_t pos, size_t length, ReadHandler handler )
+	{
+		Detail::ReadContext::ptr_t readContext = std::make_shared<Detail::ReadContext>( );
+		readContext->readPos = pos;
+		readContext->readLen = length;
+		readContext->handler = std::move( handler );
+		readContext->buffer.resize( length );
+		readContext->bytes = 0;
+		readContext->self = m_detail;
+
+		m_detail->readSome( std::move( readContext ), []( std::error_code error, Detail::ReadContext::ptr_t context )
+			{
+				context->buffer.resize( context->bytes );
+				context->handler( error, context->buffer );
+			} );
+	}
+
+
+	void AsyncFile::writeSome( size_t pos, std::string data, WriteHandler handler )
+	{
+		m_detail->writeSome( pos, data, handler );
+	}
+
+	
+	void AsyncFile::truncate( size_t length )
+	{
+		m_detail->truncate( length );
+	}
+
+
 	void AsyncFile::close( )
 	{
-		return m_detail->close( );
+		m_detail->close( );
 	}
 
-	bool AsyncFile::isEOF( ) const
-	{
-		return m_detail->isEOF( );
-	}
-	size_t AsyncFile::readTell( ) const
-	{
-		return m_detail->readTell( );
-	}
-	void AsyncFile::readSeek( size_t pos )
-	{
-		return m_detail->readSeek( pos );
-	}
-	size_t AsyncFile::writeTell( ) const
-	{
-		return m_detail->writeTell( );
-	}
-	void AsyncFile::writeSeek( size_t pos )
-	{
-		return m_detail->writeSeek( pos );
-	}
-	void AsyncFile::truncate( )
-	{
-		return m_detail->truncate( );
-	}
 
 }
+
+
+#else
+
+#include "../meta/Test.h"
+
+TEST_CASE( "Factorials are computed", "[factorial]" ) 
+{
+	REQUIRE( Factorial( 1 ) == 1 );
+	REQUIRE( Factorial( 2 ) == 2 );
+	REQUIRE( Factorial( 3 ) == 6 );
+	REQUIRE( Factorial( 10 ) == 3628800 );
+}
+
+#endif

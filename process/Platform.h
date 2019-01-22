@@ -18,7 +18,7 @@ namespace cpp
 
     struct Platform
     {
-        static bool isWindows( )
+		constexpr static bool isWindows( )
             { return true; }
     };
 

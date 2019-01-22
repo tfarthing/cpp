@@ -53,7 +53,7 @@ namespace cpp
 
         Memory				get( Memory key ) const;
 		void				set( Memory key, Memory value );
-		Memory				remove( Memory key );
+		void 				remove( Memory key );
 
 		String				toString( ) const;
 		Memory				toBinary( DataBuffer & buffer, ByteOrder byteOrder = ByteOrder::Host ) const;
@@ -90,7 +90,7 @@ namespace cpp
 
         Memory				get( Memory key ) const;
         void				set( Memory key, Memory value );
-		Memory				remove( Memory key );
+		void				remove( Memory key );
 
 		String				toString( ) const;
 		Memory				toBinary( DataBuffer & buffer, ByteOrder byteOrder = ByteOrder::Host ) const;
@@ -163,7 +163,7 @@ namespace cpp
     inline StringMap & StringMap::operator=( const StringMap & copy )
         { Map::operator=( copy );  return *this; }
 
-    inline StringMap & StringMap::operator=( const DataMap && copy )
+    inline StringMap & StringMap::operator=( const DataMap & copy )
         { for ( auto itr : copy ) { insert_or_assign( itr.first, itr.second ); } return *this; }
 
     inline Memory StringMap::operator[]( Memory key ) const

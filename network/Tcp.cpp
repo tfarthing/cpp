@@ -1,9 +1,9 @@
 #ifndef TEST
 
-#include <cpp/Integer.h>
-#include <cpp/chrono/Timer.h>
-#include <cpp/io/network/Tcp.h>
-#include <cpp/util/DataBuffer.h>
+#include "../data/Integer.h"
+#include "../data/DataBuffer.h"
+#include "../time/Timer.h"
+#include "Tcp.h"
 
 namespace cpp
 {
@@ -30,8 +30,8 @@ namespace cpp
         Detail( AsyncIO io, size_t recvBufferSize ) : 
             m_io( std::move(io) ), 
             m_connectionTimer( ), 
-            m_resolver( m_io.get( ) ),
-            m_socket( m_io.get( ) ),
+            m_resolver( m_io.context( ) ),
+            m_socket( m_io.context( ) ),
             m_recvBuffer( recvBufferSize ), 
             m_sendBytes( 0 ), 
             m_hasConnectTimeout( false ),
@@ -45,7 +45,7 @@ namespace cpp
         Detail( AsyncIO io, asio::ip::tcp::socket && socket, size_t recvBufferSize ) : 
             m_io( std::move(io) ), 
             m_connectionTimer( ), 
-            m_resolver( m_io.get() ),
+            m_resolver( m_io.context() ),
             m_socket( std::move( socket ) ), 
             m_recvBuffer( recvBufferSize ), 
             m_sendBytes( 0 ), 
@@ -60,7 +60,7 @@ namespace cpp
         ~Detail( )
             { close(); }
         asio::mutable_buffers_1 toBuffer( const Memory & buf )
-            { return asio::buffer( (char *)buf.c_str( ), buf.length( ) ); }
+            { return asio::buffer( (char *)buf.data( ), buf.length( ) ); }
 
         void setBufferSize( size_t size )
         {
@@ -225,7 +225,7 @@ namespace cpp
         bool isSending( ) const
             { return m_isSending; }
 
-        Memory read( const Memory & dst, Duration timeout ) override
+        Memory read( Memory dst, Duration timeout ) override
         {
             Timer timer;
             while ( m_socket.is_open() || !m_recvBuffer.getable().isEmpty() )
@@ -236,7 +236,7 @@ namespace cpp
                     if ( !m_isRecving )
                         { doRecv(); }
 
-                    if ( timer.test( timeout ) )
+                    if ( timer.elapsed( timeout ) )
                         { break; }
 
                     if ( timeout.isInfinite() )
@@ -250,7 +250,7 @@ namespace cpp
                 size_t len = std::min( dst.length( ), m_recvBuffer.getable( ).length( ) );
                 return Memory::copy( dst, m_recvBuffer.get( len ) );
             }
-            return Memory::Null;
+            return nullptr;
         }
 
         Memory write( const Memory & src ) override
@@ -281,7 +281,7 @@ namespace cpp
         AsyncTimer m_connectionTimer;
         asio::ip::tcp::resolver m_resolver;
         asio::ip::tcp::socket m_socket;
-        DataBuffer m_recvBuffer;
+        StringBuffer m_recvBuffer;
         std::list<String> m_sendBuffers;
         size_t m_sendBytes;
         bool m_hasConnectTimeout;
@@ -454,8 +454,8 @@ namespace cpp
 
     struct Tcp::Listener::Detail
     {
-        Detail( AsyncIO & io, size_t buflen )
-            : m_io(io), m_buflen(buflen), m_isAccepting(false), m_acceptor( io.get() ), m_socket( io.get() ) { }
+		Detail( AsyncIO & io, size_t buflen )
+			: m_io( io ), m_buflen( buflen ), m_isAccepting( false ), m_acceptor( io.context( ) ), m_socket( io.context( ) ) { }
         ~Detail()
             { close(); }
 
@@ -493,8 +493,8 @@ namespace cpp
     {
         m_isAccepting = false;
         
-        Connection connection = error ? Connection{} : Connection{ m_io, std::move( m_socket ), m_buflen };
-        m_socket = std::move( asio::ip::tcp::socket{ m_io.get() } );
+		Connection connection = error ? Connection{} : Connection{ m_io, std::move( m_socket ), m_buflen };
+        m_socket = std::move( asio::ip::tcp::socket{ m_io.context() } );
         if ( error )
             { m_acceptor.close(); }
         else
@@ -535,7 +535,7 @@ namespace cpp
         auto & acceptor = m_detail->m_acceptor;
 
         std::error_code error;
-        asio::ip::tcp::resolver resolver( m_detail->m_io.get() );
+        asio::ip::tcp::resolver resolver( m_detail->m_io.context() );
         asio::ip::tcp::resolver::query query{ asio::ip::tcp::v6(), bindAddress, Integer::toDecimal(port) };
         auto itr = resolver.resolve( query, error );
         check( error );

@@ -3,13 +3,17 @@
 #include <list>
 #include <set>
 #include <map>
-#include <cpp/Exception.h>
-#include <cpp/Platform.h>
-#include <cpp/chrono/timer.h>
-#include <cpp/io/network/Http.h>
-#include <cpp/platform/windows/WindowsException.h>
-#include <cpp/util/DataBuffer.h>
-#include <cpp/util/Log.h>
+
+#include "../data/DataBuffer.h"
+#include "../time/Timer.h"
+#include "../process/Exception.h"
+#include "../process/Platform.h"
+#include "../process/Lock.h"
+#include "../platform/windows/WindowsException.h"
+#include "../text/Utf16.h"
+#include "../util/Log.h"
+#include "Http.h"
+
 #include <Wininet.h>
 
 namespace cpp
@@ -162,7 +166,7 @@ namespace cpp
             }
 
             m_isRecving = true;
-            if ( InternetReadFile( m_handle, (LPVOID)dst.c_str( ), (DWORD)dst.length( ), &m_recvBytes ) == FALSE )
+            if ( InternetReadFile( m_handle, (LPVOID)dst.data( ), (DWORD)dst.length( ), &m_recvBytes ) == FALSE )
             {
                 int err = GetLastError( );
                 if ( err != ERROR_IO_PENDING )
@@ -189,7 +193,7 @@ namespace cpp
                 return;
             }
             m_isSending = true;
-            if ( InternetWriteFile( m_handle, (LPVOID)src.c_str( ), (DWORD)src.length( ), &m_sendBytes ) == FALSE )
+            if ( InternetWriteFile( m_handle, (LPVOID)src.data( ), (DWORD)src.length( ), &m_sendBytes ) == FALSE )
             {
                 int err = GetLastError( );
                 if ( err != ERROR_IO_PENDING )
@@ -209,7 +213,7 @@ namespace cpp
             auto lock = m_mutex.lock( );
             return m_handle != nullptr || m_recvBuffer.getable( ).isEmpty( ) == false;
         }
-        Memory read( const Memory & dst, Duration timeout ) override
+        Memory read( Memory dst, Duration timeout ) override
         {
             auto lock = m_mutex.lock( );
 
@@ -222,7 +226,7 @@ namespace cpp
                     if ( !m_isRecving )
                         { doRecv( ); continue; }
 
-                    if ( timer.test( timeout ) )
+                    if ( timer.elapsed( timeout ) )
                         { break; }
 
                     lock.waitFor( timer.until( timeout ) );
@@ -234,7 +238,7 @@ namespace cpp
             }
 
             check( );
-            return Memory::Null;
+            return nullptr;
         }
         Memory write( const Memory & src ) override
         {
@@ -344,7 +348,7 @@ namespace cpp
                     check( err == ERROR_IO_PENDING );
 
                     m_isPending = true;
-                    while ( m_isPending && !timer.test( timeout ) )
+                    while ( m_isPending && !timer.elapsed( timeout ) )
                     {
                         lock.waitFor( timer.until( timeout ) );
                     }
@@ -374,7 +378,7 @@ namespace cpp
                     check( err == ERROR_IO_PENDING );
                     m_isPending = true;
 
-                    while ( m_isPending && !timer.test( timeout ) )
+                    while ( m_isPending && !timer.elapsed( timeout ) )
                         { lock.waitFor( timer.until( timeout ) ); }
                     cpp::check<TimeoutException>( m_isPending == false );
                 }
@@ -427,7 +431,7 @@ namespace cpp
         bool m_isPending;
         bool m_isRecving;
         DWORD m_recvBytes;
-        DataBuffer m_recvBuffer;
+        StringBuffer m_recvBuffer;
         bool m_isSending;
         DWORD m_sendBytes;
         uint64_t m_sentBytes;

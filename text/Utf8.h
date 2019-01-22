@@ -1,11 +1,10 @@
 #pragma once
 
-#include <cpp/Object.h>
-#include <cpp/Exception.h>
-#include <cpp/String.h>
-#include <cpp/io/Input.h>
-#include <cpp/util/Unicode.h>
-#include <cpp/util/DataBuffer.h>
+#include "Unicode.h"
+#include "../process/Exception.h"
+#include "../data/String.h"
+#include "../data/DataBuffer.h"
+#include "../io/Input.h"
 
 namespace cpp
 {
@@ -90,10 +89,10 @@ namespace cpp
         Memory substr( const Memory & utf8, size_t pos, size_t offset = -1 );
         size_t strlen( const Memory & utf8 );
 
-        Unicode toUnicode( const Memory & utf8 );
+        //Unicode toUnicode( const Memory & utf8 );
 
+		/*
         class Reader
-            : public Object
         {
         public:
             class iterator
@@ -129,8 +128,9 @@ namespace cpp
 
         private:
             Input m_input;
-            DataBuffer m_buffer;
+            StringBuffer m_buffer;
         };
+		*/
     };
 
 }

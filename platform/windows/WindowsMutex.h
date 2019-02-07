@@ -1,9 +1,11 @@
 #pragma once
 
-#include <cpp/String.h>
-#include <cpp/Platform.h>
-#include <cpp/chrono/Duration.h>
-#include <cpp/platform/windows/WindowsException.h>
+#include "../../../cpp/time/Duration.h"
+#include "../../../cpp/process/Platform.h"
+#include "../../../cpp/text/Utf16.h"
+#include "../../../cpp/platform/windows/WindowsException.h"
+
+#undef cpp
 
 namespace cpp
 {

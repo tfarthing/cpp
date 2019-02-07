@@ -29,7 +29,7 @@ namespace cpp
     {
         cipherKey.resize( 32 );
         rijndael::rijndaelKeySetupEnc( rk, (uint8_t *)cipherKey.c_str( ), kKeyLen );
-        memcpy( iv, initVector.c_str( ), std::min( initVector.length( ), (size_t)kBlockSize ) );
+        memcpy( iv, initVector.data( ), std::min( initVector.length( ), (size_t)kBlockSize ) );
         if ( initVector.length( ) < kBlockSize )
         {
             memset( iv + initVector.length( ), 0, kBlockSize - initVector.length( ) );
@@ -42,7 +42,7 @@ namespace cpp
         int numBlocks = (int)plainText.length( ) / kBlockSize + ( padding ? 1 : 0 );
         String cipherText( numBlocks * kBlockSize, 0 );
 
-        uint8_t * input = (uint8_t *)plainText.c_str( );
+        uint8_t * input = (uint8_t *)plainText.data( );
         uint8_t * output = (uint8_t *)cipherText.c_str( );
 
         for ( int i = 0; i<numBlocks; i++ )
@@ -73,7 +73,7 @@ namespace cpp
     {
         cipherKey.resize( 32 );
         rijndael::rijndaelKeySetupDec( rk, (uint8_t *)cipherKey.c_str( ), kKeyLen );
-        memcpy( iv, initVector.c_str( ), std::min( initVector.length( ), (size_t)kBlockSize ) );
+        memcpy( iv, initVector.data( ), std::min( initVector.length( ), (size_t)kBlockSize ) );
         if ( initVector.length( ) < kBlockSize )
         {
             memset( iv + initVector.length( ), 0, kBlockSize - initVector.length( ) );
@@ -86,7 +86,7 @@ namespace cpp
         int numBlocks = (int)cipherText.length( ) / kBlockSize - ( padding ? 1 : 0 );
         String plainText( cipherText.length( ), 0 );
 
-        uint8_t * input = (uint8_t *)cipherText.c_str( );
+        uint8_t * input = (uint8_t *)cipherText.data( );
         uint8_t * output = (uint8_t *)plainText.c_str( );
 
         /* all blocks but last */

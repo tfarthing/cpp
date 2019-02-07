@@ -1191,7 +1191,7 @@ namespace cpp::bit
 
     uint8_t Decoder::getch( DataBuffer & buffer )
     {
-        return buffer.getable( ).get( m_pos );
+        return buffer.getable( ).at( m_pos );
     }
 
     //  This allows the decoded line to be backed by the temporary buffer 
@@ -1291,7 +1291,7 @@ namespace cpp::bit
        
     bool Decoder::step( DataBuffer & buffer )
     {
-        uint8_t byte = buffer.getable( ).get( m_pos );
+        uint8_t byte = buffer.getable( ).at( m_pos );
 
         switch ( m_state )
         {
@@ -1419,7 +1419,7 @@ namespace cpp::bit
             m_recordBegin = m_tokenBegin;
             m_recordEnd = m_tokenEnd;
 
-            if ( buffer.getable( ).get( m_pos + 1 ) == ':' )
+            if ( buffer.getable( ).at( m_pos + 1 ) == ':' )
             {
                 m_pos++;
                 m_result.remove( record( buffer ) );
@@ -1519,7 +1519,7 @@ namespace cpp::bit
             }
             break;
         default:
-            if ( Memory tok = token( buffer ); Memory{ "null" }.get(tok.length()) != byte )
+            if ( Memory tok = token( buffer ); Memory{ "null" }.at(tok.length()) != byte )
             {
                 m_errorPos = m_tokenBegin;
                 m_error = Error::ExpectedAssignment;
@@ -1576,7 +1576,7 @@ namespace cpp::bit
         }
 
         m_pos = m_valueEnd - m_line.length( );
-        if ( buffer.getable( ).get( m_pos ) != '\'' )
+        if ( buffer.getable( ).at( m_pos ) != '\'' )
         {
             m_errorPos = pos( );
             m_error = Error::ExpectedValueDelimiter;

@@ -31,7 +31,7 @@ namespace cpp
         { for ( auto m : source ) { groups.push_back( Memory{ m.first, m.second } ); } }
 
     template<typename T> RegexMatch<T> RegexMatch<T>::operator=( const std::cmatch & source )
-        { m_groups.clear( ); for ( auto m : source ) { groups.push_back( Memory{ m.first, m.second } ); } return *this; }
+        { groups.clear( ); for ( auto m : source ) { groups.push_back( Memory{ m.first, m.second } ); } return *this; }
 
     template<typename T> bool RegexMatch<T>::operator!( ) const
         { return !hasMatch( ); }

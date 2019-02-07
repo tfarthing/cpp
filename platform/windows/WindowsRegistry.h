@@ -1,8 +1,9 @@
 #pragma once
 
-#include <cpp/Memory.h>
-#include <cpp/Platform.h>
-#include <cpp/platform/windows/WindowsException.h>
+#include "../../../cpp/data/Memory.h"
+#include "../../../cpp/text/Utf16.h"
+#include "../../../cpp/process/Platform.h"
+#include "../../../cpp/platform/windows/WindowsException.h"
 
 namespace cpp
 {
@@ -28,14 +29,14 @@ namespace cpp
                 Key & operator=( Key && move ) 
                     { close(); m_key = move.m_key; m_managedFlag = move.m_managedFlag; if ( move.m_managedFlag ) { move.m_key = nullptr; } return *this; }
 
-                Key open( const Memory & subkey )
+                Key open( Memory subkey )
                 {
                     HKEY hkey;
                     check( RegOpenKeyEx( m_key, toUtf16( subkey ).data(), 0, KEY_ALL_ACCESS, &hkey ) == ERROR_SUCCESS );
                     return Key{ hkey, true };
                 }
 
-                Key create( const Memory & subkey )
+                Key create( Memory subkey )
                 {
                     HKEY hkey;
                     DWORD disp;
@@ -43,7 +44,7 @@ namespace cpp
                     return Key{ hkey, true };
                 }
 
-                bool exists( const Memory & subkey )
+                bool exists( Memory subkey )
                 {
                     try
                         { return open( subkey ).isOpen( );  }
@@ -66,9 +67,9 @@ namespace cpp
                 void close( )
                     { if ( m_key && m_managedFlag ) { RegCloseKey( m_key ); m_key = nullptr; } }
 
-                void set( const Memory & name, const Memory & value )
+                void set( Memory name, Memory value )
                 {
-                    Utf16::Text wname = toUtf16( name );
+					Utf16::Text wname = toUtf16( name );
                     Utf16::Text wvalue = toUtf16( value );
                     RegSetValueEx( m_key, wname, 0, REG_SZ, (LPBYTE)wvalue.begin(), ( (DWORD)wvalue.size( ) + 1 )*sizeof( wchar_t ) );
                 }
@@ -78,6 +79,12 @@ namespace cpp
                     Utf16::Text wname = toUtf16( name );
                     RegSetValueEx( m_key, wname, 0, REG_DWORD, (LPBYTE)&value, sizeof( value ) );
                 }
+
+				void set( Memory name, Utf16::Text value )
+				{
+					Utf16::Text wname = toUtf16( name );
+					RegSetValueEx( m_key, wname, 0, REG_SZ, (LPBYTE)value.begin( ), ( (DWORD)value.size( ) + 1 ) * sizeof( wchar_t ) );
+				}
 
                 bool has( const Memory & name ) const
                 {

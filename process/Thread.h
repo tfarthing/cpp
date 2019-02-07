@@ -27,59 +27,59 @@ namespace cpp
 	class Thread
 	{
 	public:
-									template< class Function, class... Args >
-									Thread( Function&& f, Args&&... args );
+												template< class Function, class... Args >
+												Thread( Function&& f, Args&&... args );
 		
-									Thread( );
-									Thread( Thread && move );
-									~Thread( );
+												Thread( );
+												Thread( Thread && move );
+												~Thread( );
 
-		Thread &					operator=( Thread && move );
+		Thread &								operator=( Thread && move );
 
-		bool						isRunning( ) const;
-		void						join( );
-		void						interrupt( );
-		void						check( );
-		void						detach( );
-		void						reset( );
+		bool									isRunning( ) const;
+		void									join( );
+		void									interrupt( );
+		void									check( );
+		void									detach( );
+		void									reset( );
 
-        typedef std::thread::id		id_t;
+        typedef std::thread::id					id_t;
 
-		static id_t					id( );
-		static void					yield( );
-		static void					sleep( const Duration & duration );
-		static bool					isInterrupted( );
-		static void					checkInterrupt( );
-		static void					clearInterrupt( );
-        static std::string			name( );
-        static void					setName( std::string name );
+		static id_t								id( );
+		static void								yield( );
+		static void								sleep( const Duration & duration );
+		static bool								isInterrupted( );
+		static void								checkInterrupt( );
+		static void								clearInterrupt( );
+        static std::string						name( );
+        static void								setName( std::string name );
 
     private:
         friend class Lock;
         friend class RecursiveLock;
-		static void					enterWait( std::function<void( )> waitEvent );
-		static void					leaveWait( );
+		static void								enterWait( std::function<void( )> waitEvent );
+		static void								leaveWait( );
 
     private:
         struct Info
         {
-            typedef std::shared_ptr<Info> ptr_t;
+            typedef std::shared_ptr<Info>		ptr_t;
 
-									Info( );
-			void					interrupt( );
-			void					checkInterrupt( );
-			void					checkException( );
+												Info( );
+			void								interrupt( );
+			void								checkInterrupt( );
+			void								checkException( );
 
-			std::string				m_name;
-            std::exception_ptr		m_exception;
-            std::atomic_bool		m_isInterrupted;
-            std::function<void()>	m_waitEvent;
+			std::string							m_name;
+            std::exception_ptr					m_exception;
+            std::atomic_bool					m_isInterrupted;
+            std::function<void()>				m_waitEvent;
         };
 
 	private:
-		std::thread					m_thread;
-        Info::ptr_t					m_info;
-        static thread_local Info::ptr_t s_info;
+		std::thread								m_thread;
+        Info::ptr_t								m_info;
+        static thread_local Info::ptr_t			s_info;
 	};
 
 

@@ -108,39 +108,49 @@ namespace cpp
     inline DataBuffer DataBuffer::writeTo( Memory data )
         { return DataBuffer{ data, false }; }
 
+
     inline DataBuffer DataBuffer::readFrom( Memory data )
         { return DataBuffer{ data, true }; }
 
+
     inline DataBuffer::DataBuffer( Memory data, bool isReadable )
         : m_getIndex( 0 ), m_putIndex( isReadable ? data.length( ) : 0 ), m_getBuffer( data ) { }
+
 
     //  resets the data buffer to an empty state
     inline void DataBuffer::clear( )
         { m_getIndex = m_putIndex = 0; }
 
+
     //  returns the size of the underlying data buffer (unusable, getable, and putable)
     inline size_t DataBuffer::size( ) const
         { return m_getBuffer.length( ); }
+
 
     //  unusable() returns the byte range already read, and unavailable for writing: byte range [0, getPos)
     inline const Memory DataBuffer::unusable( ) const
         { return m_getBuffer.substr( 0, m_getIndex ); }
 
+
     //  getable() returns the byte range that is available for reading: byte range [getPos, putPos)
     inline const Memory DataBuffer::getable( ) const
         { return Memory{ m_getBuffer.data( ) + m_getIndex, m_putIndex - m_getIndex }; }
+
 
     //  putable() returns the byte range that is available for writing: byte range [putPos, getBuffer.end())
     inline const Memory DataBuffer::putable( ) const
         { return Memory{ m_getBuffer.data( ) + m_putIndex, m_getBuffer.length( ) - m_putIndex }; }
 
+
     //  returns the byte index of the next read operation (get)
     inline size_t DataBuffer::pos( ) const
         { return m_getIndex; }
 
+
     //  sets the byte index of the next read operation (get)
     inline void DataBuffer::setPos( size_t pos )
         { checkRead( pos, 0 ); m_getIndex = pos; }
+
 
     //  Reads a chunk whose length is prepended in the data (as binary int).
     //  The returned chunk will not include the length data, and returns null if unable to read the chunck
@@ -159,6 +169,7 @@ namespace cpp
         return get( len );
     }
 
+
     template<class T> Memory DataBuffer::putBlock( Memory block, bool inclusiveLength, ByteOrder byteOrder )
     {
         checkWrite( m_putIndex, block.length( ) + sizeof( T ) );
@@ -169,23 +180,30 @@ namespace cpp
         return Memory{ first.begin( ), second.end( ) };
     }
 
+
     template<class T> T DataBuffer::getBinary( ByteOrder byteOrder )
         { T value; getBinary( value, byteOrder ); return value; }
+
 
     template<class T> void DataBuffer::getBinary( T & value, ByteOrder byteOrder )
         { decodeBinary( *this, value, byteOrder ); }
 
+
     template<class T> void DataBuffer::putBinary( const T & value, ByteOrder byteOrder )
         { encodeBinary( *this, value, byteOrder ); }
+
 
     inline size_t DataBuffer::getPutPos( ) const
         { return m_putIndex; }
 
+
     inline void DataBuffer::setPutPos( size_t pos )
         { checkWrite( pos, 0); }
 
+
     inline void DataBuffer::checkRead( size_t index, size_t len ) const
         { check<OutOfBoundsException>( index >= 0 && index + len <= m_getBuffer.length( ), "DataBuffer::checkRead() failed" ); }
+
 
     inline void DataBuffer::checkWrite( size_t index, size_t len ) const
         { check<OutOfBoundsException>( index >= 0 && index + len <= (int)m_getBuffer.length( ), "DataBuffer::checkWrite() failed" ); }
@@ -195,8 +213,10 @@ namespace cpp
     inline StringBuffer StringBuffer::writeTo( size_t bufsize )
         { return StringBuffer{ bufsize }; }
 
+
     inline StringBuffer StringBuffer::readFrom( std::string data )
         { return StringBuffer{ std::move( data ) }; }
+
 
     inline void StringBuffer::resize( size_t size )
         { m_buffer.resize( size ); m_getBuffer = m_buffer; }
@@ -211,6 +231,7 @@ namespace cpp
         buffer.put( Memory::ofValue( value ) );
     }
 
+
     template<typename T, typename = std::enable_if_t<std::is_arithmetic<T>::value>>
     void decodeBinary( DataBuffer & buffer, T & value, ByteOrder byteOrder = ByteOrder::Host )
     { 
@@ -219,11 +240,13 @@ namespace cpp
         value = Memory::trySwap<T>( value, byteOrder );
     }
 
+
     inline void encodeBinary( DataBuffer & buffer, const cpp::String & value, ByteOrder byteOrder = ByteOrder::Host )
     { 
         buffer.putBinary( (uint32_t)value.length( ), byteOrder );
         buffer.put( Memory{ value } );
     }
+
 
     inline void decodeBinary( DataBuffer & buffer, cpp::String & value, ByteOrder byteOrder = ByteOrder::Host )
     { 
@@ -232,12 +255,14 @@ namespace cpp
         value = buffer.get( size );
     }
 
+
     template<typename T> void encodeBinary( DataBuffer & buffer, const std::vector<T> & value, ByteOrder byteOrder = ByteOrder::Host )
     {
         buffer.putBinary( (uint32_t)value.size( ), byteOrder );
         for ( const T & item : value )
             { buffer.putBinary( item, byteOrder ); }
     }
+
 
     template<typename T> void decodeBinary( DataBuffer & buffer, std::vector<T> & value, ByteOrder byteOrder = ByteOrder::Host )
     {

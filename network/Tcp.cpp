@@ -112,16 +112,13 @@ namespace cpp
                 }
             };
 
-            auto onTimeout = [=]( const std::error_code & error )
+            auto onTimeout = [=]( )
             {
-                if ( !error )
-                {
-                    m_hasConnectTimeout = true;
-                    m_resolver.cancel( );
+                m_hasConnectTimeout = true;
+                m_resolver.cancel( );
 
-                    std::error_code err;
-                    m_socket.close( err );
-                }
+                std::error_code err;
+                m_socket.close( err );
             };
 
             m_connectHandler = connectHandler;
@@ -134,7 +131,8 @@ namespace cpp
 
             m_isConnecting = true;
             asio::ip::tcp::resolver::query query = { ( protocol == Protocol::IPv6 ) ? asio::ip::tcp::v6( ) : asio::ip::tcp::v4( ), host, port };
-            m_connectionTimer = m_io.asyncWait( timeoutDuration, onTimeout );
+            //m_connectionTimer = m_io.asyncWait( timeoutDuration, onTimeout );
+			m_connectionTimer = m_io.waitFor( timeoutDuration, onTimeout );
             m_resolver.async_resolve( query, onResolve );
         }
 

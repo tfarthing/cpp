@@ -1,7 +1,8 @@
 #pragma once
 
-#include <cpp/Platform.h>
-#include <cpp/io/file/FilePath.h>
+#include "../../../cpp/process/Platform.h"
+#include "../../../cpp/file/Files.h"
+#include "../../../cpp/data/String.h"
 
 #include <Shellapi.h>
 #include <Shlobj.h>

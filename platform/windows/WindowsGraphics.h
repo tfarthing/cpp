@@ -3,9 +3,9 @@
 #include <memory>
 #include <algorithm>
 #include <map>
-#include <cpp/ui/GraphicsUI.h>
-#include <cpp/util/Utf16.h>
-#include <cpp/Platform.h>
+#include "../../../cpp/math/Rect.h"
+#include "../../../cpp/text/Utf16.h"
+#include "../../../cpp/process/Platform.h"
 
 #pragma warning( push )
 #pragma warning( disable: 4302 4838 )
@@ -14,12 +14,13 @@
 
 #include <atlbase.h>
 #include <atlwin.h>
-#include <lib/wtl/atlapp.h>
-#include <lib/wtl/atlcrack.h>
-#include <lib/wtl/atlctrls.h>
-#include <lib/wtl/atlmisc.h>
-#include <lib/wtl/atlframe.h>
-#include <lib/wtl/atldlgs.h>
+
+#include <wtl/atlapp.h>
+#include <wtl/atlcrack.h>
+#include <wtl/atlctrls.h>
+#include <wtl/atlmisc.h>
+#include <wtl/atlframe.h>
+#include <wtl/atldlgs.h>
 
 #pragma warning( pop )
 
@@ -31,12 +32,11 @@ namespace cpp
     {
 
 
-        using Rect = cpp::GraphicsUI::Rect;
-        using Widget = cpp::GraphicsUI::Widget;
+        using Rect = cpp::Rect<float>;
 
-        typedef cpp::Handle<CFont> Font;
-        typedef cpp::Handle<CBrush> Brush;
-        typedef cpp::Handle<CPen> Pen;
+        typedef std::shared_ptr<CFont> Font;
+        typedef std::shared_ptr<CBrush> Brush;
+        typedef std::shared_ptr<CPen> Pen;
 
 
         class Convert
@@ -104,13 +104,13 @@ namespace cpp
             static Font createFont( const cpp::Memory & fontName, int size )
                 { Font font; font->CreateFontW( size, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, CLEARTYPE_QUALITY, 0, cpp::toUtf16( fontName ).c_str()); return font; }
             static Brush createSolidBrush( uint32_t color )
-                { return Brush{ CreateSolidBrush( toBGR( color ) ) }; }
+                { return std::make_shared<CBrush>( CreateSolidBrush( toBGR( color ) ) ); }
             static Brush createSolidBrush( int a, int r, int g, int b )
-                { return Brush{ CreateSolidBrush( toBGR(createColor(a,r,g,b) ) ) }; }
+                { return std::make_shared<CBrush>( CreateSolidBrush( toBGR(createColor(a,r,g,b) ) ) ); }
             static Brush stockBrush( int id )
-                { return Brush{ (HBRUSH)GetStockObject( id ) }; }
+                { return std::make_shared<CBrush>( (HBRUSH)GetStockObject( id ) ); }
             static Pen createPen( int style, int width, uint32_t color )
-                { return Pen{ CreatePen(style, width, toBGR(color) ) }; }
+                { return std::make_shared<CPen>( CreatePen(style, width, toBGR(color) ) ); }
             static uint32_t createColor( int a, int r, int g, int b )
                 { return ( ( a & 0xff ) << 24 ) | ( ( r & 0xff ) << 16 ) | ( ( g & 0xff ) << 8 ) | ( ( b & 0xff ) << 0 ); }
             static uint32_t toBGR( uint32_t color )

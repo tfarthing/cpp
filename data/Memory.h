@@ -52,6 +52,7 @@ namespace cpp
 
 		static const size_t			npos = (size_t)-1;
 		typedef std::vector<Memory> Array;
+		static const Memory			Empty;
 		static const Memory			WhitespaceList;
 
 		static Memory				copy( Memory & dst, const Memory & src );		// memcpy

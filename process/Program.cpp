@@ -25,8 +25,8 @@ namespace cpp
 		Detail( );
 
 		StringMap				args;
-		FilePath				exePath;
-		FilePath				workingPath;
+		String					exePath;
+		String					workingPath;
 		Logger					logger;
 		std::mt19937_64			rand;
 		AsyncIO					io;
@@ -80,6 +80,7 @@ namespace cpp
 		initArgs( args );
 	}
 
+
 	void Program::initArgs( int argc, const char ** argv )
 	{
 		String::Array args;
@@ -89,6 +90,7 @@ namespace cpp
 		}
 		initArgs( args );
 	}
+
 
 	void Program::initArgs( const String & cmdline )
 	{
@@ -100,6 +102,7 @@ namespace cpp
 		}
 		initArgs( arguments );
 	}
+
 
 	void Program::initArgs( const String::Array & arguments )
 	{
@@ -115,63 +118,73 @@ namespace cpp
 		init( );
 	}
 
+
 	void Program::init( )
 	{
 		std::wstring path( 1024, L'\0' );
 		int len = GetModuleFileName( NULL, (LPWSTR)path.c_str( ), (DWORD)path.size( ) );
 		if ( len > 0 )
 		{
-			detail->exePath = path.substr( 0, len );
+			detail->exePath = cpp::toUtf8( path.substr( 0, len ) );
 		}
 
 		len = GetCurrentDirectory( (DWORD)path.size( ), (LPWSTR)path.c_str( ) );
 		if ( len > 0 )
 		{
-			detail->workingPath = path.substr( 0, len );
+			detail->workingPath = cpp::toUtf8( path.substr( 0, len ) );
 		}
 
 		addInstance( this );
 	}
+
 
 	const Memory Program::arg( Memory key ) const
 	{
 		return detail->args.at( key );
 	}
 
+
 	const StringMap & Program::args( ) const
 	{
 		return detail->args;
 	}
 
-	const FilePath & Program::exePath( )
+
+	const String & Program::exePath( )
 	{
 		return detail->exePath;
 	}
 
-	const FilePath & Program::workingPath( )
+
+	const String & Program::workingPath( )
 	{
 		return detail->workingPath;
 	}
+
 
 	AsyncIO & Program::asyncIO( )
 	{
 		return detail->io;
 	}
 
+
 	Logger & Program::logger( )
 	{
 		return detail->logger;
 	}
+
 
 	uint64_t Program::rand( )
 	{
 		return detail->rand( );
 	}
 
+
 	double Program::frand( )
 	{
 		return std::generate_canonical<double, std::numeric_limits<double>::digits>( detail->rand );
 	}
+
 
 	std::mt19937_64 & Program::getRandom( )
 	{

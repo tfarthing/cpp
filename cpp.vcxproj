@@ -50,7 +50,6 @@
     <ClInclude Include="meta\Test.h" />
     <ClInclude Include="process\Platform.h" />
     <ClInclude Include="platform\windows\WindowsException.h" />
-    <ClInclude Include="platform\windows\WindowsConsole.h" />
     <ClInclude Include="platform\windows\WindowsGraphics.h" />
     <ClInclude Include="platform\windows\WindowsMutex.h" />
     <ClInclude Include="platform\windows\WindowsRegistry.h" />
@@ -61,7 +60,6 @@
     <ClInclude Include="process\Program.h" />
     <ClInclude Include="data\String.h" />
     <ClInclude Include="util\Bit.h" />
-    <ClInclude Include="util\BitData.h" />
     <ClInclude Include="util\BitDB.h" />
     <ClInclude Include="data\DataBuffer.h" />
     <ClInclude Include="util\DataFile.h" />
@@ -108,7 +106,6 @@
     <ClCompile Include="data\Memory.cpp" />
     <ClCompile Include="meta\Test.cpp" />
     <ClCompile Include="platform\windows\WindowsApp.cpp" />
-    <ClCompile Include="platform\windows\WindowsConsole.cpp" />
     <ClCompile Include="platform\windows\WindowsGraphics.cpp" />
     <ClCompile Include="platform\windows\WindowsShell.cpp" />
     <ClCompile Include="process\Lock.cpp" />
@@ -117,7 +114,6 @@
     <ClCompile Include="process\Program.cpp" />
     <ClCompile Include="data\String.cpp" />
     <ClCompile Include="util\Bit.cpp" />
-    <ClCompile Include="util\BitData.cpp" />
     <ClCompile Include="util\BitDB.cpp" />
     <ClCompile Include="data\DataBuffer.cpp" />
     <ClCompile Include="util\DataFile.cpp" />

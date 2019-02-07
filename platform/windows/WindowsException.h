@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../../process/Exception.h"
-#include "../../process/Platform.h"
+#include "../../../cpp/process/Exception.h"
+#include "../../../cpp/process/Platform.h"
 
 namespace cpp
 {

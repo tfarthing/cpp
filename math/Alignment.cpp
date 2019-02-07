@@ -1,7 +1,9 @@
 #ifndef TEST
 
-#include <cpp/Exception.h>
-#include <cpp/math/Alignment.h>
+#include "../../cpp/process/Exception.h"
+#include "../../cpp/math/Alignment.h"
+
+
 
 namespace cpp
 {

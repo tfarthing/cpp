@@ -1,6 +1,6 @@
-#include "../../data/Integer.h"
-#include "../../text/Utf16.h"
-#include "WindowsException.h"
+#include "../../../cpp/data/Integer.h"
+#include "../../../cpp/text/Utf16.h"
+#include "../../../cpp/platform/windows/WindowsException.h"
 
 
 

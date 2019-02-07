@@ -18,6 +18,7 @@
 #include <chrono>
 #include <functional>
 
+#include "../time/Time.h"
 #include "Lock.h"
 
 #include "Platform.h"
@@ -30,31 +31,31 @@ namespace cpp
 	class AsyncTimer
 	{
 	public:
-		typedef std::chrono::milliseconds duration_t;
-		typedef std::chrono::steady_clock::time_point time_point_t;
+		static AsyncTimer					waitFor(
+			asio::io_context * context,
+			Duration timeout,
+			std::function<void( )> handler );
+		static AsyncTimer					waitUntil(
+			asio::io_context * context,
+			Time timeout,
+			std::function<void( )> handler );
 
-		static AsyncTimer					waitFor( 
-												asio::io_context * context, 
-												duration_t timeout,
-												std::function<void( )> handler );
-		static AsyncTimer					waitUntil( 
-												asio::io_context * context, 
-												time_point_t timeout,
-												std::function<void( )> handler );
+		AsyncTimer( );
+		AsyncTimer( AsyncTimer && move );
+		~AsyncTimer( );
 
-											AsyncTimer( );
-											AsyncTimer( AsyncTimer && move );
-											~AsyncTimer( );
+		AsyncTimer &						operator=( AsyncTimer && move );
 
-		AsyncTimer &						operator=( AsyncTimer && move);
+		bool								isPending( ) const;
+		bool								isExpired( ) const;
 
 		void								cancel( );
 
 	private:
-		void								start( 
-												asio::io_context * context, 
-												time_point_t & timeout,
-												std::function<void( )> handler );
+		void								start(
+			asio::io_context * context,
+			Time timeout,
+			std::function<void( )> handler );
 
 	private:
 		struct Detail;
@@ -66,18 +67,23 @@ namespace cpp
 	class AsyncIO
 	{
 	public:
-											AsyncIO( );
-											~AsyncIO( );
+		AsyncIO( );
+		~AsyncIO( );
 
 		asio::io_context &					context( );
 
-		AsyncTimer							waitFor( std::chrono::milliseconds timeout, std::function<void( )> handler );
-		AsyncTimer							waitUntil( std::chrono::steady_clock::time_point timeout, std::function<void( )> handler );
+		size_t								poll( );
+		size_t								runOne( );
+		size_t								runOne( Duration timeout );
+		size_t								runOne( Time timeout );
+
+		AsyncTimer							waitFor( Duration timeout, std::function<void( )> handler );
+		AsyncTimer							waitUntil( Time timeout, std::function<void( )> handler );
 
 		//  block caller but call synchronously with the AsyncIO::run() call.
-		void								invoke( std::function<void()> fn );
-		
-		template<class T, class Fn, class ...Args> 
+		void								invoke( std::function<void( )> fn );
+
+		template<class T, class Fn, class ...Args>
 		T									invoke( Fn fn, Args && ...args );
 
 	private:
@@ -86,22 +92,82 @@ namespace cpp
 
 
 
-	AsyncTimer AsyncTimer::waitFor( asio::io_context * context, duration_t timeout, std::function<void( )> handler )
+	inline AsyncTimer AsyncTimer::waitFor( asio::io_context * context, Duration timeout, std::function<void( )> handler )
 	{
 		return waitUntil( context, std::chrono::steady_clock::now( ) + timeout, std::move( handler ) );
 	}
 
 
-	AsyncTimer AsyncTimer::waitUntil( asio::io_context * context, time_point_t timeout, std::function<void( )> handler )
+	inline AsyncTimer AsyncTimer::waitUntil( asio::io_context * context, Time timeout, std::function<void( )> handler )
 	{
 		AsyncTimer timer;
 		timer.start( context, timeout, std::move( handler ) );
 		return timer;
 	}
-	
 
 
-	void AsyncIO::invoke( std::function<void( )> fn )
+
+	inline AsyncIO::AsyncIO( )
+		: io{ std::make_shared<asio::io_context>( ) }
+	{
+	}
+
+
+	inline AsyncIO::~AsyncIO( )
+	{
+	}
+
+
+	inline asio::io_context & AsyncIO::context( )
+	{
+		return *io;
+	}
+
+
+	size_t AsyncIO::poll( )
+	{
+		return io->poll( );
+	}
+
+
+	size_t AsyncIO::runOne( )
+	{
+		return io->run_one( );
+	}
+
+	size_t AsyncIO::runOne( Duration timeout )
+	{
+		if ( timeout.isInfinite( ) )
+			{ return runOne( ); }
+		else if ( timeout.isNegative( ) )
+			{ return poll( ); }
+		else
+			{ return runOne( Time::now( ) + timeout ); }
+	}
+
+	size_t AsyncIO::runOne( Time timeout )
+	{
+		if ( timeout < Time::now( ) )
+			{ return poll( ); }
+
+		auto timer = waitUntil( timeout, nullptr );
+		size_t result = runOne( );
+		return timer.isExpired( ) ? 0 : result;
+	}
+
+	inline AsyncTimer AsyncIO::waitFor( Duration timeout, std::function<void( )> handler )
+	{
+		return AsyncTimer::waitFor( io.get( ), timeout, handler );
+	}
+
+
+	inline AsyncTimer AsyncIO::waitUntil( Time timeout, std::function<void( )> handler )
+	{
+		return AsyncTimer::waitUntil( io.get( ), timeout, handler );
+	}
+
+
+	inline void AsyncIO::invoke( std::function<void( )> fn )
 	{
         Mutex mutex;
         auto lock = mutex.lock( );
@@ -123,7 +189,8 @@ namespace cpp
 	}
 
 
-	template<class T, class Function, class ...Args> T AsyncIO::invoke( Function fn, Args && ...args )
+	template<class T, class Function, class ...Args> 
+	T AsyncIO::invoke( Function fn, Args && ...args )
 	{
 		Mutex mutex;
 		auto lock = mutex.lock( );

@@ -11,7 +11,8 @@
 namespace cpp
 {
 
-    const Memory Memory::WhitespaceList = " \t\r\n";
+	const Memory Memory::Empty					= "";
+	const Memory Memory::WhitespaceList			= " \t\r\n";
 
 
 	int	Memory::compare( const Memory & lhs, const Memory & rhs )
@@ -323,22 +324,22 @@ namespace cpp
 
 
 	EncodedText::operator int8_t( ) const
-		{ return (int8_t)Integer::parse( data ); }
+		{ return Integer::to<int8_t>( Integer::parse( data ) ); }
 
 	EncodedText::operator uint8_t( ) const
-		{ return (int8_t)Integer::parseUnsigned( data ); }
+		{ return Integer::to<uint8_t>( Integer::parseUnsigned( data ) ); }
 
 	EncodedText::operator int16_t( ) const
-		{ return (int16_t)Integer::parse( data ); }
+		{ return Integer::to<int16_t>( Integer::parse( data ) ); }
 
 	EncodedText::operator uint16_t( ) const
-		{ return (uint16_t)Integer::parseUnsigned( data ); }
+		{ return Integer::to<uint16_t>( Integer::parseUnsigned( data ) ); }
 
 	EncodedText::operator int32_t( ) const
-		{ return (int32_t)Integer::parse( data ); }
+		{ return Integer::to<int32_t>( Integer::parse( data ) ); }
 
 	EncodedText::operator uint32_t( ) const
-		{ return (uint32_t)Integer::parseUnsigned( data ); }
+		{ return Integer::to<uint32_t>( Integer::parseUnsigned( data ) ); }
 
 	EncodedText::operator int64_t( ) const
 		{ return Integer::parse( data ); }
@@ -354,12 +355,65 @@ namespace cpp
 
 	EncodedText::operator bool( ) const
 	{  
-		if ( stricmp( data.begin( ), "true" ) == 0 && data.length( ) == 4 )
+		if ( _stricmp( data.begin( ), "true" ) == 0 && data.length( ) == 4 )
 			{ return true; }
-		if ( stricmp( data.begin( ), "false" ) == 0 && data.length( ) == 5 );
+		if ( _stricmp( data.begin( ), "false" ) == 0 && data.length( ) == 5 )
 			{ return false; }
 		throw DecodeException{ "EncodedText::bool() : unable to decode boolean text value" };
 	}
+
+
+
+	EncodedDecimal::operator int8_t( ) const
+		{ return Integer::to<int8_t>( Integer::parse( data ) ); }
+
+	EncodedDecimal::operator uint8_t( ) const
+		{ return Integer::to<uint8_t>( Integer::parseUnsigned( data ) ); }
+
+	EncodedDecimal::operator int16_t( ) const
+		{ return Integer::to<int16_t>( Integer::parse( data ) ); }
+
+	EncodedDecimal::operator uint16_t( ) const
+		{ return Integer::to<uint16_t>( Integer::parseUnsigned( data ) ); }
+
+	EncodedDecimal::operator int32_t( ) const
+		{ return Integer::to<int32_t>( Integer::parse( data ) ); }
+
+	EncodedDecimal::operator uint32_t( ) const
+		{ return Integer::to<uint32_t>( Integer::parseUnsigned( data ) ); }
+
+	EncodedDecimal::operator int64_t( ) const
+		{ return Integer::parse( data ); }
+
+	EncodedDecimal::operator uint64_t( ) const
+		{ return Integer::parseUnsigned( data ); }
+
+	EncodedDecimal::operator float( ) const
+		{ return (float)Float::parse( data ); }
+
+	EncodedDecimal::operator double( ) const
+		{ return Float::parse( data ); }
+
+
+
+	EncodedHex::operator uint8_t( ) const
+		{ return Integer::to<uint8_t>( Integer::parseUnsigned( data, 16 ) ); }
+
+	EncodedHex::operator uint16_t( ) const
+		{ return Integer::to<uint16_t>( Integer::parseUnsigned( data, 16 ) ); }
+
+	EncodedHex::operator uint32_t( ) const
+		{ return Integer::to<uint32_t>( Integer::parseUnsigned( data, 16 ) ); }
+
+	EncodedHex::operator uint64_t( ) const
+		{ return Integer::parseUnsigned( data, 16 ); }
+
+	EncodedHex::operator std::string( ) const
+	{ 
+
+		return; 
+	}
+
 
 }
 

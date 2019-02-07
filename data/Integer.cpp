@@ -15,6 +15,7 @@ namespace cpp
 		return result;
 	}
 
+
 	uint64_t Integer::parseUnsigned( Memory text, int radix, bool checkEnding )
 	{
 		char * end = nullptr;
@@ -24,6 +25,7 @@ namespace cpp
 			{ check<DecodeException>( end == text.end(), "Integer::parseUnsigned() : parse ended before the buffer's end" ); }
 		return result;
 	}
+
 
 	std::string Integer::toHex( uint64_t value, int width, bool upper, bool zeroed, bool prefix )
 	{
@@ -39,6 +41,7 @@ namespace cpp
 		return String::printf( fmt.c_str( ), value );
 	}
 
+
 	std::string Integer::toDecimal( int64_t value, int width, bool zeroed, bool sign )
 	{
 		String fmt = "%";
@@ -52,6 +55,7 @@ namespace cpp
 
 		return String::printf( fmt.c_str( ), value );
 	}
+
 
 	std::string Integer::toDecimal( uint64_t value, int width, bool zeroed, bool sign )
 	{

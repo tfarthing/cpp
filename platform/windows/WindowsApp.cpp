@@ -1,4 +1,4 @@
-#include "WindowsApp.h"
+#include "../../../cpp/platform/windows/WindowsApp.h"
 
 namespace cpp
 {
@@ -96,7 +96,7 @@ namespace cpp
 
 	}
 
-
+	/*
     Program::Console::Console( )
         : Program::Standard( ), m_ui( ) { }
 
@@ -205,5 +205,5 @@ namespace cpp
         }
         return Program::Standard::update( );
     }
-
+	*/
 }

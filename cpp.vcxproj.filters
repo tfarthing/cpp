@@ -22,9 +22,6 @@
     <ClInclude Include="math\Rect.h">
       <Filter>math</Filter>
     </ClInclude>
-    <ClInclude Include="platform\windows\WindowsConsole.h">
-      <Filter>platform\windows</Filter>
-    </ClInclude>
     <ClInclude Include="math\Alignment.h">
       <Filter>math</Filter>
     </ClInclude>
@@ -56,9 +53,6 @@
       <Filter>platform\windows</Filter>
     </ClInclude>
     <ClInclude Include="util\PropertyFile.h">
-      <Filter>util</Filter>
-    </ClInclude>
-    <ClInclude Include="util\BitData.h">
       <Filter>util</Filter>
     </ClInclude>
     <ClInclude Include="util\BitDB.h">
@@ -235,9 +229,6 @@
     <ClCompile Include="math\Alignment.cpp">
       <Filter>math</Filter>
     </ClCompile>
-    <ClCompile Include="platform\windows\WindowsConsole.cpp">
-      <Filter>platform\windows</Filter>
-    </ClCompile>
     <ClCompile Include="platform\windows\WindowsApp.cpp">
       <Filter>platform\windows</Filter>
     </ClCompile>
@@ -264,9 +255,6 @@
     </ClCompile>
     <ClCompile Include="math\Rect.cpp">
       <Filter>math</Filter>
-    </ClCompile>
-    <ClCompile Include="util\BitData.cpp">
-      <Filter>util</Filter>
     </ClCompile>
     <ClCompile Include="util\BitDB.cpp">
       <Filter>util</Filter>

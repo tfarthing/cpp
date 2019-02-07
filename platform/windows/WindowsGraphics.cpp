@@ -1,5 +1,5 @@
-#include <cpp/platform/windows/WindowsGraphics.h>
-#include <cpp/platform/windows/WindowsException.h>
+#include "../../../cpp/platform/windows/WindowsGraphics.h"
+#include "../../../cpp/platform/windows/WindowsException.h"
 
 #include <Wincodec.h>
 

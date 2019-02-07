@@ -23,50 +23,50 @@ namespace cpp
     class Program
     {
     public:
-        Program( );
-        Program( const String::Array & args );
-        Program( const wchar_t * cmdline );
-        Program( int argc, const char ** argv );
-        Program( int argc, const wchar_t ** argv );
-        ~Program( );
+											Program( );
+											Program( const String::Array & args );
+											Program( const wchar_t * cmdline );
+											Program( int argc, const char ** argv );
+											Program( int argc, const wchar_t ** argv );
+											~Program( );
 
-        Input &					in( );
-        Output &				out( );
-        Output &				error( );
+        Input &								in( );
+        Output &							out( );
+        Output &							error( );
 
-        const Memory			arg( Memory key ) const;
-        const StringMap &		args( ) const;
+        const Memory						arg( Memory key ) const;
+        const StringMap &					args( ) const;
 
-		const FilePath &		exePath( );
-		const FilePath &		workingPath( );
+		const String &						exePath( );
+		const String &						workingPath( );
         
-		AsyncIO &				asyncIO( );
+		AsyncIO &							asyncIO( );
         
-		Logger &				logger( );
+		Logger &							logger( );
         
-		uint64_t				rand( );
-        double					frand( );
-        std::mt19937_64 &		getRandom( );
+		uint64_t							rand( );
+        double								frand( );
+        std::mt19937_64 &					getRandom( );
 
     protected:
-        void initArgs( int argc, const wchar_t ** argv );
-        void initArgs( int argc, const char ** argv );
-        void initArgs( const String & cmdline );
-        void initArgs( const String::Array & arguments );
-        void init( );
+        void								initArgs( int argc, const wchar_t ** argv );
+        void								initArgs( int argc, const char ** argv );
+        void								initArgs( const String & cmdline );
+        void								initArgs( const String::Array & arguments );
+        void								init( );
 
     protected:
 		struct Detail;
 		std::unique_ptr<Detail> detail;
 
     private:
-		friend Program & program( );
-        static Program & instance( );
-        static void addInstance( Program * instance );
-        static void removeInstance( Program * instance );
+		friend Program &					program( );
+        static Program &					instance( );
+        static void							addInstance( Program * instance );
+        static void							removeInstance( Program * instance );
 
     private:
-        static Program * globalProgram;
+        static Program *					globalProgram;
         static thread_local std::vector<Program *> threadProgram;
     };
 

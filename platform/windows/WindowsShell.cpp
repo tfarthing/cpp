@@ -1,6 +1,7 @@
-#include <cpp/platform/windows/WindowsShell.h>
-#include <cpp/platform/windows/WindowsException.h>
-#include <cpp/platform/windows/WindowsRegistry.h>
+#include "../../../cpp/platform/windows/WindowsException.h"
+#include "../../../cpp/platform/windows/WindowsRegistry.h"
+#include "../../../cpp/platform/windows/WindowsShell.h"
+#include "../../../cpp/text/Utf16.h"
 
 using std::wstring;
 
@@ -15,7 +16,7 @@ namespace cpp
             {
                 PWSTR path;
                 check( SHGetKnownFolderPath( folderId, 0, 0, &path ) );
-                FilePath result{ toUtf8( path ) };
+                FilePath result = path ;
                 CoTaskMemFree( path );
 
                 return result;
@@ -35,11 +36,11 @@ namespace cpp
                 HRESULT hres = CoCreateInstance( CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLink, reinterpret_cast<void**>( &psl ) );
                 windows::check( hres );
 
-                Utf16::Text wpath = toUtf16( targetPath.toString( '\\' ) );
-                Utf16::Text working = toUtf16( targetPath.parent( ).toString( '\\' ) );
+                Utf16::Text wpath = targetPath;
+                Utf16::Text working = targetPath.parent_path();
                 Utf16::Text wargs = toUtf16( args );
                 Utf16::Text wdesc = toUtf16( desc );
-                Utf16::Text wiconPath = toUtf16( iconPath.toString( '\\' ) );
+                Utf16::Text wiconPath = iconPath;
 
                 // Set the path to the shortcut target
                 psl->SetPath( wpath );
@@ -62,7 +63,7 @@ namespace cpp
                 if ( SUCCEEDED( hres ) )
                 {
                     // Save the link by calling IPersistFile::Save.
-                    hres = ppf->Save( toUtf16( shortcutPath.toString( '\\' ) ).data(), TRUE );
+                    hres = ppf->Save( shortcutPath.c_str(), TRUE );
                     ppf->Release( );
                 }
                 psl->Release( );
@@ -113,30 +114,30 @@ namespace cpp
 
             void setAppPath( FilePath appFile )
             {
-                FilePath appPath = appFile.parent( );
+                FilePath appPath = appFile.parent_path( );
 
                 String keyName = String::format( "Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\%", appFile.filename() );
                 Registry::Key key = Registry::currentUser( ).create( keyName );
-                key.set( "", appFile.toString( '\\' ) );
-                key.set( "Path", appFile.parent( ).toString( '\\' ) );
+                key.set( "", appFile.c_str( ) );
+                key.set( "Path", appFile.parent_path( ).c_str( ) );
 
                 auto env = Registry::currentUser( ).open( "Environment" );
                 String path = env.get( "Path", 4 * 1024 );
                 if ( path.empty( ) )
                 {
-                    path = appPath.toString( '\\' );
-                    env.set( "Path", path );
+                    path = appPath.u8string();
+                    env.set( "Path", path.c_str( ) );
                 }
-                else if ( path.find( appPath.toString('\\') ) == String::npos )
+                else if ( path.find( appPath.u8string( ) ) == String::npos )
                 {
-                    path += ";" + appPath.toString( '\\' );
-                    env.set( "Path", path );
+                    path += ";" + appPath.u8string( );
+                    env.set( "Path", path.c_str( ) );
                 }
             }
 
             void removeAppPath( FilePath appFile )
             {
-                FilePath appPath = appFile.parent( );
+                FilePath appPath = appFile.parent_path( );
 
                 //  check for app path registry
                 String keyName = String::format( "Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\%", appFile.filename( ) );
@@ -145,9 +146,9 @@ namespace cpp
 
                 auto env = Registry::currentUser( ).open( "Environment" );
                 String path = env.get( "Path", 4 * 1024 );
-                if ( path.find( appPath.toString('\\') ) != String::npos )
+                if ( path.find( appPath.u8string( ) ) != String::npos )
                 {
-                    path.replaceFirst( appPath.toString( '\\' ), "" );
+                    path.replaceFirst( appPath.u8string( ), "" );
                     path.replaceAll( ";;", ";" );
                     if ( path.length( ) < 3 )
                         { path = ""; }
@@ -161,7 +162,7 @@ namespace cpp
                 String keyName = String::format( "Software\\Classes\\%\\shell\\open\\command", appLabel );
                 
                 auto key = Registry::currentUser( ).create( keyName );
-                key.set( "", appFile.toString( '\\' ) + " \"%1\"" );
+                key.set( "", appFile.u8string( ) + " \"%1\"" );
 
                 key = Registry::currentUser().create( "Software\\Classes\\.txt\\OpenWithProgids" );
                 key.set( appLabel, "" );

@@ -1,8 +1,8 @@
 #pragma once
 
 #include <algorithm>
-#include <cpp/types.h>
-#include <cpp/math/Alignment.h>
+#include "../data/Float.h"
+#include "Alignment.h"
 
 namespace cpp
 {

@@ -51,13 +51,13 @@ namespace cpp
         void setHeight( T height )
             { m_dim.m_y = height; }
 
-        T ref_x( f32_t p ) const
+        T ref_x( float32 p ) const
             { return x( ) + ref_cx( p ); }
-        T ref_cx( f32_t p ) const
+        T ref_cx( float32 p ) const
             { return (T)( cx( ) * p ); }
-        T ref_y( f32_t p ) const
+        T ref_y( float32 p ) const
             { return y( ) + ref_cy( p ); }
-        T ref_cy( f32_t p ) const
+        T ref_cy( float32 p ) const
             { return (T)( cy( ) * p ); }
 
         T top( ) const
@@ -123,11 +123,11 @@ namespace cpp
 
         Rect<T> & alignWith( const Rect<T> & rect, Alignment alignTo, Alignment alignFrom, const XY<T> & offset )
             { return alignWith( rect, alignTo.xy(), alignFrom.xy( ), offset ); }
-        Rect<T> & alignWith( const Rect<T> & rect, XY<f32_t> alignTo, XY<f32_t> alignFrom, const XY<T> & offset );
+        Rect<T> & alignWith( const Rect<T> & rect, XY<float32> alignTo, XY<float32> alignFrom, const XY<T> & offset );
 
         Rect<T> & stretchWith( const Rect<T> & rect, Alignment stretchTo, Alignment stretcFrom, const XY<T> & offset )
             { return stretchWith( rect, stretchTo.xy( ), stretchFrom.value( ), offset.m_x, offset.m_y ); }
-        Rect<T> & stretchWith( const Rect<T> & rect, XY<f32_t> stretchTo, XY<f32_t> stretchFrom, const XY<T> & offset );
+        Rect<T> & stretchWith( const Rect<T> & rect, XY<float32> stretchTo, XY<float32> stretchFrom, const XY<T> & offset );
 
         Rect<T> & shrink( T offset );
         Rect<T> & shrink( const XY<T> & offset );
@@ -237,7 +237,7 @@ namespace cpp
     }
 
     template<typename T>
-    Rect<T> & Rect<T>::alignWith( const Rect<T> & rect, XY<f32_t> alignTo, XY<f32_t> alignFrom, const XY<T> & offset )
+    Rect<T> & Rect<T>::alignWith( const Rect<T> & rect, XY<float32> alignTo, XY<float32> alignFrom, const XY<T> & offset )
     {
         m_pos.m_x = rect.ref_x( alignTo.m_x ) - ref_cx( alignFrom.m_x ) + offset.m_x;
         m_pos.m_y = rect.ref_y( alignTo.m_y ) - ref_cy( alignFrom.m_y ) + offset.m_y;
@@ -245,7 +245,7 @@ namespace cpp
     }
 
     template<typename T>
-    Rect<T> & Rect<T>::stretchWith( const Rect<T> & rect, XY<f32_t> stretchTo, XY<f32_t> stretchFrom, const XY<T> & offset )
+    Rect<T> & Rect<T>::stretchWith( const Rect<T> & rect, XY<float32> stretchTo, XY<float32> stretchFrom, const XY<T> & offset )
     {
         //  adjust cx
         T x = rect.ref_x( stretchTo.m_x ) + offset.m_x;

@@ -1,10 +1,11 @@
 #pragma once
 
+/*
 #include <set>
 #include <map>
 
-#include <cpp/Memory.h>
-#include <cpp/io/file/File.h>
+#include "../../cpp/data/Memory.h"
+#include "../../cpp/file/Files.h"
 
 #include "BitData.h"
 
@@ -14,7 +15,7 @@ public:
     BitDB( );
     ~BitDB( );
 
-    typedef std::function<void( f32_t, std::error_code )> LoadHandler;
+    typedef std::function<void( float32, std::error_code )> LoadHandler;
     typedef std::function<bool( cpp::Memory key, cpp::Memory::Match & keyMatch, const BitData::DecodedRecord & bitRecord )> ReadHandler;
     typedef std::function<void( )> FlushHandler;
 
@@ -40,3 +41,4 @@ private:
     int m_archiveIndex;
     cpp::File::Output m_output;
 };
+*/

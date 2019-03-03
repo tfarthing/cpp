@@ -1,5 +1,6 @@
-#include <cpp/Integer.h>
-#include <cpp/chrono/Date.h>
+/*
+#include "../../cpp/data/Integer.h"
+#include "../../cpp/time/Duration.h"
 
 #include "BitDB.h"
 
@@ -32,11 +33,11 @@ void BitDB::removeTable( cpp::Memory tableRegex )
     m_tables.erase( tableRegex );
 }
 
-/*
-filename.ext
-> filename.[archive-date].[archive-index].ext
-> filename.2017-10-07.000.ext
-*/
+//
+//filename.ext
+//> filename.[archive-date].[archive-index].ext
+//> filename.2017-10-07.000.ext
+//
 
 void BitDB::open( cpp::FilePath filename, LoadHandler handler, FlushHandler flushHandler )
 {
@@ -179,3 +180,4 @@ void BitDB::loadArchive( cpp::String archiveName, int archiveIndex )
     }
 }
 
+*/

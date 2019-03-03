@@ -12,14 +12,19 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="data\DataArray.h" />
+    <ClInclude Include="data\Primitive.h" />
     <ClInclude Include="file\AsyncFile.h" />
     <ClInclude Include="file\Files.h" />
     <ClInclude Include="file\MemoryFile.h" />
+    <ClInclude Include="file\SyncFile.h" />
+    <ClInclude Include="io\Input.h" />
     <ClInclude Include="network\TcpConnection.h" />
     <ClInclude Include="network\TcpServer.h" />
     <ClInclude Include="platform\windows\WindowsApp.h" />
     <ClInclude Include="process\AsyncIO.h" />
     <ClInclude Include="process\Process-Pipe.h" />
+    <ClInclude Include="data\Base64.h" />
+    <ClInclude Include="data\Hex.h" />
     <ClInclude Include="time\Date.h" />
     <ClInclude Include="time\DateTime.h" />
     <ClInclude Include="time\Duration.h" />
@@ -33,13 +38,9 @@
     <ClInclude Include="process\Exception.h" />
     <ClInclude Include="data\Float.h" />
     <ClInclude Include="data\Integer.h" />
-    <ClInclude Include="io\Input.h" />
     <ClInclude Include="network\Http.h" />
     <ClInclude Include="network\Tcp.h" />
-    <ClInclude Include="io\Output.h" />
-    <ClInclude Include="io\reader\ByteReader.h" />
-    <ClInclude Include="io\reader\LineReader.h" />
-    <ClInclude Include="io\reader\SearchReader.h" />
+    <ClInclude Include="io\LineReader.h" />
     <ClInclude Include="math\Alignment.h" />
     <ClInclude Include="math\AES.h" />
     <ClInclude Include="math\SHA2.h" />
@@ -62,6 +63,7 @@
     <ClInclude Include="util\Bit.h" />
     <ClInclude Include="util\BitDB.h" />
     <ClInclude Include="data\DataBuffer.h" />
+    <ClInclude Include="util\BitFile.h" />
     <ClInclude Include="util\DataFile.h" />
     <ClInclude Include="data\DataMap.h" />
     <ClInclude Include="util\encoding.h" />
@@ -83,6 +85,7 @@
     <ClCompile Include="data\Integer.cpp" />
     <ClCompile Include="file\AsyncFile.cpp" />
     <ClCompile Include="file\MemoryFile.cpp" />
+    <ClCompile Include="file\SyncFile.cpp" />
     <ClCompile Include="network\TcpConnection.cpp" />
     <ClCompile Include="network\TcpServer.cpp" />
     <ClCompile Include="platform\windows\WindowsException.cpp" />
@@ -92,13 +95,9 @@
     <ClCompile Include="time\Duration.cpp" />
     <ClCompile Include="time\Time.cpp" />
     <ClCompile Include="data\ByteOrder.cpp" />
-    <ClCompile Include="io\Input.cpp" />
     <ClCompile Include="network\Http.cpp" />
     <ClCompile Include="network\Tcp.cpp" />
-    <ClCompile Include="io\Output.cpp" />
-    <ClCompile Include="io\reader\ByteReader.cpp" />
-    <ClCompile Include="io\reader\LineReader.cpp" />
-    <ClCompile Include="io\reader\SearchReader.cpp" />
+    <ClCompile Include="io\LineReader.cpp" />
     <ClCompile Include="math\AES.cpp" />
     <ClCompile Include="math\Alignment.cpp" />
     <ClCompile Include="math\Rect.cpp" />
@@ -116,6 +115,7 @@
     <ClCompile Include="util\Bit.cpp" />
     <ClCompile Include="util\BitDB.cpp" />
     <ClCompile Include="data\DataBuffer.cpp" />
+    <ClCompile Include="util\BitFile.cpp" />
     <ClCompile Include="util\DataFile.cpp" />
     <ClCompile Include="data\DataMap.cpp" />
     <ClCompile Include="util\encoding.cpp" />
@@ -138,19 +138,19 @@
     <ProjectGuid>{899774D3-2670-47AD-BB32-549A69144F7F}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>cpp</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>

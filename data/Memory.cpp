@@ -5,7 +5,11 @@
 #include <regex>
 
 #include <cpp/data/Memory.h>
+#include <cpp/data/Integer.h>
 #include <cpp/data/Float.h>
+#include <cpp/data/Hex.h>
+#include <cpp/data/Base64.h>
+#include <cpp/data/DataBuffer.h>
 #include <cpp/process/Exception.h>
 
 namespace cpp
@@ -409,10 +413,54 @@ namespace cpp
 		{ return Integer::parseUnsigned( data, 16 ); }
 
 	EncodedHex::operator std::string( ) const
-	{ 
+		{ return Hex::decode( data ); }
 
-		return; 
+
+
+	EncodedBase64::operator std::string( ) const
+		{ return Base64::decode( data ); }
+
+
+
+	EncodedBinary::operator int8_t( ) const
+        { return DataBuffer::readFrom( data ).getBinary<int8_t>( byteOrder ); }
+
+	EncodedBinary::operator uint8_t( ) const
+        { return DataBuffer::readFrom( data ).getBinary<uint8_t>( byteOrder ); }
+
+	EncodedBinary::operator int16_t( ) const
+        { return DataBuffer::readFrom( data ).getBinary<int16_t>( byteOrder ); }
+
+	EncodedBinary::operator uint16_t( ) const
+        { return DataBuffer::readFrom( data ).getBinary<uint16_t>( byteOrder ); }
+
+	EncodedBinary::operator int32_t( ) const
+        { return DataBuffer::readFrom( data ).getBinary<int32_t>( byteOrder ); }
+
+	EncodedBinary::operator uint32_t( ) const
+        { return DataBuffer::readFrom( data ).getBinary<uint32_t>( byteOrder ); }
+
+	EncodedBinary::operator int64_t( ) const
+        { return DataBuffer::readFrom( data ).getBinary<int64_t>( byteOrder ); }
+
+	EncodedBinary::operator uint64_t( ) const
+        { return DataBuffer::readFrom( data ).getBinary<uint64_t>( byteOrder ); }
+
+	EncodedBinary::operator float( ) const
+        { return DataBuffer::readFrom( data ).getBinary<float>( byteOrder ); }
+
+	EncodedBinary::operator double( ) const
+        { return DataBuffer::readFrom( data ).getBinary<double>( byteOrder ); }
+
+	EncodedBinary::operator bool( ) const
+	{  
+		if ( _stricmp( data.begin( ), "true" ) == 0 && data.length( ) == 4 )
+			{ return true; }
+		if ( _stricmp( data.begin( ), "false" ) == 0 && data.length( ) == 5 )
+			{ return false; }
+		throw DecodeException{ "EncodedText::bool() : unable to decode boolean text value" };
 	}
+
 
 
 }

@@ -14,7 +14,9 @@ namespace cpp
 			: std::exception( message ) { }
 		Exception( std::string message )
 			: m_what( std::move( message ) ) { }
-        
+        Exception( std::error_code error )
+            : m_what( error.message( ) ) { }
+
 		const char * what( ) const override
 			{ return m_what.empty( ) ? std::exception::what( ) : m_what.c_str( ); }
 
@@ -52,9 +54,11 @@ namespace cpp
 			: Exception( message ) { }
     };
 
-    struct EOFException : public IOException
+    struct NoDataException : public IOException
     {
-		EOFException( std::string message )
+        NoDataException( )
+            : IOException( "No data available for input." ) {}
+        NoDataException( std::string message )
 			: IOException( message ) { }
     };
 

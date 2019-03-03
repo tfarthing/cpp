@@ -11,7 +11,7 @@ namespace cpp
 							RegexMatch( );
 							RegexMatch( const std::cmatch & source );
 
-        RegexMatch			operator=( const std::cmatch & source );
+        RegexMatch &		operator=( const std::cmatch & source );
 
         bool				operator!( ) const;
 							explicit operator bool( ) const;
@@ -30,7 +30,7 @@ namespace cpp
     template<typename T> RegexMatch<T>::RegexMatch( const std::cmatch & source )
         { for ( auto m : source ) { groups.push_back( Memory{ m.first, m.second } ); } }
 
-    template<typename T> RegexMatch<T> RegexMatch<T>::operator=( const std::cmatch & source )
+    template<typename T> RegexMatch<T> & RegexMatch<T>::operator=( const std::cmatch & source )
         { groups.clear( ); for ( auto m : source ) { groups.push_back( Memory{ m.first, m.second } ); } return *this; }
 
     template<typename T> bool RegexMatch<T>::operator!( ) const

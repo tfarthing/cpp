@@ -4,9 +4,9 @@
 namespace cpp
 {
 
-	f64_t Float::parse( Memory text )
+	float64 Float::parse( Memory text )
 	{
-		f64_t result = strtod( text.data( ), nullptr );
+        float64 result = strtod( text.data( ), nullptr );
 		check<Exception>( errno != ERANGE, "range error while parsing float" );
 		return result;
 	}
@@ -17,7 +17,7 @@ namespace cpp
 	//  * fracitional part is rounded to the specified precision
 	//  * trailing zeroes are trimmed
 	//  * integer is output if fractional part is zero
-	std::string Float::toString( f64_t value, int fdigits )
+	std::string Float::toString( float64 value, int fdigits )
 	{
 		String result;
 

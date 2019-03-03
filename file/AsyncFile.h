@@ -4,7 +4,7 @@
 
 AsyncFile provides file operations through asio.  Aysnchronous file operations are useful for:
 	(a) Async operations for file readAll and file stream.
-	(b) Asynd read and write operations.
+	(b) Async read and write operations.
 	(c) Blocking length and truncate operations.
 
 */

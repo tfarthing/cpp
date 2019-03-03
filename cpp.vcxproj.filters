@@ -73,21 +73,6 @@
     <ClInclude Include="network\Tcp.h">
       <Filter>network</Filter>
     </ClInclude>
-    <ClInclude Include="io\Input.h">
-      <Filter>io</Filter>
-    </ClInclude>
-    <ClInclude Include="io\Output.h">
-      <Filter>io</Filter>
-    </ClInclude>
-    <ClInclude Include="io\reader\ByteReader.h">
-      <Filter>io\reader</Filter>
-    </ClInclude>
-    <ClInclude Include="io\reader\SearchReader.h">
-      <Filter>io\reader</Filter>
-    </ClInclude>
-    <ClInclude Include="io\reader\LineReader.h">
-      <Filter>io\reader</Filter>
-    </ClInclude>
     <ClInclude Include="util\Bit.h" />
     <ClInclude Include="time\Date.h">
       <Filter>time</Filter>
@@ -174,6 +159,15 @@
     <ClInclude Include="network\TcpConnection.h" />
     <ClInclude Include="network\TcpServer.h" />
     <ClInclude Include="platform\windows\WindowsApp.h" />
+    <ClInclude Include="data\Base64.h" />
+    <ClInclude Include="data\Hex.h" />
+    <ClInclude Include="data\Primitive.h" />
+    <ClInclude Include="util\BitFile.h" />
+    <ClInclude Include="file\SyncFile.h" />
+    <ClInclude Include="io\LineReader.h">
+      <Filter>io\reader</Filter>
+    </ClInclude>
+    <ClInclude Include="io\Input.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="io">
@@ -271,21 +265,6 @@
     <ClCompile Include="network\Tcp.cpp">
       <Filter>network</Filter>
     </ClCompile>
-    <ClCompile Include="io\Input.cpp">
-      <Filter>io</Filter>
-    </ClCompile>
-    <ClCompile Include="io\Output.cpp">
-      <Filter>io</Filter>
-    </ClCompile>
-    <ClCompile Include="io\reader\ByteReader.cpp">
-      <Filter>io\reader</Filter>
-    </ClCompile>
-    <ClCompile Include="io\reader\SearchReader.cpp">
-      <Filter>io\reader</Filter>
-    </ClCompile>
-    <ClCompile Include="io\reader\LineReader.cpp">
-      <Filter>io\reader</Filter>
-    </ClCompile>
     <ClCompile Include="util\Bit.cpp" />
     <ClCompile Include="time\Date.cpp">
       <Filter>time</Filter>
@@ -352,6 +331,11 @@
     <ClCompile Include="network\TcpConnection.cpp" />
     <ClCompile Include="network\TcpServer.cpp" />
     <ClCompile Include="platform\windows\WindowsException.cpp" />
+    <ClCompile Include="util\BitFile.cpp" />
+    <ClCompile Include="file\SyncFile.cpp" />
+    <ClCompile Include="io\LineReader.cpp">
+      <Filter>io\reader</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="meta\cpp.natvis">

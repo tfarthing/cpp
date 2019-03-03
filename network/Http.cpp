@@ -24,401 +24,46 @@ namespace cpp
 
     struct URL
     {
-        URL( )
-            : m_scheme(0), m_port(0) { }
+                                        URL( );
+                                        URL( String url );
 
-        URL( String url );
+        String                          hostport( ) const;
 
-        String id( ) const
-        {
-            return String::format( "%:%", toUtf8( m_host ), m_port );
-        }
-
-        String source( ) const
-        {
-            return m_urlSource;
-        }
-
-        cpp::String m_urlSource;
-        uint32_t m_scheme;
-        uint32_t m_port;
-        std::wstring m_host;
-        std::wstring m_path;
-        std::wstring m_extra;
+        cpp::String                     source;
+        uint32_t                        scheme;
+        uint32_t                        port;
+        std::wstring                    host;
+        std::wstring                    path;
+        std::wstring                    extra;
     };
 
-    URL::URL( String url ) :
-        m_urlSource( url ),
-        m_scheme( 0 ),
-        m_port( 0 ),
-        m_host( 1024, 0 ),
-        m_path( 1024, 0 ),
-        m_extra( 1024, 0 )
-    {
-        URL_COMPONENTS urlComponents = { 0 };
-        urlComponents.dwStructSize = sizeof( URL_COMPONENTS );
-        urlComponents.lpszHostName = (LPWSTR)m_host.data( );
-        urlComponents.dwHostNameLength = (DWORD)m_host.length( );
-        urlComponents.lpszUrlPath = (LPWSTR)m_path.data( );
-        urlComponents.dwUrlPathLength = (DWORD)m_path.length( );
-        urlComponents.lpszExtraInfo = (LPWSTR)m_extra.data( );
-        urlComponents.dwExtraInfoLength = (DWORD)m_extra.length( );
-
-        Utf16::Text wurl = toUtf16( url );
-        windows::check( InternetCrackUrl( wurl, (DWORD)wurl.size( ), ICU_DECODE | ICU_ESCAPE, &urlComponents ) != FALSE );
-        m_host.resize( urlComponents.dwHostNameLength );
-        m_path.resize( urlComponents.dwUrlPathLength );
-        m_extra.resize( urlComponents.dwExtraInfoLength );
-        m_scheme = urlComponents.nScheme;
-        m_port = urlComponents.nPort;
-    }
 
 
     struct Http::Request::Detail
-        : public cpp::Input::Source_t, public cpp::Output::Sink_t
     {
     public:
-        Detail( HINTERNET connection, const URL & url, String method, String headers, Duration timeout ) :
-            m_connectionHandle( connection ),
-            m_url( url ),
-            m_method( method ),
-            m_headers( cpp::toUtf16( headers ) ),
-            m_timeout( timeout ),
-            m_handle( nullptr ),
-            m_isPending( false ),
-            m_isRecving( false ),
-            m_recvBytes( 0 ),
-            m_recvBuffer( 64 * 1024 ),
-            m_isSending( false ),
-            m_sendBytes( 0 ),
-            m_sentBytes( 0 ),
-            m_isRequesting( true )
-        {
-            cpp::Timer timer;
-            startRequest( timer.until( timeout ) );
-            if ( m_method == METHOD_GET )
-                { endRequest( timer.until( timeout ) ); }
-        }
+        Detail( HINTERNET connection, const URL & url, String method, String headers, Duration timeout );
+        ~Detail( );
 
-        ~Detail( )
-        {
-            close( );
-        }
-
-        void doStart( )
-        {
-
-        }
-
-        void notify( DWORD err )
-        {
-            auto lock = m_mutex.lock( );
-            m_isPending = false;
-            if ( err )
-            {
-                setError( err );
-                doClose( );
-            }
-            else
-            {
-                if ( m_isRecving )
-                {
-                    notifyRecv( );
-                }
-                else if ( m_isSending )
-                {
-                    notifySend( );
-                }
-            }
-            lock.unlock( );
-            lock.notifyAll( );
-        }
-        void notifyRecv( )
-        {
-            m_isRecving = false;
-            if ( m_recvBytes )
-            {
-                m_recvBuffer.put( m_recvBytes );
-            }
-            else
-            {
-                doClose( );
-            }
-            doRecv( );
-        }
-        void notifySend( )
-        {
-            m_isSending = false;
-            m_sentBytes += m_sendBytes;
-            if ( m_sendBuffers.front( ).length( ) == m_sentBytes )
-            {
-                m_sendBuffers.pop_front( );
-                m_sentBytes = 0;
-            }
-            doSend( );
-        }
-        void doRecv( )
-        {
-            Memory dst = m_recvBuffer.putable( );
-            if ( !dst || !m_handle )
-            {
-                return;
-            }
-
-            m_isRecving = true;
-            if ( InternetReadFile( m_handle, (LPVOID)dst.data( ), (DWORD)dst.length( ), &m_recvBytes ) == FALSE )
-            {
-                int err = GetLastError( );
-                if ( err != ERROR_IO_PENDING )
-                {
-                    m_isRecving = false; setError( err ); doClose( );
-                }
-            }
-            else
-            {
-                notifyRecv( );
-            }
-        }
-        void doSend( )
-        {
-            if ( m_sendBuffers.empty( ) || !m_handle )
-            {
-                return;
-            }
-
-            String & sendItem = m_sendBuffers.front( );
-            Memory src = Memory{ sendItem }.substr( (size_t)m_sentBytes );
-            if ( !src )
-            {
-                return;
-            }
-            m_isSending = true;
-            if ( InternetWriteFile( m_handle, (LPVOID)src.data( ), (DWORD)src.length( ), &m_sendBytes ) == FALSE )
-            {
-                int err = GetLastError( );
-                if ( err != ERROR_IO_PENDING )
-                {
-                    m_isSending = false; doClose( );
-                }
-            }
-        }
-        void doClose( )
-        {
-            InternetCloseHandle( m_handle );
-            m_handle = nullptr;
-        }
-
-        bool isOpen( ) const override
-        {
-            auto lock = m_mutex.lock( );
-            return m_handle != nullptr || m_recvBuffer.getable( ).isEmpty( ) == false;
-        }
-        Memory read( Memory dst, Duration timeout ) override
-        {
-            auto lock = m_mutex.lock( );
-
-            Timer timer;
-            while ( m_handle || m_recvBuffer.getable( ) )
-            {
-                //  wait if the read should block
-                if ( m_recvBuffer.getable( ).isEmpty( ) )
-                {
-                    if ( !m_isRecving )
-                        { doRecv( ); continue; }
-
-                    if ( timer.elapsed( timeout ) )
-                        { break; }
-
-                    lock.waitFor( timer.until( timeout ) );
-                    continue;
-                }
-
-                size_t len = std::min( dst.length( ), m_recvBuffer.getable( ).length( ) );
-                return Memory::copy( dst, m_recvBuffer.get( len ) );
-            }
-
-            check( );
-            return nullptr;
-        }
-        Memory write( const Memory & src ) override
-        {
-            auto lock = m_mutex.lock( );
-
-            m_sendBuffers.push_back( src );
-            if ( !m_isSending )
-            {
-                doSend( );
-            }
-
-            check( );
-            return src;
-        }
-        void flush( ) override
-        {
-            auto lock = m_mutex.lock( );
-            while ( m_handle != nullptr && !m_sendBuffers.empty( ) )
-            {
-                lock.wait( );
-            }
-        }
-        void close( ) override
-        {
-            auto lock = m_mutex.lock( false );
-            if ( m_handle )
-            {
-                doClose();
-                while ( m_isPending )
-                    { lock.wait( ); }
-            }
-            m_recvBuffer.getAll( );
-        }
-
-        static int toStatusCode( DWORD err )
-        {
-            switch ( err )
-            {
-            default:
-                return 400;
-            }
-        }
-        
-        void setError( DWORD err )
-        {
-            m_error = std::make_shared<Exception>( windows::Exception::getErrorMessage( err ), toStatusCode( err ), m_url.source( ), toUtf8( m_headers ) );
-        }
-
-        void check( bool isSuccess )
-        {
-            if ( !isSuccess )
-            {
-                setError( GetLastError( ) ); check( );
-            }
-        }
-        void check( )
-        {
-            if ( m_error )
-            {
-                throw *m_error;
-            }
-        }
-
-        void startRequest( cpp::Duration timeout )
-        {
-            cpp::Timer timer;
-
-            std::wstring objectName = m_url.m_path + m_url.m_extra;
-            DWORD flags = INTERNET_FLAG_PRAGMA_NOCACHE | INTERNET_FLAG_RELOAD;
-            if ( m_url.m_scheme == INTERNET_SCHEME_HTTPS )
-            {
-                flags |= INTERNET_FLAG_SECURE | INTERNET_FLAG_IGNORE_CERT_CN_INVALID | INTERNET_FLAG_IGNORE_CERT_DATE_INVALID;
-            }
-
-            m_handle = HttpOpenRequest(
-                m_connectionHandle,                                     // InternetConnect handle
-                toUtf16( m_method ).data( ),                                        // Method
-                objectName.c_str( ),                                        // Object name
-                HTTP_VERSION,                                               // Version
-                L"",                                                        // Referrer
-                NULL,                                                       // Extra headers
-                flags,                                                      // Flags
-                ( DWORD_PTR )this );
-            check( m_handle != nullptr );
-
-            if ( m_url.m_scheme == INTERNET_SCHEME_HTTPS )
-            {
-                DWORD dwFlags = 0;
-                DWORD dwBuffLen = sizeof( dwFlags );
-                InternetQueryOption( m_handle, INTERNET_OPTION_SECURITY_FLAGS, (LPVOID)&dwFlags, &dwBuffLen );
-                dwFlags |= SECURITY_FLAG_IGNORE_UNKNOWN_CA;
-                InternetSetOption( m_handle, INTERNET_OPTION_SECURITY_FLAGS, &dwFlags, sizeof( dwFlags ) );
-            }
-
-            try
-            {
-                auto lock = m_mutex.lock( );
-
-                INTERNET_BUFFERS buffers{ 0 };
-                buffers.dwStructSize = sizeof( INTERNET_BUFFERS );
-                buffers.lpcszHeader = m_headers.c_str( );
-                buffers.dwHeadersLength = (DWORD)m_headers.length( );
-
-                if ( HttpSendRequestEx( m_handle, &buffers, NULL, 0, ( DWORD_PTR )this ) == FALSE )
-                {
-                    int err = GetLastError( );
-                    check( err == ERROR_IO_PENDING );
-
-                    m_isPending = true;
-                    while ( m_isPending && !timer.elapsed( timeout ) )
-                    {
-                        lock.waitFor( timer.until( timeout ) );
-                    }
-                    cpp::check<TimeoutException>( m_isPending == false );
-                }
-            }
-            catch ( ... )
-            {
-                close( );
-                throw;
-            }
-        }
-
-        void endRequest( cpp::Duration timeout )
-        {
-            try
-            {
-                auto lock = m_mutex.lock( );
-                
-                if ( m_isRequesting == false )
-                    { return; }
-                
-                cpp::Timer timer;
-                if ( HttpEndRequest( m_handle, 0, 0, ( DWORD_PTR )this ) == FALSE )
-                {
-                    int err = GetLastError( );
-                    check( err == ERROR_IO_PENDING );
-                    m_isPending = true;
-
-                    while ( m_isPending && !timer.elapsed( timeout ) )
-                        { lock.waitFor( timer.until( timeout ) ); }
-                    cpp::check<TimeoutException>( m_isPending == false );
-                }
-
-                m_isRequesting = false;
-
-                DWORD buflen = 0;
-                m_headers.clear( );
-                HttpQueryInfo( m_handle, HTTP_QUERY_RAW_HEADERS_CRLF, (LPWSTR)m_headers.c_str( ), &buflen, NULL );
-                if ( buflen > 0 )
-                {
-                    m_headers.resize( buflen );
-                    HttpQueryInfo( m_handle, HTTP_QUERY_RAW_HEADERS_CRLF, (LPWSTR)m_headers.c_str( ), &buflen, NULL );
-                }
-
-                String hdr = toUtf8( m_headers );
-                auto statusResult = hdr.searchOne( R"(HTTP(\S+)\s(\S+)\s(.*)\r\n)" );
-                if ( statusResult )
-                {
-                    m_statusCode = (int)Integer::parse( statusResult[2] );
-                    if ( m_statusCode < 200 || m_statusCode >= 300 )
-                    {
-                        throw Exception{ statusResult[3], m_statusCode, m_url.source( ), hdr };
-                    }
-                }
-
-                doRecv( );
-                check( );
-            }
-            catch ( ... )
-            {
-                close( );
-                throw;
-            }
-        }
-
-        int statusCode() const
-        {
-            return m_statusCode;
-        }
+        void doStart( );
+        void notify( DWORD err );
+        void notifyRecv( );
+        void notifySend( );
+        void doRecv( );
+        void doSend( );
+        void doClose( );
+        bool isOpen( ) const;
+        Memory read( Memory dst, Duration timeout );
+        Memory write( const Memory & src );
+        void flush( );
+        void close( );
+        static int toStatusCode( DWORD err );
+        void setError( DWORD err );
+        void check( bool isSuccess );
+        void check( );
+        void startRequest( cpp::Duration timeout );
+        void endRequest( cpp::Duration timeout );
+        int statusCode( ) const;
 
     private:
         HINTERNET m_connectionHandle;
@@ -441,6 +86,392 @@ namespace cpp
         int m_statusCode;
         bool m_isRequesting;
     };
+
+
+    Http::Request::Detail::Detail( HINTERNET connection, const URL & url, String method, String headers, Duration timeout ) :
+        m_connectionHandle( connection ),
+        m_url( url ),
+        m_method( method ),
+        m_headers( cpp::toUtf16( headers ) ),
+        m_timeout( timeout ),
+        m_handle( nullptr ),
+        m_isPending( false ),
+        m_isRecving( false ),
+        m_recvBytes( 0 ),
+        m_recvBuffer( 64 * 1024 ),
+        m_isSending( false ),
+        m_sendBytes( 0 ),
+        m_sentBytes( 0 ),
+        m_isRequesting( true )
+    {
+        cpp::Timer timer;
+        startRequest( timer.until( timeout ) );
+        if ( m_method == METHOD_GET )
+        {
+            endRequest( timer.until( timeout ) );
+        }
+    }
+
+
+    Http::Request::Detail::~Detail( )
+    {
+        close( );
+    }
+
+
+    void Http::Request::Detail::doStart( )
+    {
+
+    }
+
+
+    void Http::Request::Detail::notify( DWORD err )
+    {
+        auto lock = m_mutex.lock( );
+        m_isPending = false;
+        if ( err )
+        {
+            setError( err );
+            doClose( );
+        }
+        else
+        {
+            if ( m_isRecving )
+            {
+                notifyRecv( );
+            }
+            else if ( m_isSending )
+            {
+                notifySend( );
+            }
+        }
+        lock.unlock( );
+        lock.notifyAll( );
+    }
+
+
+    void Http::Request::Detail::notifyRecv( )
+    {
+        m_isRecving = false;
+        if ( m_recvBytes )
+        {
+            m_recvBuffer.put( m_recvBytes );
+        }
+        else
+        {
+            doClose( );
+        }
+        doRecv( );
+    }
+
+
+    void Http::Request::Detail::notifySend( )
+    {
+        m_isSending = false;
+        m_sentBytes += m_sendBytes;
+        if ( m_sendBuffers.front( ).length( ) == m_sentBytes )
+        {
+            m_sendBuffers.pop_front( );
+            m_sentBytes = 0;
+        }
+        doSend( );
+    }
+
+
+    void Http::Request::Detail::doRecv( )
+    {
+        Memory dst = m_recvBuffer.putable( );
+        if ( !dst || !m_handle )
+        {
+            return;
+        }
+
+        m_isRecving = true;
+        if ( InternetReadFile( m_handle, (LPVOID)dst.data( ), (DWORD)dst.length( ), &m_recvBytes ) == FALSE )
+        {
+            int err = GetLastError( );
+            if ( err != ERROR_IO_PENDING )
+            {
+                m_isRecving = false; setError( err ); doClose( );
+            }
+        }
+        else
+        {
+            notifyRecv( );
+        }
+    }
+
+
+    void Http::Request::Detail::doSend( )
+    {
+        if ( m_sendBuffers.empty( ) || !m_handle )
+        {
+            return;
+        }
+
+        String & sendItem = m_sendBuffers.front( );
+        Memory src = Memory{ sendItem }.substr( (size_t)m_sentBytes );
+        if ( !src )
+        {
+            return;
+        }
+        m_isSending = true;
+        if ( InternetWriteFile( m_handle, (LPVOID)src.data( ), (DWORD)src.length( ), &m_sendBytes ) == FALSE )
+        {
+            int err = GetLastError( );
+            if ( err != ERROR_IO_PENDING )
+            {
+                m_isSending = false; doClose( );
+            }
+        }
+    }
+
+
+    void Http::Request::Detail::doClose( )
+    {
+        InternetCloseHandle( m_handle );
+        m_handle = nullptr;
+    }
+
+
+    bool Http::Request::Detail::isOpen( ) const
+    {
+        auto lock = m_mutex.lock( );
+        return m_handle != nullptr || m_recvBuffer.getable( ).isEmpty( ) == false;
+    }
+
+
+    Memory Http::Request::Detail::read( Memory dst, Duration timeout )
+    {
+        auto lock = m_mutex.lock( );
+
+        Timer timer;
+        while ( m_handle || m_recvBuffer.getable( ) )
+        {
+            //  wait if the read should block
+            if ( m_recvBuffer.getable( ).isEmpty( ) )
+            {
+                if ( !m_isRecving )
+                {
+                    doRecv( ); continue;
+                }
+
+                if ( timer.elapsed( timeout ) )
+                {
+                    break;
+                }
+
+                lock.waitFor( timer.until( timeout ) );
+                continue;
+            }
+
+            size_t len = std::min( dst.length( ), m_recvBuffer.getable( ).length( ) );
+            return Memory::copy( dst, m_recvBuffer.get( len ) );
+        }
+
+        check( );
+        return nullptr;
+    }
+
+
+    Memory Http::Request::Detail::write( const Memory & src )
+    {
+        auto lock = m_mutex.lock( );
+
+        m_sendBuffers.push_back( src );
+        if ( !m_isSending )
+        {
+            doSend( );
+        }
+
+        check( );
+        return src;
+    }
+
+
+    void Http::Request::Detail::flush( )
+    {
+        auto lock = m_mutex.lock( );
+        while ( m_handle != nullptr && !m_sendBuffers.empty( ) )
+        {
+            lock.wait( );
+        }
+    }
+
+
+    void Http::Request::Detail::close( )
+    {
+        auto lock = m_mutex.lock( false );
+        if ( m_handle )
+        {
+            doClose( );
+            while ( m_isPending )
+            {
+                lock.wait( );
+            }
+        }
+        m_recvBuffer.getAll( );
+    }
+
+
+    int Http::Request::Detail::toStatusCode( DWORD err )
+    {
+        switch ( err )
+        {
+        default:
+            return 400;
+        }
+    }
+
+
+    void Http::Request::Detail::setError( DWORD err )
+    {
+        m_error = std::make_shared<Exception>( windows::Exception::getErrorMessage( err ), toStatusCode( err ), m_url.source, toUtf8( m_headers ) );
+    }
+
+
+    void Http::Request::Detail::check( bool isSuccess )
+    {
+        if ( !isSuccess )
+        {
+            setError( GetLastError( ) ); check( );
+        }
+    }
+
+
+    void Http::Request::Detail::check( )
+    {
+        if ( m_error )
+        {
+            throw * m_error;
+        }
+    }
+
+
+    void Http::Request::Detail::startRequest( cpp::Duration timeout )
+    {
+        cpp::Timer timer;
+
+        std::wstring objectName = m_url.path + m_url.extra;
+        DWORD flags = INTERNET_FLAG_PRAGMA_NOCACHE | INTERNET_FLAG_RELOAD;
+        if ( m_url.scheme == INTERNET_SCHEME_HTTPS )
+        {
+            flags |= INTERNET_FLAG_SECURE | INTERNET_FLAG_IGNORE_CERT_CN_INVALID | INTERNET_FLAG_IGNORE_CERT_DATE_INVALID;
+        }
+
+        m_handle = HttpOpenRequest(
+            m_connectionHandle,                                     // InternetConnect handle
+            toUtf16( m_method ).data( ),                                        // Method
+            objectName.c_str( ),                                        // Object name
+            HTTP_VERSION,                                               // Version
+            L"",                                                        // Referrer
+            NULL,                                                       // Extra headers
+            flags,                                                      // Flags
+            (DWORD_PTR)this );
+        check( m_handle != nullptr );
+
+        if ( m_url.scheme == INTERNET_SCHEME_HTTPS )
+        {
+            DWORD dwFlags = 0;
+            DWORD dwBuffLen = sizeof( dwFlags );
+            InternetQueryOption( m_handle, INTERNET_OPTION_SECURITY_FLAGS, (LPVOID)& dwFlags, &dwBuffLen );
+            dwFlags |= SECURITY_FLAG_IGNORE_UNKNOWN_CA;
+            InternetSetOption( m_handle, INTERNET_OPTION_SECURITY_FLAGS, &dwFlags, sizeof( dwFlags ) );
+        }
+
+        try
+        {
+            auto lock = m_mutex.lock( );
+
+            INTERNET_BUFFERS buffers{ 0 };
+            buffers.dwStructSize = sizeof( INTERNET_BUFFERS );
+            buffers.lpcszHeader = m_headers.c_str( );
+            buffers.dwHeadersLength = (DWORD)m_headers.length( );
+
+            if ( HttpSendRequestEx( m_handle, &buffers, NULL, 0, (DWORD_PTR)this ) == FALSE )
+            {
+                int err = GetLastError( );
+                check( err == ERROR_IO_PENDING );
+
+                m_isPending = true;
+                while ( m_isPending && !timer.elapsed( timeout ) )
+                {
+                    lock.waitFor( timer.until( timeout ) );
+                }
+                cpp::check<TimeoutException>( m_isPending == false );
+            }
+        }
+        catch ( ... )
+        {
+            close( );
+            throw;
+        }
+    }
+
+
+    void Http::Request::Detail::endRequest( cpp::Duration timeout )
+    {
+        try
+        {
+            auto lock = m_mutex.lock( );
+
+            if ( m_isRequesting == false )
+            {
+                return;
+            }
+
+            cpp::Timer timer;
+            if ( HttpEndRequest( m_handle, 0, 0, (DWORD_PTR)this ) == FALSE )
+            {
+                int err = GetLastError( );
+                check( err == ERROR_IO_PENDING );
+                m_isPending = true;
+
+                while ( m_isPending && !timer.elapsed( timeout ) )
+                {
+                    lock.waitFor( timer.until( timeout ) );
+                }
+                cpp::check<TimeoutException>( m_isPending == false );
+            }
+
+            m_isRequesting = false;
+
+            DWORD buflen = 0;
+            m_headers.clear( );
+            HttpQueryInfo( m_handle, HTTP_QUERY_RAW_HEADERS_CRLF, (LPWSTR)m_headers.c_str( ), &buflen, NULL );
+            if ( buflen > 0 )
+            {
+                m_headers.resize( buflen );
+                HttpQueryInfo( m_handle, HTTP_QUERY_RAW_HEADERS_CRLF, (LPWSTR)m_headers.c_str( ), &buflen, NULL );
+            }
+
+            String hdr = toUtf8( m_headers );
+            auto statusResult = hdr.searchOne( R"(HTTP(\S+)\s(\S+)\s(.*)\r\n)" );
+            if ( statusResult )
+            {
+                m_statusCode = (int)Integer::parse( statusResult[2] );
+                if ( m_statusCode < 200 || m_statusCode >= 300 )
+                {
+                    throw Exception{ statusResult[3], m_statusCode, m_url.source, hdr };
+                }
+            }
+
+            doRecv( );
+            check( );
+        }
+        catch ( ... )
+        {
+            close( );
+            throw;
+        }
+    }
+
+
+    int Http::Request::Detail::statusCode( ) const
+    {
+        return m_statusCode;
+    }
+
 
 
     Http::Request::Request( std::shared_ptr<Detail> && detail )
@@ -728,6 +759,46 @@ namespace cpp
 
 
 
+    
+
+    URL::URL( )
+        : scheme( 0 ), port( 0 ) 
+    { 
+    }
+
+
+    URL::URL( String url ) :
+        source( url ),
+        scheme( 0 ),
+        port( 0 ),
+        host( 1024, 0 ),
+        path( 1024, 0 ),
+        extra( 1024, 0 )
+    {
+        URL_COMPONENTS urlComponents = { 0 };
+        urlComponents.dwStructSize = sizeof( URL_COMPONENTS );
+        urlComponents.lpszHostName = (LPWSTR)host.data( );
+        urlComponents.dwHostNameLength = (DWORD)host.length( );
+        urlComponents.lpszUrlPath = (LPWSTR)path.data( );
+        urlComponents.dwUrlPathLength = (DWORD)path.length( );
+        urlComponents.lpszExtraInfo = (LPWSTR)extra.data( );
+        urlComponents.dwExtraInfoLength = (DWORD)extra.length( );
+
+        Utf16::Text wurl = toUtf16( url );
+        windows::check( InternetCrackUrl( wurl, (DWORD)wurl.size( ), ICU_DECODE | ICU_ESCAPE, &urlComponents ) != FALSE );
+        host.resize( urlComponents.dwHostNameLength );
+        path.resize( urlComponents.dwUrlPathLength );
+        extra.resize( urlComponents.dwExtraInfoLength );
+        scheme = urlComponents.nScheme;
+        port = urlComponents.nPort;
+    }
+
+
+    String URL::hostport( ) const
+    {
+        return String::format( "%:%", toUtf8( host ), port );
+    }
+
 
 }
 
@@ -774,5 +845,7 @@ SUITE( Http )
         test::log( String::format( "HTTP request succeeded with timeout of % millis", millis ) );
     }
 }
+
+
 
 #endif

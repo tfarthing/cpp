@@ -63,7 +63,8 @@ namespace cpp
 		Memory::Array				split( Memory delimiter, Memory trimlist = WhitespaceList, bool ignoreEmpty = true ) const;
 		Memory						trim( Memory trimlist = WhitespaceList ) const;
 
-		const char *				data( ) const;
+        char *                      data( );
+        const char *				data( ) const;
 		const char *				begin( ) const;
 		const char *				end( ) const;
 
@@ -191,6 +192,9 @@ namespace cpp
 	inline char Memory::operator[]( size_t pos ) const
 		{ return at( pos ); }
 
+	inline char * Memory::data( )
+		{ return (char *)m_begin; }
+
 	inline const char * Memory::data( ) const
 		{ return m_begin; }
 
@@ -313,10 +317,6 @@ namespace cpp
 	struct EncodedBase64 : public EncodedMemory
 	{
 		using EncodedMemory::EncodedMemory;
-		operator uint8_t( ) const;
-		operator uint16_t( ) const;
-		operator uint32_t( ) const;
-		operator uint64_t( ) const;
 		operator std::string( ) const;
 	};
 

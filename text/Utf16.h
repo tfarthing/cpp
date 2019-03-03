@@ -3,7 +3,6 @@
 #include "Unicode.h"
 #include "../process/Exception.h"
 #include "../data/String.h"
-#include "../io/Input.h"
 
 namespace cpp
 {

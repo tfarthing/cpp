@@ -28,11 +28,11 @@ namespace cpp
         Memory text( ) const
             { return m_enum->m_text; }
 
-        XY<f32_t> xy( ) const
-            { return XY<f32_t>{ x( ), y( ) }; }
-        f32_t x( ) const
+        XY<float32> xy( ) const
+            { return XY<float32>{ x( ), y( ) }; }
+        float32 x( ) const
             { if ( xcenter( ) ) return 0.5f; return left( ) ? 0.0f : 1.0f; }
-        f32_t y( ) const
+        float32 y( ) const
             { if ( ycenter( ) ) return 0.5f; return top( ) ? 0.0f : 1.0f; }
         
         bool top( ) const

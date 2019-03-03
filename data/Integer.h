@@ -1,7 +1,6 @@
  #pragma once
 
-#include <stdint.h>
-
+#include "../../cpp/data/Primitive.h"
 #include "Memory.h"
 
 
@@ -11,66 +10,66 @@ namespace cpp
 
 	struct Integer
 	{
-		static int64_t					parse( Memory text, int radix = 10, bool checkEnding = true );
-		static uint64_t					parseUnsigned( Memory text, int radix = 10, bool checkEnding = true );
+		static int64					parse( Memory text, int radix = 10, bool checkEnding = true );
+		static uint64					parseUnsigned( Memory text, int radix = 10, bool checkEnding = true );
 
-		static std::string				toHex( uint64_t value, int width = 8, bool upper = false, bool zeroed = true, bool prefix = true );
-		static std::string				toDecimal( int64_t value, int width = 0, bool zeroed = false, bool sign = false );
-		static std::string				toDecimal( uint64_t value, int width = 0, bool zeroed = false, bool sign = false );
+		static std::string				toHex( uint64 value, int width = 8, bool upper = false, bool zeroed = true, bool prefix = true );
+		static std::string				toDecimal( int64 value, int width = 0, bool zeroed = false, bool sign = false );
+		static std::string				toDecimal( uint64 value, int width = 0, bool zeroed = false, bool sign = false );
     
-		static std::string				toDecimal( int32_t value, int width = 0, bool zeroed = false, bool sign = false );
-		static std::string				toDecimal( int16_t value, int width = 0, bool zeroed = false, bool sign = false );
-		static std::string				toDecimal( int8_t value, int width = 0, bool zeroed = false, bool sign = false );
+		static std::string				toDecimal( int32 value, int width = 0, bool zeroed = false, bool sign = false );
+		static std::string				toDecimal( int16 value, int width = 0, bool zeroed = false, bool sign = false );
+		static std::string				toDecimal( int8 value, int width = 0, bool zeroed = false, bool sign = false );
 
-		static std::string				toDecimal( uint32_t value, int width = 0, bool zeroed = false, bool sign = false );
-		static std::string				toDecimal( uint16_t value, int width = 0, bool zeroed = false, bool sign = false );
-		static std::string				toDecimal( uint8_t value, int width = 0, bool zeroed = false, bool sign = false );
+		static std::string				toDecimal( uint32 value, int width = 0, bool zeroed = false, bool sign = false );
+		static std::string				toDecimal( uint16 value, int width = 0, bool zeroed = false, bool sign = false );
+		static std::string				toDecimal( uint8 value, int width = 0, bool zeroed = false, bool sign = false );
 
 		template<class T, typename = std::enable_if_t<std::is_integral<T>::value>>
 		static int						compare( T lhs, T rhs );
 
 		template<class T> 
-		static T						to( uint64_t value );
+		static T						to( uint64 value );
 
 		template<class T>
-		static T						to( int64_t value );
+		static T						to( int64 value );
 	};
 
 
 	
-	inline std::string Integer::toDecimal( int32_t value, int width, bool zeroed, bool sign )
+	inline std::string Integer::toDecimal( int32 value, int width, bool zeroed, bool sign )
 	{
-		return toDecimal( (int64_t)value, width, zeroed, sign );
+		return toDecimal( (int64)value, width, zeroed, sign );
 	}
 	
 	
-	inline std::string	Integer::toDecimal( int16_t value, int width, bool zeroed, bool sign )
+	inline std::string	Integer::toDecimal( int16 value, int width, bool zeroed, bool sign )
 	{
-		return toDecimal( (int64_t)value, width, zeroed, sign );
+		return toDecimal( (int64)value, width, zeroed, sign );
 	}
 	
 	
-	inline std::string	Integer::toDecimal( int8_t value, int width, bool zeroed, bool sign )
+	inline std::string	Integer::toDecimal( int8 value, int width, bool zeroed, bool sign )
 	{
-		return toDecimal( (int64_t)value, width, zeroed, sign );
+		return toDecimal( (int64)value, width, zeroed, sign );
 	}
 		
 	
-	inline std::string	Integer::toDecimal( uint32_t value, int width, bool zeroed, bool sign )
+	inline std::string	Integer::toDecimal( uint32 value, int width, bool zeroed, bool sign )
 	{
-		return toDecimal( (uint64_t)value, width, zeroed, sign );
+		return toDecimal( (uint64)value, width, zeroed, sign );
 	}
 	
 	
-	inline std::string	Integer::toDecimal( uint16_t value, int width, bool zeroed, bool sign )
+	inline std::string	Integer::toDecimal( uint16 value, int width, bool zeroed, bool sign )
 	{
-		return toDecimal( (uint64_t)value, width, zeroed, sign );
+		return toDecimal( (uint64)value, width, zeroed, sign );
 	}
 	
 	
-	inline std::string Integer::toDecimal( uint8_t value, int width, bool zeroed, bool sign )
+	inline std::string Integer::toDecimal( uint8 value, int width, bool zeroed, bool sign )
 	{
-		return toDecimal( (uint64_t)value, width, zeroed, sign );
+		return toDecimal( (uint64)value, width, zeroed, sign );
 	}
 
 
@@ -86,7 +85,7 @@ namespace cpp
 
 
 	template<class T>
-	T Integer::to( uint64_t value )
+	T Integer::to( uint64 value )
 	{
 		assert( value <= std::numeric_limits<T>::max( ) );
 		return (T)value;
@@ -94,10 +93,10 @@ namespace cpp
 
 
 	template<class T>
-	T Integer::to( int64_t value )
+	T Integer::to( int64 value )
 	{
 		if ( value >= 0 )
-			{ return to<T>( (uint64_t)value ); }
+			{ return to<T>( (uint64)value ); }
 
 		assert( value >= std::numeric_limits<T>::min( ) );
 		return (T)value;

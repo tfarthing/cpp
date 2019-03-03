@@ -5,10 +5,10 @@
 namespace cpp
 {
 
-	int64_t Integer::parse( Memory text, int radix, bool checkEnding )
+	int64 Integer::parse( Memory text, int radix, bool checkEnding )
 	{
 		char * end = nullptr;
-		int64_t result = strtoll( text.data( ), &end, radix );
+		int64 result = strtoll( text.data( ), &end, radix );
 		check<DecodeException>( errno != ERANGE, "Integer::parse() : range error while parsing integer" );
 		if ( checkEnding )
 			{ check<DecodeException>( end == text.end(), "Integer::parse() : parse ended before the buffer's end" ); }
@@ -16,10 +16,10 @@ namespace cpp
 	}
 
 
-	uint64_t Integer::parseUnsigned( Memory text, int radix, bool checkEnding )
+	uint64 Integer::parseUnsigned( Memory text, int radix, bool checkEnding )
 	{
 		char * end = nullptr;
-		uint64_t result = strtoull( text.data( ), &end, radix );
+		uint64 result = strtoull( text.data( ), &end, radix );
 		check<DecodeException>( errno != ERANGE, "Integer::parseUnsigned() : range error while parsing integer" );
 		if ( checkEnding )
 			{ check<DecodeException>( end == text.end(), "Integer::parseUnsigned() : parse ended before the buffer's end" ); }
@@ -27,7 +27,7 @@ namespace cpp
 	}
 
 
-	std::string Integer::toHex( uint64_t value, int width, bool upper, bool zeroed, bool prefix )
+	std::string Integer::toHex( uint64 value, int width, bool upper, bool zeroed, bool prefix )
 	{
 		String fmt = "%";
 		if ( prefix )
@@ -42,7 +42,7 @@ namespace cpp
 	}
 
 
-	std::string Integer::toDecimal( int64_t value, int width, bool zeroed, bool sign )
+	std::string Integer::toDecimal( int64 value, int width, bool zeroed, bool sign )
 	{
 		String fmt = "%";
 		if ( sign )
@@ -57,7 +57,7 @@ namespace cpp
 	}
 
 
-	std::string Integer::toDecimal( uint64_t value, int width, bool zeroed, bool sign )
+	std::string Integer::toDecimal( uint64 value, int width, bool zeroed, bool sign )
 	{
 		String fmt = "%";
 		if ( sign )

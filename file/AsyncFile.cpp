@@ -525,13 +525,14 @@ namespace cpp
 #else
 
 #include "../meta/Test.h"
+#include "../../cpp/file/AsyncFile.h"
 
-TEST_CASE( "Factorials are computed", "[factorial]" ) 
+TEST_CASE( "AsyncFile" ) 
 {
-	REQUIRE( Factorial( 1 ) == 1 );
-	REQUIRE( Factorial( 2 ) == 2 );
-	REQUIRE( Factorial( 3 ) == 6 );
-	REQUIRE( Factorial( 10 ) == 3628800 );
+    //cpp::AsyncFile{};
+
+	REQUIRE( 1 == 1 );
+	REQUIRE( 2 == 2 );
 }
 
 #endif

@@ -14,8 +14,6 @@ namespace cpp
 			: std::exception( message ) { }
 		Exception( std::string message )
 			: m_what( std::move( message ) ) { }
-        Exception( std::error_code error )
-            : m_what( error.message( ) ) { }
 
 		const char * what( ) const override
 			{ return m_what.empty( ) ? std::exception::what( ) : m_what.c_str( ); }

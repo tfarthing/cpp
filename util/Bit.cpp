@@ -1,16 +1,298 @@
 #include <cassert>
 
 #include <cpp/data/Integer.h>
+#include <cpp/data/DataBuffer.h>
 
 #include "Bit.h"
 
 namespace cpp::bit
 {
 
+    const Memory NullValue = "]null[";
+
+
+
+    Memory keyName( Memory key )
+    {
+        size_t rpos = Memory::npos;
+
+        if ( key && key[key.length( ) - 1] == ']' )
+            { rpos = key.find_last_of( "[" ); }
+
+        size_t pos = key.find_last_of( ".", rpos );
+        return ( pos != Memory::npos )
+            ? key.substr( pos + 1 )
+            : key;
+    }
+
+
+    Memory keyParent( Memory key )
+    {
+        size_t rpos = Memory::npos;
+
+        // avoid matching '.' inside of an array item ID
+        if ( key && key[key.length( ) - 1] == ']' )
+            { rpos = key.find_last_of( "[" ); }
+
+        // parent is the portion before the last '.', otherwise null.
+        size_t pos = key.find_last_of( ".", rpos );
+        return ( pos != Memory::npos )
+            ? key.substr( 0, pos )
+            : "";
+    }
+
+
+    Memory keyArrayName( Memory key )
+    {
+        if ( !key || key[key.length( ) - 1] != ']' )
+            { return Memory::Empty; }
+
+        size_t pos = key.find_last_of( "[" );
+        return ( pos != Memory::npos )
+            ? key.substr( 0, pos )
+            : Memory::Empty;
+    }
+
+
+    Memory keyArrayItemID( Memory key )
+    {
+        if ( !key || key[key.length( ) - 1] != ']' )
+            { return Memory::Empty; }
+
+        size_t pos = key.find_last_of( "[" );
+        return ( pos != Memory::npos )
+            ? key.substr( pos + 1, key.length( ) - pos - 2 )
+            : Memory::Empty;
+    }
+
+
+    bool keyIsArrayItem( Memory key )
+    {
+        return keyArrayName( key ).notEmpty( );
+    }
+
+
+    bool keyIsChildOrSame( Memory key, Memory childKey )
+    {
+        size_t keyLen = key.length( );
+        size_t childLen = childKey.length( );
+
+        if ( childLen < keyLen )
+            { return false; }
+        if ( childLen > keyLen && keyLen > 0 && childKey[keyLen] != '.' )
+            { return false; }
+        if ( childKey.substr( 0, keyLen ) != key )
+            { return false; }
+
+        return true;
+    }
+
+
+    bool keyIsChild( Memory key, Memory childKey )
+    {
+        if ( childKey.length( ) == key.length( ) )
+        {
+            return false;
+        }
+        return keyIsChildOrSame( key, childKey );
+    }
+
+
+    Memory keyChildName( Memory key, Memory childKey )
+    {
+        assert( keyIsChildOrSame( key, childKey ) );
+
+        size_t keyLen = key.length( );
+        size_t childLen = childKey.length( );
+
+        if ( !keyLen )
+            { return childKey; }
+
+        return ( childLen != keyLen )
+            ? childKey.substr( keyLen + 1 )
+            : "";
+    }
+
+
+    size_t keyFindDelimiter( Memory fullKey, size_t pos = 0 )
+    {
+        pos = fullKey.find_first_of( ".[", pos );
+        if ( pos == Memory::npos || fullKey[pos] == '.' )
+        {
+            return pos;
+        }
+
+        pos = fullKey.find_first_of( "]", pos + 1 );
+        if ( pos == Memory::npos )
+        {
+            return pos;
+        }
+
+        return keyFindDelimiter( fullKey, pos + 1 );
+    }
+
+
+    size_t keyRfindDelimiter( Memory fullKey, size_t pos = Memory::npos )
+    {
+        pos = fullKey.find_last_of( ".]", pos );
+        if ( pos == Memory::npos || fullKey[pos] == '.' )
+        {
+            return pos;
+        }
+
+        pos = fullKey.find_last_of( "[", pos );
+        if ( pos == 0 || pos == Memory::npos )
+        {
+            return Memory::npos;
+        }
+
+        return keyRfindDelimiter( fullKey, pos - 1 );
+    }
+
+
+    //  Extract the next subkey from child key at a root key.  Does 
+    //  not verify precondition: childKey is child of rootKey.
+    //  "1.2", "1.2.3.4.5" -> "1.2.3"
+    Memory keyNextSubkey( Memory rootKey, Memory childKey )
+    {
+        assert( childKey.length( ) > rootKey.length( ) );
+        assert( rootKey == childKey.substr( 0, rootKey.length( ) ) );
+
+        size_t prefixLen = rootKey ? rootKey.length( ) + 1 : 0;
+        assert( prefixLen == 0 || childKey[rootKey.length( )] == '.' );
+        size_t pos = keyFindDelimiter( childKey, prefixLen );
+
+        return childKey.substr( 0, pos );
+    }
+
+
+    //  Extract the array item from child key at an array key.  Does
+    //  not verify preconditions: childKey is a child && array item 
+    //  of arrayKey.
+    //  "1.2", "1.2[xxx].3.4" -> "1.2[xxx]"
+    Memory keyArrayItem( Memory arrayKey, Memory childKey )
+    {
+        assert( childKey.length( ) > arrayKey.length( ) );
+        assert( arrayKey == childKey.substr( 0, arrayKey.length( ) ) );
+        assert( childKey[arrayKey.length( )] == '[' );
+
+        size_t pos = keyFindDelimiter( childKey, arrayKey.length( ) );
+        if ( pos == Memory::npos )
+        {
+            pos = childKey.length( );
+        }
+
+        assert( childKey[pos - 1] == ']' );
+        return childKey.substr( 0, pos );
+    }
+
+
+
+    Key::Key( std::string key, size_t rootLen )
+        : m_key( std::move( key ) ), m_rootLen( 0 )
+    {
+    }
+
+
+    Key::Key( const Key & parent, Memory childName )
+        : m_key( parent.m_key ), m_rootLen( parent.m_rootLen )
+    {
+        if ( childName )
+        {
+            if ( m_key.empty( ) )
+                { m_key = std::string{ childName.data( ), childName.length( ) }; }
+            m_key += "." + childName;
+        }
+    }
+
+    Key::Key( const Key & copy )
+        : m_key( copy.m_key ), m_rootLen( copy.m_rootLen )
+    {
+
+    }
+
+
+    Key::Key( Key && move ) noexcept
+        : m_key( std::move( move.m_key ) ), m_rootLen( move.m_rootLen )
+    {
+    }
+
+
+    Key & Key::operator=( const Key & copy )
+    {
+        m_key = copy.m_key;
+        m_rootLen = copy.m_rootLen;
+
+        return *this;
+    }
+
+
+    Key & Key::operator=( Key && move ) noexcept
+    {
+        m_key = std::move( move.m_key );
+        m_rootLen = move.m_rootLen;
+
+        return *this;
+    }
+
+
+    Memory Key::get( ) const
+    {
+        if ( m_rootLen == 0 )
+            { return m_key; }
+        if ( m_key.length( ) == m_rootLen )
+            { return ""; }
+        assert( m_key[m_rootLen] == '.' );
+        return Memory{ m_key }.substr( m_rootLen + 1 );
+    }
+
+
+    Key::operator Memory( ) const
+        { return get( ); }
+
+
+    bool Key::hasParent( ) const
+        { return parent( ).notEmpty( ); }
+
+
+    Memory Key::parent( ) const
+        { return keyParent( get( ) ); }
+
+
+    Memory Key::name( ) const
+        { return keyName( get( ) ); }
+
+
+    bool Key::isArrayItem( ) const
+        { return keyIsArrayItem( get( ) ); }
+
+
+    Memory Key::arrayName( ) const
+        { return keyArrayName( get( ) ); }
+
+
+    Memory Key::arrayItemID( ) const
+        { return keyArrayItemID( get( ) ); }
+
+
+    bool Key::isChild( Memory childKey ) const
+        { return keyIsChild( get( ), childKey ); }
+
+
+    bool Key::isChildOrSame( Memory childKey ) const
+        { return keyIsChildOrSame( get( ), childKey ); }
+    
+
+    Memory Key::childName( Memory childKey ) const
+        { return keyChildName( get( ), childKey ); };
+
+
+
     Object decode( Memory text )
     {
         return decode( DataBuffer{ text } );
     }
+
 
     Object decode( DataBuffer & buffer )
     {
@@ -27,6 +309,7 @@ namespace cpp::bit
         return result;
     }
 
+
     Object decodeLine( DataBuffer & buffer )
     {
         Decoder decoder;
@@ -34,112 +317,65 @@ namespace cpp::bit
         return std::move( decoder.data( ) );
     }
 
+
+
     Object::Object( )
-        : m_detail( std::make_unique<Detail>( ) ), m_data( m_detail.get( ) ), m_key( ), m_rootLen( 0 ) { }
+        : m_detail( std::make_unique<Detail>( ) ), m_data( m_detail.get( ) ), m_key( ) 
+    {
+    }
+
 
     Object::Object( Object && move )
-        : m_detail( std::move( move.m_detail ) ), m_data( m_detail ? m_detail.get( ) : move.m_data ), m_key( std::move( move.m_key ) ), m_rootLen( move.m_rootLen ) {  }
+        : m_detail( std::move( move.m_detail ) ), m_data( m_detail ? m_detail.get( ) : move.m_data ), m_key( std::move( move.m_key ) ) 
+    {
+    }
+
 
     Object::Object( const Object & copy )
-        : m_detail( copy.m_detail ? std::make_unique<Detail>( *copy.m_detail ) : nullptr ), m_data( m_detail ? m_detail.get( ) : copy.m_data ), m_key( copy.m_key ), m_rootLen( copy.m_rootLen ) { }
+        : m_detail( copy.m_detail ? std::make_unique<Detail>( *copy.m_detail ) : nullptr ), m_data( m_detail ? m_detail.get( ) : copy.m_data ), m_key( copy.m_key ) 
+    {
+    }
+
 
     Object::Object( const Object * copy, String key, size_t rootLen )
-        : m_detail( nullptr ), m_data( copy->m_data ), m_key( key ), m_rootLen( rootLen ) { }
+        : m_detail( nullptr ), m_data( copy->m_data ), m_key( key ) 
+    { 
+    }
 
-    void Object::reset( )
+
+    Object & Object::reset( )
     {
         m_detail = std::make_unique<Detail>( );
         m_data = m_detail.get( );
-        m_key.clear( );
-        m_rootLen = 0;
+        m_key = Key{};
+
+        return *this;
     }
+
+
+    bool Object::isEmpty( ) const
+    {
+        return m_data->keys.find( m_key.get( ) ) != m_data->keys.end( ) || firstSubkeyAt( m_key.get( ) ) != m_data->keys.end( );
+    }
+
+
+    bool Object::notEmpty( ) const
+    {
+        return !isEmpty( );
+    }
+
 
     bool Object::isView( ) const
     {
         return !m_detail;
     }
 
+
     bool Object::isNulled( ) const
     {
-        return m_data->nulled.count( m_key ) != 0;
+        return m_data->nulled.count( m_key.get( ) ) != 0;
     }
 
-    bool Object::isValueNulled( ) const
-    {
-        auto itr = m_data->keys.find( m_key );
-        return itr != m_data->keys.end( ) && !std::get_if<String>( &itr->second );
-    }
-
-    String Object::toFullkey( Memory rootKey, Memory subkey )
-    {
-        if ( !subkey )
-        {
-            return rootKey;
-        }
-        if ( !rootKey )
-        {
-            return subkey;
-        }
-        return rootKey + "." + subkey;
-    }
-
-    String Object::toChildName( Memory rootKey, Memory key )
-    {
-        assert( isKeyOrSubkey( rootKey, key ) );
-
-        size_t rootLen = rootKey.length( );
-        size_t keyLen = key.length( );
-
-        if ( !rootLen )
-        {
-            return key;
-        }
-        return keyLen != rootLen
-            ? key.substr( rootLen + 1 )
-            : "";
-    }
-
-    bool Object::isSubkey( Memory rootKey, Memory key )
-    {
-        size_t rootLen = rootKey.length( );
-        size_t keyLen = key.length( );
-
-        if ( keyLen <= rootLen )
-        {
-            return false;
-        }
-        if ( rootLen > 0 && key[rootLen] != '.' )
-        {
-            return false;
-        }
-        if ( key.substr( 0, rootLen ) != rootKey )
-        {
-            return false;
-        }
-
-        return true;
-    }
-
-    bool Object::isKeyOrSubkey( Memory rootKey, Memory key )
-    {
-        size_t rootLen = rootKey.length( );
-        size_t keyLen = key.length( );
-
-        if ( keyLen < rootLen )
-        {
-            return false;
-        }
-        if ( keyLen > rootLen && rootLen > 0 && key[rootLen] != '.' )
-        {
-            return false;
-        }
-        if ( key.substr( 0, rootLen ) != rootKey )
-        {
-            return false;
-        }
-
-        return true;
-    }
 
     // when any key is added, all arrays in the key potentially need to be recorded:
     //      e.g. root.first[arrayIndex].second[arrayIndex].something.third[arrayIndex].subkey
@@ -147,25 +383,26 @@ namespace cpp::bit
     {
         while ( fullKey )
         {
-            auto arrayName = getArrayName( fullKey );
+            auto arrayName = keyArrayName( fullKey );
             if ( arrayName )
             {
-                auto recID = getArrayItemID( fullKey );
+                auto recID = keyArrayItemID( fullKey );
                 if ( !m_data->records[arrayName].contains( recID ) )
                 {
                     m_data->records[arrayName].add( recID );
                 }
             }
-            fullKey = getParentKey( fullKey );
+            fullKey = keyParent( fullKey );
         }
     }
+
 
     // when any key is removed, all arrays in partial keys need to be removed
     void Object::verifyArraysOnRemove( Memory fullKey )
     {
         while ( fullKey )
         {
-            auto arrayName = getArrayName( fullKey );
+            auto arrayName = keyArrayName( fullKey );
             if ( arrayName )
             {
                 if ( !hasKeyWithValueAt( fullKey ) )
@@ -173,172 +410,116 @@ namespace cpp::bit
                     m_data->records.erase( arrayName );
                 }
             }
-            fullKey = getParentKey( fullKey );
+            fullKey = keyParent( fullKey );
         }
     }
 
-    bool Object::has( Memory childName ) const
+
+    const Key & Object::key( ) const
     {
-        return hasKeyWithValueAt( toFullkey( m_key, childName ) );
+        return m_key;
     }
 
-    bool Object::hasValue( ) const
-    {
-        return m_data->keys.find( m_key ) != m_data->keys.end( );
-    }
-
-    bool Object::hasSubkey( ) const
-    {
-        return firstSubkeyAt( m_key ) != m_data->keys.end( );
-    }
-
-    Memory Object::key( ) const
-    {
-        if ( m_rootLen == 0 )
-        {
-            return m_key;
-        }
-        if ( m_key.length( ) == m_rootLen )
-        {
-            return "";
-        }
-        assert( m_key[m_rootLen] == '.' );
-        return Memory{ m_key }.substr( m_rootLen + 1 );
-    }
 
     Memory Object::value( ) const
     {
-        auto & itr = m_data->keys.find( m_key );
-        if ( itr != m_data->keys.end( ) )
-        {
-            String * value = std::get_if<String>( &itr->second );
-            return value ? Memory{ *value } : nullptr;
-        }
+        auto & itr = m_data->keys.find( m_key.get( ) );
+        if ( itr != m_data->keys.end( ) && itr->second != NullValue )
+            { return itr->second; }
         return nullptr;
     }
+
 
     Object::operator Memory( ) const
     {
         return value( );
     }
 
-    Object & Object::assign( String value )
+
+    Object & Object::assign( Memory value )
     {
-        m_data->keys.insert_or_assign( m_key, std::move( value ) );
-        verifyArraysOnAdd( m_key );
+        m_data->keys.insert_or_assign( m_key.get( ), value.isNull() ? NullValue : value );
+        if ( value.isNull() )
+            { verifyArraysOnRemove( m_key ); }
+        else 
+            { verifyArraysOnAdd( m_key ); }
         return *this;
     }
 
-    Object & Object::operator=( String value )
+
+    Object & Object::operator=( Memory value )
     {
-        return assign( std::move( value ) );
+        return assign( value );
     }
 
-    Object & Object::set( Memory childName, String value )
-    {
-        auto fullKey = toFullkey( m_key, childName );
-        m_data->keys.insert_or_assign( fullKey, std::move( value ) );
-        verifyArraysOnAdd( fullKey );
-        return *this;
-    };
 
     Object & Object::assign( const Object & object )
     {
         if ( !object.isNulled( ) )
-        {
-            clear( "" );
-        }
+            { clear( ); }
         append( object );
         return *this;
     }
+
 
     Object & Object::operator=( const Object & object )
     {
         return assign( object );
     }
 
+
     Object & Object::append( const Object & object )
     {
         if ( object.isNulled( ) )
-        {
-            remove( "" );
-        }
-        if ( object.isValueNulled( ) )
-        {
-            removeValue( "" );
-        }
-        if ( object.hasValue( ) )
-        {
-            set( "", object.value( ) );
-        }
+            { erase( ); }
+        
+        assign( object.value( ) );
+
         for ( auto item : object.listValues( ) )
-        {
-            set( item.valueName(), item.value( ) );
-        }
+            { at( item.key( ).name( ) ) = item.value( ); }
+
         for ( auto item : object.listChildren( ) )
-        {
-            at( item.key( ) ).append( item.clip( ) );
-        }
+            { at( item.key( ) ).append( item.clip( ) ); }
+
         return *this;
     }
+
 
     Object & Object::operator+=( const Object & object )
     {
         return append( object );
     }
 
-    Object & Object::removeValue( Memory childName )
-    {
-        auto fullKey = toFullkey( m_key, childName );
-        m_data->keys.insert_or_assign( fullKey, value_t{} );
-        verifyArraysOnRemove( fullKey );
-        return *this;
-    }
-
-    //  remove means clear entries & nullify
-    Object & Object::remove( Memory childName )
-    {
-        clear( childName );
-
-        String fullKey = toFullkey( m_key, childName );
-        m_data->nulled.insert( fullKey );
-
-        m_data->keys.insert_or_assign( fullKey, value_t{} );
-        verifyArraysOnRemove( fullKey );
-
-        return *this;
-    }
-
-    Object & Object::removeAll( )
-    {
-        return remove( "" );
-    }
-
     //  clear() means remove entries for (without nullifying)
-    Object & Object::clear( Memory childName )
+    Object & Object::clear( )
     {
         std::vector<String> childKeys;
-        for ( auto & cursor : at( childName ).listSubkeys( ) )
-        {
-            childKeys.push_back( cursor.key( ) );
-        }
+        for ( auto & cursor : listSubkeys( ) )
+            { childKeys.push_back( cursor.key( ).get( ) ); }
 
         for ( auto & childKey : childKeys )
-        {
-            m_data->keys.erase( childKey );
-            verifyArraysOnRemove( childKey );
-        }
+            { m_data->keys.erase( childKey ); verifyArraysOnRemove( childKey ); }
 
-        String fullKey = toFullkey( m_key, childName );
-        m_data->keys.erase( fullKey );
+        m_data->keys.erase( m_key.get( ) );
+        verifyArraysOnRemove( m_key );
 
         return *this;
     }
 
-    Object & Object::clearAll( )
+
+    //  erase means clear entries & nullify
+    Object & Object::erase( )
     {
-        return clear( "" );
+        clear( );
+
+        m_data->nulled.insert( m_key.get( ) );
+
+        m_data->keys.insert_or_assign( m_key.get( ), NullValue );
+        verifyArraysOnRemove( m_key.get( ) );
+
+        return *this;
     }
+
 
     Object Object::add( Memory childName ) const
     {
@@ -354,67 +535,56 @@ namespace cpp::bit
         return Object{ this, toFullkey( m_key, String::format( "%[%]", childName, index ) ), m_rootLen };
     }
 
+
     Object Object::add( Memory childName, String recordID ) const
     {
         return Object{ this, toFullkey( m_key, String::format( "%[%]", childName, std::move( recordID ) ) ), m_rootLen };
     }
+
 
     Object Object::at( Memory childName )
     {
         return Object{ this, toFullkey( m_key, childName ), m_rootLen };
     }
 
+
     const Object Object::at( Memory childName ) const
     {
         return Object{ this, toFullkey( m_key, childName ), m_rootLen };
     }
+
 
     Object Object::operator[]( Memory childName )
     {
         return at( childName );
     }
 
+
     const Object Object::operator[]( Memory childName ) const
     {
         return at( childName );
     }
+
 
     bool Object::hasParent( ) const
     {
         return key( ).isEmpty( ) == false;
     }
 
+
     Object Object::parent( ) const
     {
         return hasParent( )
-            ? Object{ this, parentKey( ), m_rootLen }
+            ? Object{ this, keyParent( m_key ), m_rootLen }
         : *this;
     }
+
 
     Object Object::root( ) const
     {
         return Object{ this, "" };
     }
 
-    Memory Object::parentKey( ) const
-    {
-        return getParentKey( key( ) );
-    }
-
-    Memory Object::valueName( ) const
-    {
-        return getValueName( key( ) );
-    }
-
-    Memory Object::arrayName( ) const
-    {
-        return getArrayName( key( ) );
-    }
-
-    Memory Object::arrayItemID( ) const
-    {
-        return getArrayItemID( key( ) );
-    }
 
     size_t Object::itemCount( ) const
     {
@@ -423,6 +593,7 @@ namespace cpp::bit
             ? itr->second.size( )
             : 0;
     }
+
 
     Object::View Object::getItemAt( size_t index ) const
     {
@@ -433,40 +604,48 @@ namespace cpp::bit
         return Object{ this, itr->second.getAt( index ), m_rootLen };
     }
 
+
     Object::View Object::getItem( String recordID ) const
     {
         return Object{ this, String::format( "%[%]", m_key, recordID, m_rootLen ) };
     }
+
 
     const Object::List Object::listSubkeys( ) const
     {
         return List::ofKeys( *this );
     }
 
+
     const Object::List Object::listValues( ) const
     {
         return List::ofValues( *this );
     }
+
 
     const Object::List Object::listChildren( ) const
     {
         return List::ofChildren( *this );
     }
 
+
     const Object::List Object::listArrayItems( ) const
     {
         return List::ofArrayItems( *this );
     }
+
 
     Object::ClipView Object::clip( )
     {
         return Object{ this, m_key, m_key.length( ) };
     }
 
+
     const Object::ClipView Object::clip( ) const
     {
         return Object{ this, m_key, m_key.length( ) };
     }
+
 
     Object Object::copy( ) const
     {
@@ -479,6 +658,7 @@ namespace cpp::bit
 
         return result;
     }
+
 
     Memory escapeValue( Memory value, String & buffer )
     {
@@ -506,6 +686,7 @@ namespace cpp::bit
             : Memory{ buffer };
     }
 
+
     String encodeValue( Memory key, Memory value, bool isRaw )
     {
         if ( value.isNull( ) )
@@ -530,6 +711,7 @@ namespace cpp::bit
 
         return String::format( "%=(%)'%'", key, value.length( ), value );
     }
+
 
     String encodeObject( const Object & object, bool isRaw, bool includeChildren = true, bool useRecordSelector = true )
     {
@@ -584,10 +766,12 @@ namespace cpp::bit
         return result;
     }
 
+
     String encodeRowObject( const Object & object, bool isRaw )
     {
         return encodeObject( object, isRaw ) + '\n';
     }
+
 
     String encodeRowValue( const Object & object, bool isRaw )
     {
@@ -617,6 +801,7 @@ namespace cpp::bit
         return result;
     }
 
+
     String encodeRowShallow( const Object & object, bool isRaw )
     {
         String result = encodeObject( object, isRaw, false ) + "\n";
@@ -628,6 +813,7 @@ namespace cpp::bit
 
         return result;
     }
+
 
     String encodeRowDeep( const Object & object, bool isRaw )
     {
@@ -642,6 +828,7 @@ namespace cpp::bit
         }
         return result;
     }
+
 
     String Object::encode( EncodeRow rowEncoding ) const
     {
@@ -659,6 +846,7 @@ namespace cpp::bit
         }
     }
 
+
     String Object::encodeRaw( EncodeRow rowEncoding ) const
     {
         switch ( rowEncoding )
@@ -675,15 +863,18 @@ namespace cpp::bit
         }
     }
 
+
     Object Object::getChild( Memory rootKey, Memory childKey ) const
     {
-        return Object{ this, getChildKey( rootKey, childKey ), m_rootLen };
+        return Object{ this, keyNextSubkey( rootKey, childKey ), m_rootLen };
     }
+
 
     Object Object::getArrayItem( Memory arrayKey, Memory childKey ) const
     {
-        return Object{ this, getArrayItemKey( arrayKey, childKey ), m_rootLen };
+        return Object{ this, keyArrayItem( arrayKey, childKey ), m_rootLen };
     }
+
 
     size_t findKeyDelimiter( Memory fullKey, size_t pos = 0 )
     {
@@ -702,6 +893,7 @@ namespace cpp::bit
         return findKeyDelimiter( fullKey, pos + 1 );
     }
 
+
     size_t rfindKeyDelimiter( Memory fullKey, size_t pos = Memory::npos )
     {
         pos = fullKey.find_last_of( ".]", pos );
@@ -719,11 +911,13 @@ namespace cpp::bit
         return rfindKeyDelimiter( fullKey, pos - 1 );
     }
 
+
     Object::iterator_t Object::firstKeyAt( Memory key ) const
     {
         auto itr = m_data->keys.lower_bound( key );
         return findKeyAt( key, itr );
     }
+
 
     Object::iterator_t Object::firstSubkeyAt( Memory key ) const
     {
@@ -731,11 +925,13 @@ namespace cpp::bit
         return findKeyAt( key, itr );
     }
 
+
     Object::iterator_t Object::nextKeyAt( Memory key, iterator_t itr ) const
     {
         assert( itr != m_data->keys.end( ) );
         return findKeyAt( key, ++itr );
     }
+
 
     Object::iterator_t Object::findKeyAt( Memory key, iterator_t itr ) const
     {
@@ -767,6 +963,7 @@ namespace cpp::bit
         return itr;
     }
 
+
     Object::iterator_t Object::firstValueAt( Memory key ) const
     {
         auto itr = key.isEmpty( )
@@ -775,11 +972,13 @@ namespace cpp::bit
         return findValueAt( key, itr );
     }
 
+
     Object::iterator_t Object::nextValueAt( Memory key, iterator_t itr ) const
     {
         assert( itr != m_data->keys.end( ) );
         return findValueAt( key, ++itr );
     }
+
 
     //  values of a key must:
     //      * have the format "key.name"
@@ -815,6 +1014,7 @@ namespace cpp::bit
         return itr;
     }
 
+
     Object::iterator_t Object::firstChildAt( Memory key ) const
     {
         auto itr = key.isEmpty( )
@@ -822,6 +1022,7 @@ namespace cpp::bit
             : m_data->keys.lower_bound( key + "." );
         return findChildAt( key, itr );
     }
+
 
     Object::iterator_t Object::nextChildAt( Memory key, iterator_t itr ) const
     {
@@ -835,6 +1036,7 @@ namespace cpp::bit
         itr = m_data->keys.upper_bound( lastChild + "/" );  // '/' is '.' + 1
         return findChildAt( key, itr );
     }
+
 
     Object::iterator_t Object::findChildAt( Memory key, iterator_t itr ) const
     {
@@ -865,11 +1067,13 @@ namespace cpp::bit
         return itr;
     }
 
+
     Object::iterator_t Object::firstItemAt( Memory key ) const
     {
         auto itr = m_data->keys.lower_bound( key + "[" );
         return findItemAt( key, itr );
     }
+
 
     Object::iterator_t Object::nextItemAt( Memory key, iterator_t itr ) const
     {
@@ -927,6 +1131,7 @@ namespace cpp::bit
         return false;
     }
 
+
     Memory Object::getValueName( Memory key )
     {
         size_t rpos = Memory::npos;
@@ -942,6 +1147,7 @@ namespace cpp::bit
             : key;
     }
 
+
     Memory Object::getParentKey( Memory key )
     {
         size_t rpos = Memory::npos;
@@ -955,62 +1161,6 @@ namespace cpp::bit
         return ( pos != Memory::npos )
             ? key.substr( 0, pos )
             : "";
-    }
-
-    Memory Object::getChildKey( Memory rootKey, Memory key )
-    {
-        assert( key.length( ) > rootKey.length( ) );
-        assert( rootKey == key.substr( 0, rootKey.length( ) ) );
-
-        size_t prefixLen = rootKey ? rootKey.length( ) + 1 : 0;
-        assert( prefixLen == 0 || key[rootKey.length( )] == '.' );
-        size_t pos = findKeyDelimiter( key, prefixLen );
-
-        return key.substr( 0, pos );
-    }
-
-    Memory Object::getArrayName( Memory key )
-    {
-        if ( !key || key[key.length( ) - 1] != ']' )
-        {
-            return Memory::Empty;
-        }
-
-        size_t pos = key.find_last_of( "[" );
-        return ( pos != Memory::npos )
-            ? key.substr( 0, pos )
-            : Memory::Empty;
-    }
-
-    Memory Object::getArrayItemID( Memory key )
-    {
-        if ( !key || key[key.length( ) - 1] != ']' )
-        {
-            return Memory::Empty;
-        }
-
-        size_t pos = key.find_last_of( "[" );
-        return ( pos != Memory::npos )
-            ? key.substr( pos + 1, key.length( ) - pos - 2 )
-            : Memory::Empty;
-    }
-
-    //  e.g. arrayKey[arrayIndex]    
-    //       arrayKey[arrayIndex].xxx
-    Memory Object::getArrayItemKey( Memory arrayKey, Memory childKey )
-    {
-        assert( childKey.length( ) > arrayKey.length( ) );
-        assert( arrayKey == childKey.substr( 0, arrayKey.length( ) ) );
-        assert( childKey[arrayKey.length( )] == '[' );
-
-        size_t pos = findKeyDelimiter( childKey, arrayKey.length( ) );
-        if ( pos == Memory::npos )
-        {
-            pos = childKey.length( );
-        }
-
-        assert( childKey[pos - 1] == ']' );
-        return childKey.substr( 0, pos );
     }
 
 

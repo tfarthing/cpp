@@ -32,17 +32,17 @@ namespace cpp
 		static DataMap		fromBinary( DataBuffer & buffer );
 
 							DataMap( );
-							DataMap( DataMap && move );
+							DataMap( DataMap && move ) noexcept;
 							DataMap( const DataMap & copy );
-							DataMap( Map && move );
+							DataMap( Map && move ) noexcept;
 							DataMap( const Map & copy );
 							DataMap( const StringMap & copy );
 							DataMap( std::initializer_list<Map::value_type> init );
 							DataMap( const EncodedText & encodedText );
 
-        DataMap &			operator=( DataMap && move );
+        DataMap &			operator=( DataMap && move ) noexcept;
         DataMap &			operator=( const DataMap & copy );
-		DataMap &			operator=( Map && move );
+		DataMap &			operator=( Map && move ) noexcept;
 		DataMap &			operator=( const Map & copy );
 		DataMap &			operator=( const StringMap & copy );
 
@@ -69,17 +69,17 @@ namespace cpp
 		static StringMap	fromBinary( DataBuffer & buffer );
 
 							StringMap( );
-							StringMap( StringMap && move );
+							StringMap( StringMap && move ) noexcept;
 							StringMap( const StringMap & copy );
-							StringMap( Map && move );
+							StringMap( Map && move ) noexcept;
 							StringMap( const Map & copy );
 							StringMap( const DataMap & copy );
 							StringMap( std::initializer_list<Map::value_type> init );
 							StringMap( const EncodedText & encodedText );
 
-        StringMap &			operator=( StringMap && move );
+        StringMap &			operator=( StringMap && move ) noexcept;
         StringMap &			operator=( const StringMap & copy );
-		StringMap &			operator=( Map && move );
+		StringMap &			operator=( Map && move ) noexcept;
 		StringMap &			operator=( const Map & copy );
 		StringMap &			operator=( const DataMap & copy );
 
@@ -101,7 +101,7 @@ namespace cpp
     inline DataMap::DataMap( )
         : Map() {}
 
-    inline DataMap::DataMap( DataMap && move )
+    inline DataMap::DataMap( DataMap && move ) noexcept
         : Map( std::move( move ) ) {}
 
     inline DataMap::DataMap( const DataMap & copy )
@@ -113,7 +113,7 @@ namespace cpp
     inline DataMap::DataMap( std::initializer_list<std::map<Memory, Memory>::value_type> init )
         : Map( init ) {}
 
-    inline DataMap & DataMap::operator=( DataMap && move )
+    inline DataMap & DataMap::operator=( DataMap && move ) noexcept
         { Map::operator=( std::move( move ) ); return *this; }
 
     inline DataMap & DataMap::operator=( const DataMap & copy )
@@ -145,7 +145,7 @@ namespace cpp
     inline StringMap::StringMap( )
         : Map( ) {}
 
-    inline StringMap::StringMap( StringMap && move )
+    inline StringMap::StringMap( StringMap && move ) noexcept
         : Map( std::move( move ) ) {}
 
     inline StringMap::StringMap( const StringMap & copy )
@@ -157,7 +157,7 @@ namespace cpp
     inline StringMap::StringMap( std::initializer_list<Map::value_type> init )
         : Map( init ) {}
 
-    inline StringMap & StringMap::operator=( StringMap && move )
+    inline StringMap & StringMap::operator=( StringMap && move ) noexcept
         { Map::operator=( std::move( move ) ); return *this; }
 
     inline StringMap & StringMap::operator=( const StringMap & copy )

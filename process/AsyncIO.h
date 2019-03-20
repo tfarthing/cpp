@@ -32,19 +32,19 @@ namespace cpp
 	{
 	public:
 		static AsyncTimer					waitFor(
-			asio::io_context * context,
-			Duration timeout,
-			std::function<void( )> handler );
+			                                    asio::io_context * context,
+			                                    Duration timeout,
+			                                    std::function<void( )> handler );
 		static AsyncTimer					waitUntil(
-			asio::io_context * context,
-			Time timeout,
-			std::function<void( )> handler );
+			                                    asio::io_context * context,
+			                                    Time timeout,
+			                                    std::function<void( )> handler );
 
-		AsyncTimer( );
-		AsyncTimer( AsyncTimer && move );
-		~AsyncTimer( );
+		                                    AsyncTimer( );
+		                                    AsyncTimer( AsyncTimer && move ) noexcept;
+		                                    ~AsyncTimer( );
 
-		AsyncTimer &						operator=( AsyncTimer && move );
+		AsyncTimer &						operator=( AsyncTimer && move ) noexcept;
 
 		bool								isPending( ) const;
 		bool								isExpired( ) const;
@@ -53,9 +53,9 @@ namespace cpp
 
 	private:
 		void								start(
-			asio::io_context * context,
-			Time timeout,
-			std::function<void( )> handler );
+			                                    asio::io_context * context,
+			                                    Time timeout,
+			                                    std::function<void( )> handler );
 
 	private:
 		struct Detail;
@@ -67,8 +67,8 @@ namespace cpp
 	class AsyncIO
 	{
 	public:
-		AsyncIO( );
-		~AsyncIO( );
+		                                    AsyncIO( );
+		                                    ~AsyncIO( );
 
 		asio::io_context &					context( );
 

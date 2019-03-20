@@ -75,7 +75,7 @@ namespace cpp
 
     bool LineReader::iterator::operator!=( iterator & iter ) const
     {
-        return &m_input != &( iter.m_input ) || m_cursor.position != iter.m_cursor.position;
+        return m_input != iter.m_input || m_nextPosition != iter.m_nextPosition;
     }
 
 

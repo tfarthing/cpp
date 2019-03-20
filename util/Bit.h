@@ -1,10 +1,8 @@
 #pragma once
 
-#include <optional>
+#include <vector>
 #include <set>
 #include <map>
-#include <variant>
-#include <cpp/data/DataBuffer.h>
 #include <cpp/data/IndexedSet.h>
 
 /*
@@ -21,7 +19,8 @@
 
     (5) supports hierarchical organization of keys, with nodes delimited by '.' ( e.g. parent.child='value' )
     (6) supports using associative arrays ( e.g. array[index].attr='value' )
-    (7) supports rolling update/removal operations, with arbitrary record size. 
+    (7) supports rolling update/removal operations.  Record removal is stateful.
+    (8) supports streaming (arbitrary record size).
         
         e.g. these four records:
                 data.a = 'a'\n
@@ -44,20 +43,24 @@
         // bitData = "server : ip='10.5.5.102' port='10667'\n";
 
     given object["region[west].server.proxy[0].wan-ip"] = 67.193.64.254;
-        object.key() is "region[west].server.proxy[0].wan-ip":
-        object.valueName() is "wan-ip"
-        object.parentKey() is "region[west].server.proxy[0]"
-        object.value() is "67.193.64.254"
+        object.key()                    is "region[west].server.proxy[0].wan-ip":
+        object.key().name()             is "wan-ip"
+        object.key().parent()           is "region[west].server.proxy[0]"
+        object.value()                  is "67.193.64.254"
 
     given object["region[west].server.proxy[0]"];
-        object.arrayName() is "region[west].server.proxy"
-        object.arrayIndex() is "0"
+        object.key().arrayName()        is "region[west].server.proxy"
+        object.key().arrayItemID()      is "0"
 
+    Difficult Issues:
+        (1) removed/"null" keys are stateful.  When/how is this state cleared? 
 */
-
 
 namespace cpp
 {
+
+    class DataBuffer;
+
     namespace bit
     {
 
@@ -66,112 +69,122 @@ namespace cpp
         Object decode( Memory text );
         Object decode( DataBuffer & buffer );
         Object decodeLine( DataBuffer & buffer );
-               
+        
+
+
+        class Key
+        {
+        public:
+                                            Key( std::string key = "", size_t rootLen = 0);
+                                            Key( const Key & parent, Memory childName );
+                                            Key( const Key & copy );
+                                            Key( Key && move ) noexcept;
+
+            Key &                           operator=( const Key & copy );
+            Key &                           operator=( Key && move ) noexcept;
+
+            Memory                          get( ) const;
+                                            operator Memory( ) const;
+
+            Memory                          name( ) const;          // "server.region" -> "region"
+
+            bool                            hasParent( ) const;
+            Memory                          parent( ) const;        // "server.region" -> "server"
+
+            bool                            isArrayItem( ) const;
+            Memory                          arrayName( ) const;     // "server.region[west] -> "server.region"
+            Memory                          arrayItemID( ) const;   // "server.region[west] -> "west"
+
+            bool                            isChild( Memory key ) const;
+            bool                            isChildOrSame( Memory key ) const;
+            Memory                          childName( Memory childKey ) const;
+
+        private:
+            std::string m_key;
+            size_t m_rootLen;
+        };
+
+
+
         class Object
         {
         public:
-                            Object( );
-                            Object( Object && move );
-                            Object( const Object & copy );
+                                            Object( );
+                                            Object( Object && move );
+                                            Object( const Object & copy );
 
-            typedef Object  Self;                   // returned reference to itself
-            typedef Object  View;                   // returned object is a reference to another Object
-            typedef Object  ClipView;               // returned object is a clipped reference to another Object
-            typedef std::vector<Object> Array;
+            typedef Object                  Self;                   // returned reference to itself
+            typedef Object                  View;                   // returned object is a reference to another Object
+            typedef Object                  ClipView;               // returned object is a clipped reference to another Object
 
-            void            reset( );               // resets the object's reference & data
-            bool            isView( ) const;        // returns true if this object refers to another's data
-            bool            isNulled( ) const;      // returns true if this object was nulled before its present value
-            bool            isValueNulled( ) const; // returns true if this object's value is nulled
-
-            bool            has( Memory childName ) const;
-            bool            hasValue( ) const;      // returns true if the objects value is set or nulled
-            bool            hasSubkey( ) const;     // returns true if any subkey has a value
-            bool            hasParent( ) const;     // returns true if not the root node
-
-            Memory          key( ) const;
-            Memory          value( ) const;
-                            operator Memory( ) const;
-
-            Memory          valueName( ) const;      // "region[west].server.proxy[0].wan-ip" -> "wan-ip"
-            Memory          parentKey( ) const;      // "region[west].server.proxy[0].wan-ip" -> "region[west].server.proxy[0]"
-            View            parent( ) const;
-            View            root( ) const;
-
-            Self &          assign( String value );
-            Self &          operator=( String value );
-
-            Self &          set( Memory childName, String value );
-
-            Self &          assign( const Object & object );
-            Self &          operator=( const Object & object );
-            Self &          append( const Object & object );
-            Self &          operator+=( const Object & object );
-
-            Self &          removeValue( Memory childName );
-            Self &          remove( Memory childName );
-            Self &          removeAll( );
-            Self &          clear( Memory childName );
-            Self &          clearAll( );
-
-            View            add( Memory arrayName ) const;
-            View            add( Memory arrayName, String arrayIndex ) const;
-
-            View            at( Memory childName );
-            const View      at( Memory childName ) const;
-            View            operator[]( Memory childName );
-            const View      operator[]( Memory childName ) const;
+            Self &                          reset( );               // resets the object's reference & data
             
-            ClipView        clip( );                // clipped view of object
-            const ClipView  clip( ) const;
-            
-            Object          copy( ) const;          // deep copy at key
+            bool                            isEmpty( ) const;       // this key has no value and has no subkey with a value
+            bool                            notEmpty( ) const;      // this key has a value or a subkey with a value
 
-                            // methods for keys at an array item
-            Memory          arrayName( ) const;    // "region[west].server.proxy[0] -> "region[west].server.proxy"
-            Memory          arrayItemID( ) const;  // "region[west].server.proxy[0] -> "0"
-                            // methods for keys at an array
-            size_t          itemCount( ) const;
-            View            getItemAt( size_t index ) const;
-            View            getItem( String itemID ) const;
+            const Key &                     key( ) const;
+            Memory                          value( ) const;
+                                            operator Memory( ) const;
+
+            Self &                          assign( Memory value );
+            Self &                          operator=( Memory value );
+
+            Self &                          assign( const Object & object );
+            Self &                          operator=( const Object & object );
+
+            Self &                          append( const Object & object );
+            Self &                          operator+=( const Object & object );
+
+            Self &                          clear( );               // removes all values at this key and any subkey
+            Self &                          erase( );               // performs clear( ) and sets this key as "nulled"
+
+            View                            at( Memory childName );
+            const View                      at( Memory childName ) const;
+            View                            operator[]( Memory childName );
+            const View                      operator[]( Memory childName ) const;
+            
+            View                            parent( ) const;
+            View                            root( ) const;
+
+            ClipView                        clip( );                // clipped view of object
+            const ClipView                  clip( ) const;
+            
+            Object                          copy( ) const;          // deep copy at key
+
+            class Array;
+            Array                           array( ) const;
 
             class List;
-            const List      listSubkeys( ) const;
-            const List      listValues( ) const;
-            const List      listChildren( ) const;
-            const List      listArrayItems( ) const;
+            const List                      listSubkeys( ) const;
+            const List                      listValues( ) const;
+            const List                      listChildren( ) const;
+            const List                      listArrayItems( ) const;
 
-            enum class EncodeRow { Object, Child, Leaf, Value };
-            String          encode( EncodeRow rowEncoding = EncodeRow::Leaf ) const;
-            String          encodeRaw( EncodeRow rowEncoding = EncodeRow::Leaf ) const;
+            enum class EncodeRow 
+                { Object, Child, Leaf, Value };
 
-            static String   toFullkey( Memory rootKey, Memory childName );
-            static String   toChildName( Memory rootKey, Memory fullkey );
-            static bool     isSubkey( Memory rootKey, Memory fullkey );
-            static bool     isKeyOrSubkey( Memory rootKey, Memory fullkey );
+            String                          encode( EncodeRow rowEncoding = EncodeRow::Leaf ) const;
+            String                          encodeRaw( EncodeRow rowEncoding = EncodeRow::Leaf ) const;
             
+            bool                            isView( ) const;        // returns true if this object refers to another's data
+            bool                            isNulled( ) const;      // returns true if this object (or its parent) was erased
+
         private:
             Object( const Object * copy, String key, size_t rootLen = 0 );
 
             void verifyArraysOnAdd( Memory fullKey );
             void verifyArraysOnRemove( Memory fullKey );
 
-            static Memory getValueName( Memory key );
-            static Memory getParentKey( Memory key );
-            static Memory getChildKey( Memory rootKey, Memory key );
-            static Memory getArrayName( Memory key );
-            static Memory getArrayItemID( Memory key );
-            static Memory getArrayItemKey( Memory rootKey, Memory recordKey );
-
             Object getChild( Memory rootKey, Memory childKey ) const;
             Object getArrayItem( Memory rootKey, Memory arrayKey ) const;
 
-            typedef std::variant<std::monostate, String> value_t;
+            typedef String value_t;
             typedef std::map<String, value_t> map_t;
             typedef map_t::const_iterator iterator_t;
             typedef std::set<String> set_t;
             typedef std::map<String, cpp::IndexedSet<String>> arraymap_t;
 
+            friend class Array;
             friend class List;
 
             iterator_t firstKeyAt( Memory key ) const;
@@ -202,8 +215,34 @@ namespace cpp
             };
             std::unique_ptr<Detail> m_detail;
             Detail * m_data;
-            String m_key;
-            size_t m_rootLen = 0;
+            Key m_key;
+        };
+
+
+
+        class Object::Array
+        {
+        public:
+            bool                            isEmpty( ) const;
+            bool                            notEmpty( ) const;
+            size_t                          size( ) const;
+
+            View                            atIndex( size_t index ) const;
+            View                            at( String itemID ) const;
+
+            View                            append( );
+            View                            append( String itemID );
+
+            View                            insertAt( size_t index );
+            View                            insertAt( size_t index, String itemID );
+
+            void                            erase( String itemID );
+            void                            eraseAt( size_t index );
+
+        private:
+            friend class Object;
+                                            Array( Object * object );
+            Object *                        m_object;
         };
 
 
@@ -221,7 +260,7 @@ namespace cpp
             iterator begin( ) const;
             iterator end( ) const;
 
-            Object::Array get( ) const;
+            std::vector<Object> get( ) const;
 
         private:
             enum Type { AllKeys, Value, Child, Record };
@@ -352,7 +391,6 @@ namespace cpp
         };
 
 
-
         inline Object::List::List( Object::List::Type type, Object object )
             : m_type( type ), m_object( std::move( object ) ) { }
 
@@ -371,9 +409,9 @@ namespace cpp
         inline Object::List::iterator Object::List::end( ) const
             { return iterator{ (List *)this, m_object.m_data->keys.end() }; }
 
-        inline Object::Array Object::List::get( ) const
+        inline std::vector<Object> Object::List::get( ) const
         { 
-            Object::Array result;
+            std::vector<Object> result;
             for ( auto & object : *this )
             {
                 result.push_back( object );

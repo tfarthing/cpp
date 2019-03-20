@@ -34,10 +34,10 @@ namespace cpp
 			ExitHandler onExit );
 
 		AsyncProcess( );
-		AsyncProcess( AsyncProcess && move );
+		AsyncProcess( AsyncProcess && move ) noexcept;
 		~AsyncProcess( );
 
-		AsyncProcess & operator=( AsyncProcess && move );
+		AsyncProcess & operator=( AsyncProcess && move ) noexcept;
 
 		bool isRunning( ) const;
 		void send( std::string msg );

@@ -17,7 +17,7 @@
 
     (1) Requires a Source which is instantiated as a shared_ptr.
     (2) The method named readsome() has these propertes:
-        (2a) The read buffer is passed in so that it is possible for the implementation to avoid unneeded memcpy.
+        (2a) The read dst buffer is passed in so that it is possible for the implementation to avoid unneeded memcpy.
         (2b) Will block until something is read or the input is closed (isOpen() == false).
         (2c) The input source will be closed automatically once the end-of-data is reached (if any).  
              In this case readsome() will return immediately.  It is valid for readsome() to 
@@ -56,7 +56,7 @@ namespace cpp
             virtual Memory                  readsome( Memory dst, std::error_code & errorCode ) = 0;
             virtual void                    close( ) = 0;
         };
-        class Exception;
+        struct Exception;
 
                                             Input( );
                                             Input( nullptr_t );
@@ -78,13 +78,13 @@ namespace cpp
         LineReader                          lines( size_t buflen = LineReader::MaxLineLength );
 
     private:
-        Source::ptr_t m_source;
+        Source::ptr_t                       m_source;
     };
 
 
 
-    class Input::Exception
-        : cpp::Exception
+    struct Input::Exception
+        : public cpp::Exception
     {
         Exception( std::error_code error )
             : cpp::Exception( getMessage( error ) )
@@ -143,7 +143,8 @@ namespace cpp
 
     Memory Input::readsome( Memory buffer )
     {
-        assert( m_source );
+        if ( !m_source )
+            { return Memory::Empty; }
 
         std::error_code errorCode;
         buffer = m_source->readsome( buffer, errorCode );
@@ -154,7 +155,8 @@ namespace cpp
 
     Memory Input::readsome( Memory buffer, std::error_code & errorCode )
     {
-        assert( m_source );
+        if ( !m_source )
+            { return Memory::Empty; }
 
         return m_source->readsome( buffer, errorCode );
     }
@@ -169,22 +171,23 @@ namespace cpp
 
     Memory Input::read( Memory buffer, std::error_code & errorCode )
     {
-        assert( m_source );
-        
         size_t bytes = 0;
-        while ( isOpen( ) && bytes < buffer.length( ) && !errorCode )
-            { bytes += readsome( buffer.substr( bytes ), errorCode ).length( ); }
-
+        if ( m_source )
+        {
+            while ( isOpen( ) && bytes < buffer.length( ) && !errorCode )
+                { bytes += readsome( buffer.substr( bytes ), errorCode ).length( ); }
+        }
         if ( !errorCode && bytes < buffer.length( ) )
-            { errorCode = std::make_error_code( std::errc::no_message_available ); }
+        {
+            errorCode = std::make_error_code( std::errc::no_message_available ); 
+            bytes = 0;
+        }
 
-        return buffer;
+        return buffer.substr(0, bytes);
     }
 
     String Input::readAll( )
     {
-        assert( m_source );
-
         StringBuffer buffer{ 64 * 1024 };
         while ( isOpen( ) )
         {

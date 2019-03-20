@@ -26,7 +26,7 @@ namespace cpp
 		: detail( nullptr ) { }
 	
 	
-	AsyncTimer::AsyncTimer( AsyncTimer && move )
+	AsyncTimer::AsyncTimer( AsyncTimer && move ) noexcept
 		: detail( std::move( move.detail ) ) { }
 
 
@@ -36,7 +36,7 @@ namespace cpp
 	}
 
 
-	AsyncTimer & AsyncTimer::operator=( AsyncTimer && move )
+	AsyncTimer & AsyncTimer::operator=( AsyncTimer && move ) noexcept
 	{
 		detail = std::move( move.detail );
 		return *this;

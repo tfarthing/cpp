@@ -391,7 +391,7 @@ namespace cpp
 	}
 
 
-	AsyncProcess::AsyncProcess( AsyncProcess && move )
+	AsyncProcess::AsyncProcess( AsyncProcess && move ) noexcept
 		: detail( std::move( move.detail ) )
 	{
 	}
@@ -409,7 +409,7 @@ namespace cpp
 	}
 
 
-	AsyncProcess & AsyncProcess::operator=( AsyncProcess && move )
+	AsyncProcess & AsyncProcess::operator=( AsyncProcess && move ) noexcept
 	{
 		detail = std::move( move.detail );
 		return *this;

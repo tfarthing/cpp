@@ -12,28 +12,35 @@ namespace cpp
 {
 
     class SyncFile::Detail
+        : public Input::Source, public Output::Sink
     {
     public:
-        static std::shared_ptr<Detail>  create( const FilePath & filepath, Access access, Share share );
+        static std::shared_ptr<Detail>      create( const FilePath & filepath, Access access, Share share );
 
-                                        Detail( );
-                                        ~Detail( );
+                                            Detail( );
+                                            ~Detail( ) override;
 
-        bool							isOpen( ) const;
-        size_t							length( ) const;
+        bool							    isOpen( ) const override;
+        size_t							    length( ) const;
 
-        size_t                          tell( ) const;
-        void                            seek( size_t pos );
-        void                            seekToEnd( );
+        size_t                              tell( ) const;
+        void                                seek( size_t pos );
+        void                                seekToEnd( );
 
-        Memory 					        read( Memory buffer );
-        void							write( const Memory data );
+        Memory 					            readsome( Memory buffer, std::error_code & errorCode ) override;
 
-        void							truncate( size_t length = 0 );
-        void							close( );
+        Memory 					            read( Memory buffer );
+
+        Memory                              write( const Memory src, std::error_code & errorCode ) override;
+        void							    write( const Memory data );
+
+        void							    truncate( size_t length = 0 );
+        void                                flush( ) override;
+        void							    close( ) override;
 
     private:
-        HANDLE                          handle;
+        HANDLE                              m_handle;
+        std::error_code                     m_error;
     };
 
     
@@ -84,13 +91,13 @@ namespace cpp
         }
 
         std::shared_ptr<Detail> detail = std::make_shared<Detail>( );
-        detail->handle = fileHandle;
+        detail->m_handle = fileHandle;
         return detail;
     }
 
 
     SyncFile::Detail::Detail( )
-        : handle( INVALID_HANDLE_VALUE )
+        : m_handle( INVALID_HANDLE_VALUE )
     {
     }
 
@@ -103,7 +110,7 @@ namespace cpp
 
     bool SyncFile::Detail::isOpen( ) const
     {
-        return handle != INVALID_HANDLE_VALUE;
+        return m_handle != INVALID_HANDLE_VALUE;
     }
 
 
@@ -112,7 +119,7 @@ namespace cpp
         assert( isOpen( ) );
 
         _LARGE_INTEGER bytes;
-        check<IOException>( GetFileSizeEx( handle, &bytes ),
+        check<IOException>( GetFileSizeEx( m_handle, &bytes ),
             "SyncFile::length() failed" );
         return bytes.QuadPart;
     }
@@ -125,7 +132,7 @@ namespace cpp
         _LARGE_INTEGER bytes;
         bytes.QuadPart = 0;
 
-        check<IOException>( SetFilePointerEx( handle, bytes, &bytes, FILE_CURRENT ),
+        check<IOException>( SetFilePointerEx( m_handle, bytes, &bytes, FILE_CURRENT ),
             "SyncFile::tell() failed" );
         return bytes.QuadPart;
     }
@@ -138,7 +145,7 @@ namespace cpp
         _LARGE_INTEGER bytes;
         bytes.QuadPart = pos;
 
-        check<IOException>( SetFilePointerEx( handle, bytes, NULL, FILE_BEGIN ),
+        check<IOException>( SetFilePointerEx( m_handle, bytes, NULL, FILE_BEGIN ),
             "SyncFile::seek() failed" );
     }
 
@@ -150,18 +157,54 @@ namespace cpp
         _LARGE_INTEGER bytes;
         bytes.QuadPart = 0;
 
-        check<IOException>( SetFilePointerEx( handle, bytes, NULL, FILE_END ),
+        check<IOException>( SetFilePointerEx( m_handle, bytes, NULL, FILE_END ),
             "SyncFile::seekToEnd() failed" );
+    }
+
+
+    Memory SyncFile::Detail::readsome( Memory buffer, std::error_code & errorCode )
+    {
+        DWORD bytes = 0;
+        if ( m_error )
+        { 
+            errorCode = m_error; 
+        }
+        else if ( isOpen( ) )
+        {
+            bytes = (DWORD)buffer.length( );
+            if ( !ReadFile( m_handle, buffer.data( ), bytes, &bytes, NULL ) )
+            {
+                DWORD error = GetLastError( );
+                m_error = std::make_error_code( std::errc::io_error );
+                errorCode = m_error;
+            }
+        }
+        return buffer.substr( 0, bytes );
     }
 
 
     Memory SyncFile::Detail::read( Memory buffer )
     {
-        assert( isOpen( ) );
-        DWORD bytes = (DWORD)buffer.length();
-        check<IOException>( ReadFile( handle, buffer.data( ), bytes, &bytes, NULL ),
-            "SyncFile::read() failed" );
+        check<Input::Exception>( !m_error, m_error );
+
+        DWORD bytes = 0;
+        if ( isOpen( ) )
+        {
+            bytes = (DWORD)buffer.length( );
+            if ( !ReadFile( m_handle, buffer.data( ), bytes, &bytes, NULL ) )
+            {
+                DWORD error = GetLastError( );
+                m_error = std::make_error_code( std::errc::io_error );
+                throw Input::Exception{ m_error };
+            }
+        }
         return buffer.substr( 0, bytes );
+    }
+
+
+    Memory SyncFile::Detail::write( const Memory src, std::error_code & errorCode )
+    {
+        return src;
     }
 
     
@@ -169,7 +212,7 @@ namespace cpp
     {
         assert( isOpen( ) );
         DWORD bytes = 0;
-        check<IOException>( WriteFile( handle, data.data( ), (DWORD)data.length(), &bytes, NULL ),
+        check<IOException>( WriteFile( m_handle, data.data( ), (DWORD)data.length(), &bytes, NULL ),
             "SyncFile::read() failed" );
         assert( bytes == data.length( ) );
     }
@@ -180,19 +223,27 @@ namespace cpp
         assert( isOpen( ) );
         _LARGE_INTEGER pos;
         pos.QuadPart = length;
-        check<IOException>( SetFilePointerEx( handle, pos, NULL, FILE_BEGIN ) != FALSE,
+        check<IOException>( SetFilePointerEx( m_handle, pos, NULL, FILE_BEGIN ) != FALSE,
             "SyncFile::truncate() : SetFilePointerEx() failed" );
-        check<IOException>( SetEndOfFile( handle ) != FALSE,
+        check<IOException>( SetEndOfFile( m_handle ) != FALSE,
             "SyncFile::truncate() : SetEndOfFile() failed" );
     }
 
+
+    void SyncFile::Detail::flush( )
+    {
+        FlushFileBuffers( m_handle );
+    }
 
     void SyncFile::Detail::close( )
     {
         if ( isOpen( ) )
         {
-            CloseHandle( handle );
-            handle = INVALID_HANDLE_VALUE;
+            if ( !m_error )
+                { m_error = std::make_error_code( std::errc::connection_aborted ); };
+            
+            CloseHandle( m_handle );
+            m_handle = INVALID_HANDLE_VALUE;
         }
     }
 
@@ -306,9 +357,9 @@ namespace cpp
         m_detail->close( );
     }
 
-    LineReader<SyncFile> SyncFile::lines( size_t buflen )
+    Input SyncFile::input( )
     {
-        return LineReader<SyncFile>{ this, buflen };
+        return Input{ m_detail };
     }
 
 

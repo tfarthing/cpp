@@ -7,9 +7,6 @@
     <ClInclude Include="process\Thread.h">
       <Filter>process</Filter>
     </ClInclude>
-    <ClInclude Include="util\Handle.h">
-      <Filter>util</Filter>
-    </ClInclude>
     <ClInclude Include="process\Lock.h">
       <Filter>process</Filter>
     </ClInclude>
@@ -39,9 +36,6 @@
     </ClInclude>
     <ClInclude Include="math\SHA2.h">
       <Filter>math</Filter>
-    </ClInclude>
-    <ClInclude Include="util\encoding.h">
-      <Filter>util</Filter>
     </ClInclude>
     <ClInclude Include="platform\windows\WindowsShell.h">
       <Filter>platform\windows</Filter>
@@ -168,6 +162,7 @@
       <Filter>io\reader</Filter>
     </ClInclude>
     <ClInclude Include="io\Input.h" />
+    <ClInclude Include="io\Output.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="io">
@@ -231,9 +226,6 @@
     </ClCompile>
     <ClCompile Include="math\SHA2.cpp">
       <Filter>math</Filter>
-    </ClCompile>
-    <ClCompile Include="util\encoding.cpp">
-      <Filter>util</Filter>
     </ClCompile>
     <ClCompile Include="platform\windows\WindowsShell.cpp">
       <Filter>platform\windows</Filter>

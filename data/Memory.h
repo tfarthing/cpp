@@ -402,3 +402,33 @@ inline bool operator>( const char * lhs, const cpp::Memory & rhs )
     { return cpp::Memory::compare( lhs, rhs ) > 0; }
 inline bool operator>=( const char * lhs, const cpp::Memory & rhs )
     { return cpp::Memory::compare( lhs, rhs ) >= 0; }
+
+
+inline bool operator==( const std::string & lhs, const cpp::Memory & rhs )
+    { return cpp::Memory::compare( lhs, rhs ) == 0; }
+inline bool operator!=( const std::string & lhs, const cpp::Memory & rhs )
+    { return cpp::Memory::compare( lhs, rhs ) != 0; }
+inline bool operator<( const std::string & lhs, const cpp::Memory & rhs )
+    { return cpp::Memory::compare( lhs, rhs ) < 0; }
+inline bool operator<=( const std::string & lhs, const cpp::Memory & rhs )
+    { return cpp::Memory::compare( lhs, rhs ) <= 0; }
+inline bool operator>( const std::string & lhs, const cpp::Memory & rhs )
+    { return cpp::Memory::compare( lhs, rhs ) > 0; }
+inline bool operator>=( const std::string & lhs, const cpp::Memory & rhs )
+    { return cpp::Memory::compare( lhs, rhs ) >= 0; }
+
+
+inline bool operator==( const cpp::Memory & lhs, const std::string & rhs )
+    { return cpp::Memory::compare( lhs, rhs ) == 0; }
+inline bool operator!=( const cpp::Memory & lhs, const std::string & rhs )
+    { return cpp::Memory::compare( lhs, rhs ) != 0; }
+inline bool operator<( const cpp::Memory & lhs, const std::string & rhs )
+    { return cpp::Memory::compare( lhs, rhs ) < 0; }
+inline bool operator<=( const cpp::Memory & lhs, const std::string & rhs )
+    { return cpp::Memory::compare( lhs, rhs ) <= 0; }
+inline bool operator>( const cpp::Memory & lhs, const std::string & rhs )
+    { return cpp::Memory::compare( lhs, rhs ) > 0; }
+inline bool operator>=( const cpp::Memory & lhs, const std::string & rhs )
+    { return cpp::Memory::compare( lhs, rhs ) >= 0; }
+
+

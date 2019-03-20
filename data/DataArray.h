@@ -33,17 +33,17 @@ namespace cpp
 
 		DataArray( );
 		explicit DataArray( size_t count );
-		DataArray( DataArray && move );
+		DataArray( DataArray && move ) noexcept;
 		DataArray( const DataArray & copy );
-		DataArray( Array && move );
+		DataArray( Array && move ) noexcept;
 		DataArray( const Array & copy );
 		DataArray( const StringArray & copy );
 		DataArray( std::initializer_list<Memory> init );
 		DataArray( const EncodedText & encodedText );	//	from comma-separated list e.g. "one, two, three"
 
-		DataArray &			operator=( DataArray && move );
+		DataArray &			operator=( DataArray && move ) noexcept;
 		DataArray &			operator=( const DataArray & copy );
-		DataArray &			operator=( Array && move );
+		DataArray &			operator=( Array && move ) noexcept;
 		DataArray &			operator=( const Array & copy );
 		DataArray &			operator=( const StringArray & copy );
 
@@ -71,17 +71,17 @@ namespace cpp
 
 							StringArray( );
 							explicit StringArray( size_t count );
-							StringArray( StringArray && move );
+							StringArray( StringArray && move ) noexcept;
 							StringArray( const StringArray & copy );
-							StringArray( Array && move );
+							StringArray( Array && move ) noexcept;
 							StringArray( const Array & copy );
 							StringArray( const DataArray & copy );
 							StringArray( std::initializer_list<String> init );
 							StringArray( const EncodedText & encodedText );
 
-		StringArray &		operator=( StringArray && move );
+		StringArray &		operator=( StringArray && move ) noexcept;
 		StringArray &		operator=( const StringArray & copy );
-		StringArray &		operator=( Array && move );
+		StringArray &		operator=( Array && move ) noexcept;
 		StringArray &		operator=( const Array & copy );
 		StringArray &		operator=( const DataArray & copy );
 

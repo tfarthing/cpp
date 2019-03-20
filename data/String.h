@@ -39,15 +39,15 @@ namespace cpp
 		String( const Memory & memory );
 		String( const std::string & copy );
 		String( const String & copy );
-		String( std::string && move );
-        String( String&& move ) noexcept;
+		String( std::string && move ) noexcept;
+        String( String && move ) noexcept;
 
         typedef std::vector<String> Array;
 
 		String & operator=( const Memory & memory );
 		String & operator=( const std::string & str );
 		String & operator=( const String & str );
-		String & operator=( std::string && str );
+		String & operator=( std::string && str ) noexcept;
 		String & operator=( String && str ) noexcept;
 		String & operator=( const value_type * s );
 		String & operator=( value_type ch );
@@ -119,7 +119,7 @@ namespace cpp
 	inline String::String( const String & copy )
 		: std::string( copy ) { }
 
-	inline String::String( std::string && move )
+	inline String::String( std::string && move ) noexcept
 		: std::string( std::move( move ) ) { }
 
 	inline String::String( String && move ) noexcept
@@ -134,7 +134,7 @@ namespace cpp
 	inline String & String::operator=( const String & str )
 		{ std::string::operator=( str ); return *this; }
 
-	inline String & String::operator=( std::string && str )
+	inline String & String::operator=( std::string && str ) noexcept
 		{ std::string::operator=( std::move( str ) ); return *this; }
 
 	inline String & String::operator=( String && str ) noexcept

@@ -72,11 +72,11 @@ namespace cpp
         
 
 
-        class Key
+        struct Key
         {
-        public:
-                                            Key( std::string key = "", size_t rootLen = 0);
-                                            Key( const Key & parent, Memory childName );
+            static Key                      append( const Key & parent, Memory childName );
+
+                                            Key( Memory path = "", size_t origin = 0 );
                                             Key( const Key & copy );
                                             Key( Key && move ) noexcept;
 
@@ -89,7 +89,7 @@ namespace cpp
             Memory                          name( ) const;          // "server.region" -> "region"
 
             bool                            hasParent( ) const;
-            Memory                          parent( ) const;        // "server.region" -> "server"
+            Key                             parent( ) const;        // "server.region" -> "server"
 
             bool                            isArrayItem( ) const;
             Memory                          arrayName( ) const;     // "server.region[west] -> "server.region"
@@ -99,9 +99,8 @@ namespace cpp
             bool                            isChildOrSame( Memory key ) const;
             Memory                          childName( Memory childKey ) const;
 
-        private:
-            std::string m_key;
-            size_t m_rootLen;
+            std::string                     path;
+            size_t                          origin;
         };
 
 
@@ -121,6 +120,7 @@ namespace cpp
             
             bool                            isEmpty( ) const;       // this key has no value and has no subkey with a value
             bool                            notEmpty( ) const;      // this key has a value or a subkey with a value
+            bool                            hasChild( ) const;      // this key has at least one child key which is not empty
 
             const Key &                     key( ) const;
             Memory                          value( ) const;
@@ -170,7 +170,7 @@ namespace cpp
             bool                            isNulled( ) const;      // returns true if this object (or its parent) was erased
 
         private:
-            Object( const Object * copy, String key, size_t rootLen = 0 );
+            Object( const Object * copy, Key key );
 
             void verifyArraysOnAdd( Memory fullKey );
             void verifyArraysOnRemove( Memory fullKey );

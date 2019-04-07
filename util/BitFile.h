@@ -12,12 +12,12 @@ namespace cpp::bit
         typedef std::function<void( Object )> Handler;
 
                                 File( );
-                                File( FilePath filename, Handler handler = nullptr );
+                                File( FilePath filename, Handler handler = nullptr, bool shareWrite = false );
 
         FilePath                filename( );
         const Object &          data( ) const;
 
-        void                    load( FilePath filename, Handler handler = nullptr );
+        void                    load( FilePath filename, Handler handler = nullptr, bool shareWrite = false );
         void                    reload( );
 
         bool                    isOpen( ) const;
@@ -32,6 +32,8 @@ namespace cpp::bit
     private:
         FilePath                m_filename;
         Handler                 m_handler;
+        bool                    m_shareWrite;
+        SyncFile                m_file;
         Object                  m_data;
     };
 }

@@ -15,13 +15,9 @@ namespace cpp
 {
 
     class SyncFile
+        : public File
     {
     public:
-        enum class                          Access               
-                                                { Create, Write, Read };
-        enum class                          Share                
-                                                { AllowNone, AllowRead, AllowWrite, AllowAll };
-
         static SyncFile				        read(
                                                 const FilePath & filepath,
                                                 Share share = Share::AllowAll );

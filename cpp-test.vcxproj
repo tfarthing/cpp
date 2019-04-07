@@ -12,6 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="file\AsyncFile.cpp" />
+    <ClCompile Include="file\SyncFile.cpp" />
     <ClCompile Include="meta\Test.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

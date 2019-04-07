@@ -1,6 +1,6 @@
 #include "../../cpp/file/SyncFile.h"
 #include "../../cpp/util/BitFile.h"
-
+#include "../../cpp/process/Thread.h"
 
 
 namespace cpp::bit
@@ -11,8 +11,8 @@ namespace cpp::bit
     }
 
 
-    File::File( FilePath filename, Handler handler )
-        : m_filename{ std::move( filename ) }, m_handler{ std::move( handler ) }
+    File::File( FilePath filename, Handler handler, bool shareWrite )
+        : m_filename{ std::move( filename ) }, m_handler{ std::move( handler ) }, m_shareWrite( shareWrite )
     {
         reload( );
     }
@@ -30,77 +30,61 @@ namespace cpp::bit
     }
 
 
-    void File::load( FilePath filename, Handler handler )
+    void File::load( FilePath filename, Handler handler, bool shareWrite )
     {
         m_filename = std::move( filename );
         m_handler = std::move( handler );
+        m_shareWrite = shareWrite;
         m_data.reset( );
+
+        reload( );
     }
 
 
     void File::reload( )
     {
         check<IOException>( !m_filename.empty(), "bit::File::reload() : no filename specified" );
-        if ( !Files::exists( filename( ) ) )
-            { return; }
-
-        for ( int retries = 0; retries < 5; retries++ )
+        
+        m_file.close( );
+        if ( Files::exists( filename( ) ) )
         {
-            try
+            for ( int retries = 0; retries < 5; retries++ )
             {
-                m_data.reset( );
-                auto backupFilename = m_filename.append( ".backup" );
-                auto file = SyncFile::create( backupFilename );
-
-                for ( auto cursor : File::read( filename( ) ).lines( ) )
+                try
                 {
-                    try
+                    m_data.reset( );
+
+                    auto backupFilename = m_filename.append( ".backup" );
+                    auto file = SyncFile::create( backupFilename );
+
+                    for ( auto cursor : SyncFile::read( filename( ) ).input( ).lines( ) )
                     {
-                        auto record = BitData::decode( cursor.line( ) );
-                        //  null record means remove from map
-                        if ( record.data.empty( ) )
+                        try
                         {
-                            m_data.erase( record.key );
+                            auto record = bit::decode( cursor.line );
+                            m_data += record;
                         }
-                        else
+                        catch ( cpp::Exception & )
                         {
-                            for ( auto& datum : record.data )
-                            {
-                                // null key means remove from map
-                                if ( datum.second.value == Memory::Null )
-                                {
-                                    m_data[record.key].remove( datum.first );
-                                }
-                                else
-                                {
-                                    m_data[record.key].set( datum.first, datum.second.value );
-                                }
-                            }
+                            // save bad lines in new file
+                            file.write( cursor.line );
                         }
                     }
-                    catch ( cpp::Exception& )
-                    {
-                        output.put( cursor.line( ) ); output.put( "\n" );
-                    }
-                }
 
-                for ( auto& itr : m_data )
+                    file.write( m_data.encodeRaw( ) );
+                    file.close( );
+
+                    auto oldFilename = m_filename.append( ".old" );
+                    Files::rename( filename( ), oldFilename );
+                    Files::rename( backupFilename, filename( ) );
+                    Files::remove( oldFilename );
+
+                    return;
+                }
+                catch ( IOException & )
                 {
-                    output.put( BitData::encode( itr.first, itr.second ) );
+                    Thread::sleep( Duration::ofMillis( 200 ) );
                 }
-
-                output.close( );
-
-                auto oldFilename = filename( ).withExtension( "old", true );
-                File::rename( filename( ), oldFilename );
-                File::rename( backupFilename, filename( ) );
-                File::remove( oldFilename );
-
-                return;
-            }
-            catch ( IOException& )
-            {
-                Thread::sleep( Duration::ofMillis( 200 ) );
             }
         }
         throw cpp::TimeoutException{};

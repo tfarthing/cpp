@@ -9,30 +9,50 @@ namespace cpp
 {
 
 	class MemoryFile
-	{
+        : public File
+    {
 	public:
-								MemoryFile( );
-								MemoryFile( FilePath filename );
-								MemoryFile( FilePath filename, size_t maxSize, bool overwrite );
-								~MemoryFile( );
+        static MemoryFile				    read(
+                                                const FilePath & filepath,
+                                                Share share = Share::AllowAll );
+        static MemoryFile				    create(
+                                                const FilePath & filepath,
+                                                size_t maxSize,
+                                                Share share = Share::AllowRead );
+        static MemoryFile				    open(
+                                                const FilePath & filepath,
+                                                size_t maxSize,
+                                                Share share = Share::AllowRead );
 
-		MemoryFile &			open( FilePath filename );
-		MemoryFile &			open( FilePath filename, size_t maxSize, bool overwrite );
-		void					flush( );
-		void					close( );
+                                            MemoryFile( );
+                                            MemoryFile(
+                                                const FilePath & filepath,
+                                                size_t maxSize,
+                                                Access access = Access::Read,
+                                                Share share = Share::AllowAll );
+                                            ~MemoryFile( );
 
-		Memory					get( );
-		const Memory			get( ) const;
+        bool							    isOpen( ) const;
+        size_t							    length( ) const;
 
-		size_t					length( ) const;
+        Memory					            data( );
+        const Memory			            data( ) const;
+
+        void                                flush( );
+        void							    close( );
+
+        Input			                    input( );
 
 	private:
-		void					mapFile( );
+		void					            mapFile( );
 
 	private:
-		HANDLE					m_fileHandle = nullptr;
-		HANDLE					m_mapHandle = nullptr;
-		char *					m_mapView = nullptr;
+        class Detail;
+        std::shared_ptr<Detail>			    m_detail;
+
+		HANDLE					            m_fileHandle = nullptr;
+		HANDLE					            m_mapHandle = nullptr;
+		char *					            m_mapView = nullptr;
 	};
 
 
@@ -67,7 +87,7 @@ namespace cpp
 			0,
 			0,
 			NULL );
-		cpp::windows::check( m_mapHandle != NULL );
+		cpp::windows::check( m_mapHandle != nullptr );
 
 
 		m_mapView = (char *)MapViewOfFile( m_mapHandle,
@@ -75,7 +95,7 @@ namespace cpp
 			0,
 			0,
 			0 );
-		cpp::windows::check( m_mapView != NULL );
+		cpp::windows::check( m_mapView != nullptr );
 	}
 
 

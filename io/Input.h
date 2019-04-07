@@ -18,10 +18,13 @@
     (1) Requires a Source which is instantiated as a shared_ptr.
     (2) The method named readsome() has these propertes:
         (2a) The read dst buffer is passed in so that it is possible for the implementation to avoid unneeded memcpy.
-        (2b) Will block until something is read or the input is closed (isOpen() == false).
+        (2b) Will block until something is read or the input is closed (i.e. isOpen() == false).
         (2c) The input source will be closed automatically once the end-of-data is reached (if any).  
              In this case readsome() will return immediately.  It is valid for readsome() to 
              return an empty buffer once isOpen() == false.
+             * The source implementation is what decides if the end-of-data is reached, and whether ther is 
+               an end-of-data.  In cases where the source is streaming and no data is available, readsome will 
+               block until data is available to read.
         (2d) The input source can be closed for the following reasons:
             * The input reads up to the end-of-data.  No error_code is set for this condition.
             * The user closes the input before reading to the end-of-data.  The error_code will be set to 

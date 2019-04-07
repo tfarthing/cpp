@@ -16,5 +16,12 @@ namespace cpp
 	}
 
 
+    struct File
+    {
+        enum class                          Access               
+                                                { Create, Write, Read };
+        enum class                          Share                
+                                                { AllowNone, AllowRead, AllowWrite, AllowAll };
+    };
 
 }

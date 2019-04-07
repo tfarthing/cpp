@@ -71,7 +71,7 @@ namespace cpp
         Object decodeLine( DataBuffer & buffer );
         
 
-
+        //template<class key_t>
         struct Key
         {
             static Key                      append( const Key & parent, Memory childName );
@@ -83,21 +83,21 @@ namespace cpp
             Key &                           operator=( const Key & copy );
             Key &                           operator=( Key && move ) noexcept;
 
-            Memory                          get( ) const;
+            Memory                          get( ) const;                           // i.e. path.substr( origin ? origin + 1 : 0 )
                                             operator Memory( ) const;
 
-            Memory                          name( ) const;          // "server.region" -> "region"
+            Memory                          name( ) const;                          // "server.region" -> "region"
 
-            bool                            hasParent( ) const;
-            Key                             parent( ) const;        // "server.region" -> "server"
+            bool                            hasParent( ) const;                     // i.e. matches ".*\..*"
+            Key                             parent( ) const;                        // "server.region" -> "server"
 
-            bool                            isArrayItem( ) const;
-            Memory                          arrayName( ) const;     // "server.region[west] -> "server.region"
-            Memory                          arrayItemID( ) const;   // "server.region[west] -> "west"
+            bool                            isArrayItem( ) const;                   // i.e. matches ".+[.+]"
+            Memory                          arrayName( ) const;                     // "server.region[west] -> "server.region"
+            Memory                          arrayItemID( ) const;                   // "server.region[west] -> "west"
 
             bool                            isChild( Memory key ) const;
             bool                            isChildOrSame( Memory key ) const;
-            Memory                          childName( Memory childKey ) const;
+            Memory                          childName( Memory childKey ) const;     // e.g. <parentKey>.<childName>
 
             std::string                     path;
             size_t                          origin;
@@ -105,6 +105,7 @@ namespace cpp
 
 
 
+        //template<class key_t, class value_t>
         class Object
         {
         public:
@@ -154,6 +155,9 @@ namespace cpp
             class Array;
             Array                           array( ) const;
 
+            bool                            isView( ) const;        // returns true if this object refers to another's data
+            bool                            isNulled( ) const;      // returns true if this object (or its parent) was erased
+
             class List;
             const List                      listSubkeys( ) const;
             const List                      listValues( ) const;
@@ -165,9 +169,6 @@ namespace cpp
 
             String                          encode( EncodeRow rowEncoding = EncodeRow::Leaf ) const;
             String                          encodeRaw( EncodeRow rowEncoding = EncodeRow::Leaf ) const;
-            
-            bool                            isView( ) const;        // returns true if this object refers to another's data
-            bool                            isNulled( ) const;      // returns true if this object (or its parent) was erased
 
         private:
             Object( const Object * copy, Key key );
@@ -199,10 +200,6 @@ namespace cpp
             iterator_t firstChildAt( Memory key ) const;
             iterator_t nextChildAt( Memory key, iterator_t itr ) const;
             iterator_t findChildAt( Memory key, iterator_t itr ) const;
-
-            iterator_t firstItemAt( Memory key ) const;
-            iterator_t nextItemAt( Memory key, iterator_t itr ) const;
-            iterator_t findItemAt( Memory key, iterator_t itr ) const;
 
             bool hasKeyWithValueAt( Memory rootKey ) const;
             
@@ -253,7 +250,6 @@ namespace cpp
             static List ofKeys( Object object );
             static List ofValues( Object object );
             static List ofChildren( Object object );
-            static List ofArrayItems( Object object );
 
             class iterator;
 
@@ -263,7 +259,7 @@ namespace cpp
             std::vector<Object> get( ) const;
 
         private:
-            enum Type { AllKeys, Value, Child, Record };
+            enum Type { AllKeys, Value, Child };
             friend class iterator;
 
             List( Type type, Object object );
@@ -402,9 +398,6 @@ namespace cpp
 
         inline Object::List Object::List::ofChildren( Object object )
             { return List{ Type::Child, std::move( object ) }; }
-
-        inline Object::List Object::List::ofArrayItems( Object object )
-            { return List{ Type::Record, std::move( object ) }; }
 
         inline Object::List::iterator Object::List::end( ) const
             { return iterator{ (List *)this, m_object.m_data->keys.end() }; }

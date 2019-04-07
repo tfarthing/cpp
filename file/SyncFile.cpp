@@ -367,4 +367,20 @@ namespace cpp
 
 #else
 
+#include <catch2/catch.hpp>
+
+#include "SyncFile.h"
+
+TEST_CASE( "SyncFile can create a new file", "[SyncFile]")
+{
+    cpp::FilePath filename = "test.txt";
+    auto file = cpp::SyncFile::create( filename );
+
+    REQUIRE( cpp::Files::exists( filename ) );
+
+    file.close( );
+    cpp::Files::remove( filename );
+}
+
+
 #endif

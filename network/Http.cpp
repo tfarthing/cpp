@@ -499,7 +499,7 @@ namespace cpp
     Input Http::Request::getReply( cpp::Duration timeout )
     {
         m_detail->endRequest( timeout );
-        return m_detail;
+		return Input{ m_detail };
     }
 
     void Http::Request::close( cpp::Duration timeout )

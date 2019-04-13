@@ -46,7 +46,7 @@ namespace cpp
         
 		uint64_t							rand( );
         double								frand( );
-        std::mt19937_64 &					getRandom( );
+        std::mt19937_64 &					rng( );
 
     protected:
         void								initArgs( int argc, const wchar_t ** argv );

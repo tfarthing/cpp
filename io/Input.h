@@ -22,7 +22,7 @@
         (2c) The input source will be closed automatically once the end-of-data is reached (if any).  
              In this case readsome() will return immediately.  It is valid for readsome() to 
              return an empty buffer once isOpen() == false.
-             * The source implementation is what decides if the end-of-data is reached, and whether ther is 
+             * The source implementation is what decides if the end-of-data is reached, and whether there is 
                an end-of-data.  In cases where the source is streaming and no data is available, readsome will 
                block until data is available to read.
         (2d) The input source can be closed for the following reasons:

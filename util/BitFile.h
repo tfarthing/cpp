@@ -11,29 +11,28 @@ namespace cpp::bit
     public:
         typedef std::function<void( Object )> Handler;
 
-                                File( );
-                                File( FilePath filename, Handler handler = nullptr, bool shareWrite = false );
+                                            File( );
+                                            File( FilePath filename, Handler handler = nullptr );
 
-        FilePath                filename( );
-        const Object &          data( ) const;
+        const FilePath &                    filename( ) const;
+        const Object &                      data( ) const;
 
-        void                    load( FilePath filename, Handler handler = nullptr, bool shareWrite = false );
-        void                    reload( );
+        void                                load( FilePath filename, Handler handler = nullptr );
+        void                                reload( );
 
-        bool                    isOpen( ) const;
+        bool                                isOpen( ) const;
         
-        Memory                  get( Memory key ) const;
-        void                    set( Memory key, Memory value );
-        void                    remove( String key );
+        Memory                              get( Memory key ) const;
+        void                                set( Memory key, Memory value );
+        void                                remove( Memory key );
 
     private:
-        void                    write( Memory line );
+        void                                write( Memory line );
 
     private:
-        FilePath                m_filename;
-        Handler                 m_handler;
-        bool                    m_shareWrite;
-        SyncFile                m_file;
-        Object                  m_data;
+        FilePath                            m_filename;
+        Handler                             m_handler;
+        SyncFile                            m_file;
+        Object                              m_data;
     };
 }

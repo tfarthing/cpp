@@ -10,9 +10,6 @@
     <ClInclude Include="process\Lock.h">
       <Filter>process</Filter>
     </ClInclude>
-    <ClInclude Include="util\Properties.h">
-      <Filter>util</Filter>
-    </ClInclude>
     <ClInclude Include="math\XY.h">
       <Filter>math</Filter>
     </ClInclude>
@@ -45,9 +42,6 @@
     </ClInclude>
     <ClInclude Include="platform\windows\WindowsRegistry.h">
       <Filter>platform\windows</Filter>
-    </ClInclude>
-    <ClInclude Include="util\PropertyFile.h">
-      <Filter>util</Filter>
     </ClInclude>
     <ClInclude Include="util\BitDB.h">
       <Filter>util</Filter>
@@ -143,9 +137,6 @@
     <ClInclude Include="file\MemoryFile.h">
       <Filter>file</Filter>
     </ClInclude>
-    <ClInclude Include="util\DataFile.h">
-      <Filter>file</Filter>
-    </ClInclude>
     <ClInclude Include="process\Process-Pipe.h" />
     <ClInclude Include="file\Files.h" />
     <ClInclude Include="process\AsyncIO.h" />
@@ -212,9 +203,6 @@
     <ClCompile Include="process\Thread.cpp">
       <Filter>process</Filter>
     </ClCompile>
-    <ClCompile Include="util\Properties.cpp">
-      <Filter>util</Filter>
-    </ClCompile>
     <ClCompile Include="math\Alignment.cpp">
       <Filter>math</Filter>
     </ClCompile>
@@ -235,9 +223,6 @@
     </ClCompile>
     <ClCompile Include="platform\windows\WindowsGraphics.cpp">
       <Filter>platform\windows</Filter>
-    </ClCompile>
-    <ClCompile Include="util\PropertyFile.cpp">
-      <Filter>util</Filter>
     </ClCompile>
     <ClCompile Include="math\Rect.cpp">
       <Filter>math</Filter>
@@ -313,9 +298,6 @@
       <Filter>util</Filter>
     </ClCompile>
     <ClCompile Include="file\MemoryFile.cpp">
-      <Filter>file</Filter>
-    </ClCompile>
-    <ClCompile Include="util\DataFile.cpp">
       <Filter>file</Filter>
     </ClCompile>
     <ClCompile Include="file\AsyncFile.cpp" />

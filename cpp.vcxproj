@@ -65,14 +65,11 @@
     <ClInclude Include="util\BitDB.h" />
     <ClInclude Include="data\DataBuffer.h" />
     <ClInclude Include="util\BitFile.h" />
-    <ClInclude Include="util\DataFile.h" />
     <ClInclude Include="data\DataMap.h" />
     <ClInclude Include="data\IndexedSet.h" />
     <ClInclude Include="util\Log.h" />
     <ClInclude Include="util\LogFilter.h" />
     <ClInclude Include="data\Path.h" />
-    <ClInclude Include="util\Properties.h" />
-    <ClInclude Include="util\PropertyFile.h" />
     <ClInclude Include="util\TimeoutSet.h" />
     <ClInclude Include="text\Unicode.h" />
     <ClInclude Include="text\Utf16.h" />
@@ -115,14 +112,11 @@
     <ClCompile Include="util\BitDB.cpp" />
     <ClCompile Include="data\DataBuffer.cpp" />
     <ClCompile Include="util\BitFile.cpp" />
-    <ClCompile Include="util\DataFile.cpp" />
     <ClCompile Include="data\DataMap.cpp" />
     <ClCompile Include="data\IndexedSet.cpp" />
     <ClCompile Include="util\Log.cpp" />
     <ClCompile Include="util\LogFilter.cpp" />
     <ClCompile Include="data\Path.cpp" />
-    <ClCompile Include="util\Properties.cpp" />
-    <ClCompile Include="util\PropertyFile.cpp" />
     <ClCompile Include="text\Utf16.cpp" />
     <ClCompile Include="text\Utf8.cpp" />
   </ItemGroup>

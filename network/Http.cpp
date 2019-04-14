@@ -4,17 +4,19 @@
 #include <set>
 #include <map>
 
-#include "../data/DataBuffer.h"
-#include "../time/Timer.h"
-#include "../process/Exception.h"
-#include "../process/Platform.h"
-#include "../process/Lock.h"
-#include "../platform/windows/WindowsException.h"
-#include "../text/Utf16.h"
-#include "../util/Log.h"
-#include "Http.h"
+#include "../../cpp/data/DataBuffer.h"
+#include "../../cpp/time/Timer.h"
+#include "../../cpp/process/Exception.h"
+#include "../../cpp/process/Platform.h"
+#include "../../cpp/process/Lock.h"
+#include "../../cpp/platform/windows/WindowsException.h"
+#include "../../cpp/text/Utf16.h"
+#include "../../cpp/util/Log.h"
+#include "../../cpp/network/Http.h"
 
 #include <Wininet.h>
+
+
 
 namespace cpp
 {
@@ -22,69 +24,74 @@ namespace cpp
     const char * METHOD_GET = "GET";
     const char * METHOD_POST = "POST";
 
+
     struct URL
     {
-                                        URL( );
-                                        URL( String url );
+											URL( );
+											URL( String url );
 
-        String                          hostport( ) const;
+        String								hostport( ) const;
 
-        cpp::String                     source;
-        uint32_t                        scheme;
-        uint32_t                        port;
-        std::wstring                    host;
-        std::wstring                    path;
-        std::wstring                    extra;
+        cpp::String							source;
+        uint32_t							scheme;
+        uint32_t							port;
+        std::wstring						host;
+        std::wstring						path;
+        std::wstring						extra;
     };
 
 
 
     struct Http::Request::Detail
+		: public Input::Source
     {
     public:
-        Detail( HINTERNET connection, const URL & url, String method, String headers, Duration timeout );
-        ~Detail( );
+											Detail( HINTERNET connection, const URL & url, String method, String headers, Duration timeout );
+											~Detail( );
 
-        void doStart( );
-        void notify( DWORD err );
-        void notifyRecv( );
-        void notifySend( );
-        void doRecv( );
-        void doSend( );
-        void doClose( );
-        bool isOpen( ) const;
-        Memory read( Memory dst, Duration timeout );
-        Memory write( const Memory & src );
-        void flush( );
-        void close( );
-        static int toStatusCode( DWORD err );
-        void setError( DWORD err );
-        void check( bool isSuccess );
-        void check( );
-        void startRequest( cpp::Duration timeout );
-        void endRequest( cpp::Duration timeout );
-        int statusCode( ) const;
+        void								notify( DWORD err );
+        void								notifyRecv( );
+        void								notifySend( );
+        void								doRecv( );
+        void								doSend( );
+        void								doClose( );
+        bool								isOpen( ) const;
+        Memory								read( Memory dst, Duration timeout );
+        Memory								write( const Memory & src );
+        void								flush( );
+        void								close( );
+        static int							toStatusCode( DWORD err );
+        void								setError( DWORD err );
+        void								check( bool isSuccess );
+        void								check( );
+        void								startRequest( cpp::Duration timeout );
+        void								endRequest( cpp::Duration timeout );
+        int									statusCode( ) const;
+
+		bool								isOpen( ) const override;
+		Memory								readsome( Memory dst, std::error_code & errorCode ) override;
+		void								close( ) override;
 
     private:
-        HINTERNET m_connectionHandle;
-        URL m_url;
-        String m_method;
-        std::wstring m_headers;
-        Duration m_timeout;
+        HINTERNET							m_connectionHandle;
+        URL									m_url;
+        String								m_method;
+        std::wstring						m_headers;
+        Duration							m_timeout;
 
-        HINTERNET m_handle;
-        bool m_isPending;
-        bool m_isRecving;
-        DWORD m_recvBytes;
-        StringBuffer m_recvBuffer;
-        bool m_isSending;
-        DWORD m_sendBytes;
-        uint64_t m_sentBytes;
-        std::list<String> m_sendBuffers;
-        mutable cpp::Mutex m_mutex;
-        std::shared_ptr<Exception> m_error;
-        int m_statusCode;
-        bool m_isRequesting;
+        HINTERNET							m_handle;
+        bool								m_isPending;
+        bool								m_isRecving;
+        DWORD								m_recvBytes;
+        StringBuffer						m_recvBuffer;
+        bool								m_isSending;
+        DWORD								m_sendBytes;
+        uint64_t							m_sentBytes;
+        std::list<String>					m_sendBuffers;
+        mutable cpp::Mutex					m_mutex;
+        std::shared_ptr<Exception>			m_error;
+        int									m_statusCode;
+        bool								m_isRequesting;
     };
 
 
@@ -116,12 +123,6 @@ namespace cpp
     Http::Request::Detail::~Detail( )
     {
         close( );
-    }
-
-
-    void Http::Request::Detail::doStart( )
-    {
-
     }
 
 
@@ -486,6 +487,7 @@ namespace cpp
         return *this;
     }
 
+
     Http::Request & Http::Request::writeRequest( Input input )
     {
         cpp::String buffer( 1024, '\0' );
@@ -496,16 +498,19 @@ namespace cpp
         return *this;
     }
 
+
     Input Http::Request::getReply( cpp::Duration timeout )
     {
         m_detail->endRequest( timeout );
 		return Input{ m_detail };
     }
 
+
     void Http::Request::close( cpp::Duration timeout )
     {
         m_detail->endRequest( timeout );
     }
+
 
     int Http::Request::getStatusCode( ) const
     {
@@ -513,11 +518,13 @@ namespace cpp
     }
 
 
+
     class CallbackHandler
     {
     public:
         CallbackHandler( )
             : m_fn() { }
+
         CallbackHandler( std::function<void( DWORD status )> fn )
             : m_fn( std::move( fn ) ) { }
 
@@ -528,31 +535,58 @@ namespace cpp
         std::function<void( DWORD status )> m_fn;
     };
 
+
+
     struct Http::Detail
     {
-        Detail( )
-            : m_inet( nullptr ) { }
-        ~Detail( )
-            { close( ); }
+											Detail( );
+											~Detail( );
 
-        static void CALLBACK callback( HINTERNET hInternet, DWORD_PTR dwContext, DWORD dwInternetStatus, LPVOID lpvStatusInformation, DWORD dwStatusInformationLength );
+        static void CALLBACK				callback( 
+												HINTERNET hInternet, 
+												DWORD_PTR dwContext, 
+												DWORD dwInternetStatus, 
+												LPVOID lpvStatusInformation, 
+												DWORD dwStatusInformationLength );
 
-        void open( String userAgent );
-        HINTERNET connect( const URL & url );
-        Request startRequest( const URL & url, String method, String headers, Duration timeout );
+        void								open( String userAgent );
+        HINTERNET							connect( const URL & url );
+        Request								startRequest( 
+												const URL & url, 
+												String method, 
+												String headers, 
+												Duration timeout );
 
-        Request get( String url, String headers, Duration timeout );
-        Request post( String url, String headers, Duration timeout );
+        Request								get( 
+												String url, 
+												String headers, 
+												Duration timeout );
+        Request								post( 
+												String url, 
+												String headers, 
+												Duration timeout );
 
-        String::Array connections( ) const;
-        void disconnect( String hostname );
-        void disconnect( );
-        void close( );
+        String::Array						connections( ) const;
+        void								disconnect( String hostname );
+        void								disconnect( );
+        void								close( );
 
-        HINTERNET m_inet;
-        std::map<String, HINTERNET> m_connections;
-        mutable cpp::Mutex m_mutex;
+        HINTERNET							m_inet;
+        std::map<String, HINTERNET>			m_connections;
+        mutable cpp::Mutex					m_mutex;
     };
+
+
+	Http::Detail::Detail( )
+		: m_inet( nullptr ) 
+	{ 
+	}
+
+
+	Http::Detail::~Detail( )
+	{
+		close( );
+	}
 
 
     void CALLBACK Http::Detail::callback( HINTERNET hInternet, DWORD_PTR dwContext, DWORD dwInternetStatus, LPVOID lpvStatusInformation, DWORD dwStatusInformationLength )

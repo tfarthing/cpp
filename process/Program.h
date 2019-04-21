@@ -3,7 +3,7 @@
 #include <random>
 #include <memory>
 
-#include "../data/Memory.h"
+#include "../data/String.h"
 
 
 namespace cpp

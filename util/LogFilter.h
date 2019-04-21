@@ -1,9 +1,10 @@
 #pragma once
 
-#include <cpp/chrono/DateTime.h>
-#include <cpp/io/file/File.h>
-#include <cpp/util/Log.h>
-#include <cpp/util/Handle.h>
+#include "../../cpp/time/DateTime.h"
+#include "../../cpp/file/SyncFile.h"
+#include "../../cpp/util/Log.h"
+
+
 
 namespace cpp
 {
@@ -57,7 +58,7 @@ namespace cpp
     protected:
         Output m_output;
     };
-    using OutputLogFilter = Handle<OutputLogFilter_t>;
+    using OutputLogFilter = std::shared_ptr<OutputLogFilter_t>;
 
 
     class FileLogFilter_t
@@ -83,13 +84,13 @@ namespace cpp
     private:
         Mutex m_mutex;
         FilePath m_dir;
-        String m_name;
-        String m_ext;
+        std::string m_name;
+		std::string m_ext;
         FilePath m_filename;
         DateTime m_closeTime;
         bool m_rotateFlag;
     };
-    using FileLogFilter = Handle<FileLogFilter_t>;
+    using FileLogFilter = std::shared_ptr<FileLogFilter_t>;
 
 
     class DebugLogFilter_t
@@ -101,7 +102,7 @@ namespace cpp
 
         void log( DateTime time, LogLevel level, const String & category, const String & message ) override;
     };
-    using DebugLogFilter = Handle<DebugLogFilter_t>;
+    using DebugLogFilter = std::shared_ptr<DebugLogFilter_t>;
 
 }
 

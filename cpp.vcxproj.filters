@@ -58,9 +58,6 @@
     <ClInclude Include="network\Http.h">
       <Filter>network</Filter>
     </ClInclude>
-    <ClInclude Include="network\Tcp.h">
-      <Filter>network</Filter>
-    </ClInclude>
     <ClInclude Include="util\Bit.h" />
     <ClInclude Include="time\Date.h">
       <Filter>time</Filter>
@@ -154,6 +151,7 @@
     </ClInclude>
     <ClInclude Include="io\Input.h" />
     <ClInclude Include="io\Output.h" />
+    <ClInclude Include="file\FilePath.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="io">
@@ -239,9 +237,6 @@
     <ClCompile Include="network\Http.cpp">
       <Filter>network</Filter>
     </ClCompile>
-    <ClCompile Include="network\Tcp.cpp">
-      <Filter>network</Filter>
-    </ClCompile>
     <ClCompile Include="util\Bit.cpp" />
     <ClCompile Include="time\Date.cpp">
       <Filter>time</Filter>
@@ -310,6 +305,7 @@
     <ClCompile Include="io\LineReader.cpp">
       <Filter>io\reader</Filter>
     </ClCompile>
+    <ClCompile Include="file\FilePath.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="meta\cpp.natvis">

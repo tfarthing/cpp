@@ -186,7 +186,7 @@ namespace cpp
 	}
 
 
-	std::mt19937_64 & Program::getRandom( )
+	std::mt19937_64 & Program::rng( )
 	{
 		return detail->rand;
 	}

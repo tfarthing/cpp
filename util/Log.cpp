@@ -37,11 +37,16 @@ namespace cpp
         return LogLevel::Null;
     }
 
+
     Logger & logger()
-        { return Program::logger(); }
+	{
+		return cpp::program( ).logger( );
+	}
+
 
     Logger::Logger()
         : m_running(true), m_thread( [=](){ fn(); } ) { }
+
 
     Logger::~Logger()
     { 

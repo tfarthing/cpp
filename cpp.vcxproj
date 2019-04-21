@@ -14,6 +14,7 @@
     <ClInclude Include="data\DataArray.h" />
     <ClInclude Include="data\Primitive.h" />
     <ClInclude Include="file\AsyncFile.h" />
+    <ClInclude Include="file\FilePath.h" />
     <ClInclude Include="file\Files.h" />
     <ClInclude Include="file\MemoryFile.h" />
     <ClInclude Include="file\SyncFile.h" />
@@ -40,7 +41,6 @@
     <ClInclude Include="data\Float.h" />
     <ClInclude Include="data\Integer.h" />
     <ClInclude Include="network\Http.h" />
-    <ClInclude Include="network\Tcp.h" />
     <ClInclude Include="io\LineReader.h" />
     <ClInclude Include="math\Alignment.h" />
     <ClInclude Include="math\AES.h" />
@@ -80,6 +80,7 @@
     <ClCompile Include="data\Float.cpp" />
     <ClCompile Include="data\Integer.cpp" />
     <ClCompile Include="file\AsyncFile.cpp" />
+    <ClCompile Include="file\FilePath.cpp" />
     <ClCompile Include="file\MemoryFile.cpp" />
     <ClCompile Include="file\SyncFile.cpp" />
     <ClCompile Include="network\TcpConnection.cpp" />
@@ -92,7 +93,6 @@
     <ClCompile Include="time\Time.cpp" />
     <ClCompile Include="data\ByteOrder.cpp" />
     <ClCompile Include="network\Http.cpp" />
-    <ClCompile Include="network\Tcp.cpp" />
     <ClCompile Include="io\LineReader.cpp" />
     <ClCompile Include="math\AES.cpp" />
     <ClCompile Include="math\Alignment.cpp" />

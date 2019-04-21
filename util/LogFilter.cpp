@@ -1,7 +1,8 @@
-#include <cpp/Integer.h>
-#include <cpp/chrono/Date.h>
-#include <cpp/util/LogFilter.h>
-#include <cpp/util/Utf16.h>
+#include "../../cpp/data/Integer.h"
+#include "../../cpp/time/Date.h"
+#include "../../cpp/util/LogFilter.h"
+#include "../../cpp/text/Utf16.h"
+#include "../../cpp/process/Platform.h"
 
 namespace cpp
 {
@@ -16,7 +17,7 @@ namespace cpp
             m_lastTime = time;
             auto millis = time.sinceEpoch( ).millis( ) % 1000;
             m_lastTimeString = cpp::String::format( "%.%", 
-                Date::fromTime( time ).toString( ), 
+                time.toString( ), 
                 cpp::Integer::toDecimal( millis, 3, 0, true ) );
         }
 
@@ -63,18 +64,18 @@ namespace cpp
     {
         if ( m_rotateFlag )
         {
-            m_closeTime = DateTime::atStartOfDay( time ) + Duration::ofDays( 1 );
-            String name = String::format( "%%%",
-                Date::fromTime( time ).toString( "%y-%m-%d" ),
-                m_name.isEmpty( ) ? "" : "-" + m_name,
-                m_ext.isEmpty( ) ? "" : "." + m_ext );
-            m_filename = FilePath{ m_dir, name };
+            m_closeTime = DateTime::trimAtDay( time ) + Duration::ofDays( 1 );
+            std::string name = String::format( "%%%",
+                time.toString( "%y-%m-%d" ),
+                m_name.empty( ) ? "" : "-" + m_name,
+                m_ext.empty( ) ? "" : "." + m_ext );
+            m_filename = m_dir / name;
         }
         else
         {
-            m_filename = FilePath{ m_dir, m_name + "." + m_ext };
+            m_filename = m_dir / ( m_name + "." + m_ext );
         }
-        m_output = File::append( m_filename, cpp::File::Share::AllowWrite );
+        m_output = SyncFile::append( m_filename, cpp::File::Share::AllowWrite ).output( );
     }
 
     void FileLogFilter_t::log( DateTime time, LogLevel level, const String & category, const String & message )

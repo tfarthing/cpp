@@ -12,6 +12,7 @@ AsyncFile provides file operations through asio.  Aysnchronous file operations a
 
 #include "../process/AsyncIO.h"
 #include "Files.h"
+#include "FilePath.h"
 
 namespace cpp
 {

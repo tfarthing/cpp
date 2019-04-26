@@ -2,6 +2,7 @@
 
 #include "../data/DataBuffer.h"
 #include "../time/Timer.h"
+#include "../../cpp/text/Utf16.h"
 #include "AsyncFile.h"
 
 namespace cpp
@@ -82,10 +83,10 @@ namespace cpp
 
 		if ( access == Access::Create || access == Access::Write )
 		{
-			Files::create_directories( filepath.parent_path( ) );
+			Files::create_directories( filepath.parent( ) );
 		}
 
-		HANDLE fileHandle = CreateFile( filepath.c_str( ), accessMode, shareMode, 0, creationMode, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, 0 );
+		HANDLE fileHandle = CreateFile( toUtf8(filepath), accessMode, shareMode, 0, creationMode, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, 0 );
 		if ( fileHandle == INVALID_HANDLE_VALUE )
 		{
 			DWORD err = GetLastError( );

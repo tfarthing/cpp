@@ -35,7 +35,7 @@ namespace cpp
 
 	double Random::frand( )
 	{
-		std::generate_canonical<double, std::numeric_limits<double>::digits>( m_rng );
+		return std::generate_canonical<double, std::numeric_limits<double>::digits>( m_rng );
 	}
 
 }

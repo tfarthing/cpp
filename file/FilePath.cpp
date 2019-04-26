@@ -1,5 +1,12 @@
+#include "../../cpp/data/Integer.h"
 #include "../../cpp/data/String.h"
+#include "../../cpp/file/Files.h"
 #include "../../cpp/file/FilePath.h"
+#include "../../cpp/process/Program.h"
+#include "../../cpp/process/Random.h"
+
+
+
 
 namespace cpp
 {
@@ -23,8 +30,8 @@ namespace cpp
 		do
 		{
 			uint32_t rnd = (uint32_t)Program::rng( ).rand( );
-			path = tempPath( ) / String::format( "%%.%", prefix, Integer::toHex( rnd, 8, 0, false, true, false ), ext );
-		} while ( File::exists( path ) );
+			path = tempPath( ) / String::format( "%%.%", prefix, Integer::toHex( rnd ), ext );
+		} while ( Files::exists( path ) );
 
 		return path;
 	}
@@ -262,4 +269,45 @@ namespace cpp
 		return path;
 	}
 
+}
+
+cpp::FilePath operator/( const cpp::FilePath & lhs, const cpp::FilePath & rhs )
+{
+	cpp::FilePath result = lhs;
+	return result /= rhs;
+}
+
+
+bool operator==( const cpp::FilePath & lhs, const cpp::FilePath & rhs )
+{
+	return cpp::FilePath::compare( lhs, rhs ) == 0;
+}
+
+
+bool operator!=( const cpp::FilePath & lhs, const cpp::FilePath & rhs )
+{
+	return cpp::FilePath::compare( lhs, rhs ) != 0;
+}
+
+
+bool operator<( const cpp::FilePath & lhs, const cpp::FilePath & rhs )
+{
+	return cpp::FilePath::compare( lhs, rhs ) < 0;
+}
+
+
+bool operator<=( const cpp::FilePath & lhs, const cpp::FilePath & rhs )
+{
+	return cpp::FilePath::compare( lhs, rhs ) <= 0;
+}
+
+
+bool operator>( const cpp::FilePath & lhs, const cpp::FilePath & rhs )
+{
+	return cpp::FilePath::compare( lhs, rhs ) > 0;
+}
+
+bool operator>=( const cpp::FilePath & lhs, const cpp::FilePath & rhs )
+{
+	return cpp::FilePath::compare( lhs, rhs ) >= 0;
 }

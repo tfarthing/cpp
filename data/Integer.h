@@ -13,7 +13,7 @@ namespace cpp
 		static int64					parse( Memory text, int radix = 10, bool checkEnding = true );
 		static uint64					parseUnsigned( Memory text, int radix = 10, bool checkEnding = true );
 
-		static std::string				toHex( uint64 value, int width = 8, bool upper = false, bool zeroed = true, bool prefix = true );
+		static std::string				toHex( uint64 value, int width = 8, bool upper = false, bool zeroed = true, bool prefix = false );
 		static std::string				toDecimal( int64 value, int width = 0, bool zeroed = false, bool sign = false );
 		static std::string				toDecimal( uint64 value, int width = 0, bool zeroed = false, bool sign = false );
     

@@ -54,10 +54,14 @@ namespace cpp
 		FilePath &							operator=( FilePath && move );
 
 		FilePath &							append( Memory path );
+		FilePath &							append( const FilePath & path );
 		FilePath &							operator/=( Memory path );
+		FilePath &							operator/=( const FilePath & path );
 
 		FilePath &							concat( Memory path );
+		FilePath &							concat( const FilePath & path );
 		FilePath &							operator+=( Memory path );
+		FilePath &							operator+=( const FilePath & path );
 
 		void								clear( );
 
@@ -82,3 +86,11 @@ namespace cpp
 
 }
 
+cpp::FilePath operator/( const cpp::FilePath & lhs, const cpp::FilePath & rhs );
+
+bool operator==( const cpp::FilePath & lhs, const cpp::FilePath & rhs );
+bool operator!=( const cpp::FilePath & lhs, const cpp::FilePath & rhs );
+bool operator<( const cpp::FilePath & lhs, const cpp::FilePath & rhs );
+bool operator<=( const cpp::FilePath & lhs, const cpp::FilePath & rhs );
+bool operator>( const cpp::FilePath & lhs, const cpp::FilePath & rhs );
+bool operator>=( const cpp::FilePath & lhs, const cpp::FilePath & rhs );

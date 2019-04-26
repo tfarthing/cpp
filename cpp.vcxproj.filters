@@ -152,6 +152,7 @@
     <ClInclude Include="io\Input.h" />
     <ClInclude Include="io\Output.h" />
     <ClInclude Include="file\FilePath.h" />
+    <ClInclude Include="process\Random.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="io">

@@ -3,7 +3,6 @@
 #include <random>
 #include <memory>
 
-#include "../data/String.h"
 
 
 namespace cpp
@@ -13,12 +12,10 @@ namespace cpp
 	class Output;
 	class Input;
 	class Logger;
-    class Program;
-	class AsyncIO;
+	class FilePath;
+	class Random;
 
 
-
-    Program & program( );
 
     class Program
     {
@@ -30,23 +27,18 @@ namespace cpp
 											Program( int argc, const wchar_t ** argv );
 											~Program( );
 
-        Input &								in( );
-        Output &							out( );
-        Output &							error( );
+        static Input &						in( );
+		static Output &						out( );
+		static Output &						error( );
 
-        const Memory						arg( Memory key ) const;
-        const StringMap &					args( ) const;
+		static const Memory					arg( Memory key );
+		static const StringMap &			args( );
 
-		const String &						exePath( );
-		const String &						workingPath( );
+		static const FilePath &				modulePath( );
         
-		AsyncIO &							asyncIO( );
+		static Logger &						logger( );
         
-		Logger &							logger( );
-        
-		uint64_t							rand( );
-        double								frand( );
-        std::mt19937_64 &					rng( );
+		static Random &						rng( );
 
     protected:
         void								initArgs( int argc, const wchar_t ** argv );
@@ -60,7 +52,6 @@ namespace cpp
 		std::unique_ptr<Detail> detail;
 
     private:
-		friend Program &					program( );
         static Program &					instance( );
         static void							addInstance( Program * instance );
         static void							removeInstance( Program * instance );

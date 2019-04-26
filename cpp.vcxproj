@@ -27,6 +27,7 @@
     <ClInclude Include="process\Process-Pipe.h" />
     <ClInclude Include="data\Base64.h" />
     <ClInclude Include="data\Hex.h" />
+    <ClInclude Include="process\Random.h" />
     <ClInclude Include="time\Date.h" />
     <ClInclude Include="time\DateTime.h" />
     <ClInclude Include="time\Duration.h" />

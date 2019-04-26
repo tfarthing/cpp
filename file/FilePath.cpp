@@ -6,19 +6,27 @@ namespace cpp
 
 	FilePath FilePath::currentPath( )
 	{
-
+		return std::filesystem::current_path( );
 	}
 
 
 	FilePath FilePath::tempPath( )
 	{
-
+		return std::filesystem::temp_directory_path( );
 	}
 
 
 	FilePath FilePath::tempFile( Memory prefix, Memory ext )
 	{
+		FilePath path = tempPath( );
 
+		do
+		{
+			uint32_t rnd = (uint32_t)Program::rng( ).rand( );
+			path = tempPath( ) / String::format( "%%.%", prefix, Integer::toHex( rnd, 8, 0, false, true, false ), ext );
+		} while ( File::exists( path ) );
+
+		return path;
 	}
 
 

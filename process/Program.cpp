@@ -9,31 +9,25 @@
 #include "AsyncIO.h"
 #include "Platform.h"
 #include "Program.h"
+#include "Random.h"
 
 
 
 namespace cpp
 {
 
-	Program & program( )
-	{
-		return Program::instance( );
-	}
-
 	struct Program::Detail
 	{
 		Detail( );
 
 		StringMap				args;
-		String					exePath;
-		String					workingPath;
+		FilePath				modulePath;
 		Logger					logger;
-		std::mt19937_64			rand;
+		Random					rng;
 		AsyncIO					io;
 	};
 
 	Program::Detail::Detail( )
-		: rand( cpp::Time::now( ).sinceEpoch( ).micros( ) )
 	{
 
 	}
@@ -125,70 +119,40 @@ namespace cpp
 		int len = GetModuleFileName( NULL, (LPWSTR)path.c_str( ), (DWORD)path.size( ) );
 		if ( len > 0 )
 		{
-			detail->exePath = cpp::toUtf8( path.substr( 0, len ) );
-		}
-
-		len = GetCurrentDirectory( (DWORD)path.size( ), (LPWSTR)path.c_str( ) );
-		if ( len > 0 )
-		{
-			detail->workingPath = cpp::toUtf8( path.substr( 0, len ) );
+			detail->modulePath = cpp::toUtf8( path.substr( 0, len ) );
 		}
 
 		addInstance( this );
 	}
 
 
-	const Memory Program::arg( Memory key ) const
+	const Memory Program::arg( Memory key )
 	{
-		return detail->args.at( key );
+		return instance().detail->args.at( key );
 	}
 
 
-	const StringMap & Program::args( ) const
+	const StringMap & Program::args( )
 	{
-		return detail->args;
+		return instance( ).detail->args;
 	}
 
 
-	const String & Program::exePath( )
+	const FilePath & Program::modulePath( )
 	{
-		return detail->exePath;
-	}
-
-
-	const String & Program::workingPath( )
-	{
-		return detail->workingPath;
-	}
-
-
-	AsyncIO & Program::asyncIO( )
-	{
-		return detail->io;
+		return instance( ).detail->modulePath;
 	}
 
 
 	Logger & Program::logger( )
 	{
-		return detail->logger;
+		return instance( ).detail->logger;
 	}
 
 
-	uint64_t Program::rand( )
+	Random & Program::rng( )
 	{
-		return detail->rand( );
-	}
-
-
-	double Program::frand( )
-	{
-		return std::generate_canonical<double, std::numeric_limits<double>::digits>( detail->rand );
-	}
-
-
-	std::mt19937_64 & Program::rng( )
-	{
-		return detail->rand;
+		return instance( ).detail->rng;
 	}
 
 }

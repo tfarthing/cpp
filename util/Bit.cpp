@@ -1789,7 +1789,7 @@ namespace cpp::bit
 namespace cpp
 {
 
-    const char * toString( bit::Decoder::Error error )
+    String toString( bit::Decoder::Error error )
     {
         switch ( error )
         {

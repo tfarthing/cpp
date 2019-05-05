@@ -2,6 +2,7 @@
 #include "../../../cpp/platform/windows/WindowsRegistry.h"
 #include "../../../cpp/platform/windows/WindowsShell.h"
 #include "../../../cpp/text/Utf16.h"
+#include "../../../cpp/data/DataArray.h"
 
 using std::wstring;
 
@@ -16,7 +17,7 @@ namespace cpp
             {
                 PWSTR path;
                 check( SHGetKnownFolderPath( folderId, 0, 0, &path ) );
-                FilePath result = path ;
+				FilePath result{ std::filesystem::path{ path } };
                 CoTaskMemFree( path );
 
                 return result;
@@ -36,11 +37,11 @@ namespace cpp
                 HRESULT hres = CoCreateInstance( CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLink, reinterpret_cast<void**>( &psl ) );
                 windows::check( hres );
 
-                Utf16::Text wpath = targetPath;
-                Utf16::Text working = targetPath.parent_path();
+                Utf16::Text wpath = targetPath.toWindows( );
+                Utf16::Text working = targetPath.parent( ).toWindows( );
                 Utf16::Text wargs = toUtf16( args );
                 Utf16::Text wdesc = toUtf16( desc );
-                Utf16::Text wiconPath = iconPath;
+                Utf16::Text wiconPath = iconPath.toWindows( );
 
                 // Set the path to the shortcut target
                 psl->SetPath( wpath );
@@ -63,7 +64,7 @@ namespace cpp
                 if ( SUCCEEDED( hres ) )
                 {
                     // Save the link by calling IPersistFile::Save.
-                    hres = ppf->Save( shortcutPath.c_str(), TRUE );
+                    hres = ppf->Save( shortcutPath.toWindows( ), TRUE );
                     ppf->Release( );
                 }
                 psl->Release( );
@@ -82,7 +83,7 @@ namespace cpp
                 const Memory & helpLink)
             {
 
-                String keyName = String::format( "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\%", appKey );
+                String keyName = cpp::format( "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\%", appKey );
                 Registry::Key key = Registry::currentUser( ).create( keyName );
 
                 if ( name.length( ) )
@@ -107,62 +108,62 @@ namespace cpp
 
             void removeUninstall( const Memory & key )
             {
-                String keyName = String::format( "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\%", key );
+                String keyName = cpp::format( "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\%", key );
                 if ( Registry::currentUser( ).exists( keyName ) )
                     { Registry::currentUser( ).deleteKey( keyName ); }
             }
 
             void setAppPath( FilePath appFile )
             {
-                FilePath appPath = appFile.parent_path( );
+                FilePath appPath = appFile.parent( );
 
-                String keyName = String::format( "Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\%", appFile.filename() );
+                String keyName = cpp::format( "Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\%", appFile.filename() );
                 Registry::Key key = Registry::currentUser( ).create( keyName );
-                key.set( "", appFile.c_str( ) );
-                key.set( "Path", appFile.parent_path( ).c_str( ) );
+                key.set( "", appFile.toWindows( ) );
+                key.set( "Path", appFile.parent( ).toWindows( ) );
 
                 auto env = Registry::currentUser( ).open( "Environment" );
                 String path = env.get( "Path", 4 * 1024 );
                 if ( path.empty( ) )
                 {
-                    path = appPath.u8string();
+					path = appPath.toString( );
                     env.set( "Path", path.c_str( ) );
                 }
-                else if ( path.find( appPath.u8string( ) ) == String::npos )
+                else if ( path.find( appPath ) == String::npos )
                 {
-                    path += ";" + appPath.u8string( );
+                    path += ";" + appPath.toString( );
                     env.set( "Path", path.c_str( ) );
                 }
             }
 
             void removeAppPath( FilePath appFile )
             {
-                FilePath appPath = appFile.parent_path( );
+                FilePath appPath = appFile.parent( );
 
                 //  check for app path registry
-                String keyName = String::format( "Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\%", appFile.filename( ) );
+                String keyName = cpp::format( "Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\%", appFile.filename( ) );
                 if ( Registry::currentUser( ).exists( keyName ) )
                     { Registry::currentUser( ).deleteKey( keyName ); }
 
                 auto env = Registry::currentUser( ).open( "Environment" );
                 String path = env.get( "Path", 4 * 1024 );
-                if ( path.find( appPath.u8string( ) ) != String::npos )
+                if ( path.find( appPath ) != String::npos )
                 {
-                    path.replaceFirst( appPath.u8string( ), "" );
-                    path.replaceAll( ";;", ";" );
+					path = Memory{ path }.replaceFirst( appPath.toString( ), "" );
+					path = Memory{ path }.replaceAll( ";;", ";" );
                     if ( path.length( ) < 3 )
                         { path = ""; }
                     env.set( "Path", path );
                 }
             }
 
-            void setOpenWith( FilePath appFile, String appLabel, const String::Array & exts )
+            void setOpenWith( FilePath appFile, String appLabel, const StringArray & exts )
             {
 
-                String keyName = String::format( "Software\\Classes\\%\\shell\\open\\command", appLabel );
+                String keyName = cpp::format( "Software\\Classes\\%\\shell\\open\\command", appLabel );
                 
                 auto key = Registry::currentUser( ).create( keyName );
-                key.set( "", appFile.u8string( ) + " \"%1\"" );
+                key.set( "", appFile.toString( true ) + " \"%1\"" );
 
                 key = Registry::currentUser().create( "Software\\Classes\\.txt\\OpenWithProgids" );
                 key.set( appLabel, "" );
@@ -172,9 +173,9 @@ namespace cpp
             }
 
             // removeOpenWith( "c:\myapp.exe", "myapp.txt", { ".txt", ".log" } );
-            void removeOpenWith( FilePath appFile, String appLabel, const String::Array & exts )
+            void removeOpenWith( FilePath appFile, String appLabel, const StringArray & exts )
             {
-                String keyName = String::format( "Software\\Classes\\%", appLabel );
+                String keyName = cpp::format( "Software\\Classes\\%", appLabel );
                 if ( Registry::currentUser( ).exists( keyName + "\\shell\\open\\command" ) )
                 {
                     Registry::currentUser( ).deleteKey( keyName + "\\shell\\open\\command" );
@@ -185,7 +186,7 @@ namespace cpp
 
                 for ( const String & ext : exts )
                 {
-                    auto key = Registry::currentUser( ).open( String::format( "Software\\Classes\\%\\OpenWithProgids", ext ) );
+                    auto key = Registry::currentUser( ).open( cpp::format( "Software\\Classes\\%\\OpenWithProgids", ext ) );
                     if ( key.isOpen( ) && key.has( appLabel ) )
                         { key.deleteValue( appLabel ); }
                 }

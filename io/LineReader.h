@@ -1,6 +1,8 @@
 #pragma once
 
 #include "../../cpp/data/DataBuffer.h"
+#include "../../cpp/data/DataArray.h"
+
 
 
 namespace cpp
@@ -48,7 +50,7 @@ namespace cpp
         iterator						    begin( ) const;
         iterator						    end( ) const;
 
-        String::Array					    readAll( );
+		StringArray							readAll( );
 
     private:
 		Input &				                m_input;
@@ -57,7 +59,7 @@ namespace cpp
 
 
 
-    LineReader::iterator::iterator( Input * input, size_t buflen )
+    inline LineReader::iterator::iterator( Input * input, size_t buflen )
         : m_input( input ), m_buffer{ buflen }
     {
         m_nextPosition = 0;
@@ -67,53 +69,53 @@ namespace cpp
     }
 
 
-    const LineReader::Cursor & LineReader::iterator::operator*( ) const
+	inline const LineReader::Cursor & LineReader::iterator::operator*( ) const
     {
         return m_cursor;
     }
 
 
-    bool LineReader::iterator::operator!=( iterator & iter ) const
+	inline bool LineReader::iterator::operator!=( iterator & iter ) const
     {
         return m_input != iter.m_input || m_nextPosition != iter.m_nextPosition;
     }
 
 
-    LineReader::iterator & LineReader::iterator::operator++( )
+	inline LineReader::iterator & LineReader::iterator::operator++( )
     {
         get( ); return *this;
     }
 
 
-    void LineReader::iterator::get( )
+	inline void LineReader::iterator::get( )
     {
         while ( !tryFind( ) && tryRead( ) );
     }
 
 
 
-    LineReader::LineReader( Input & input, size_t buflen )
+	inline LineReader::LineReader( Input & input, size_t buflen )
         : m_input( input ), m_buflen( buflen )
     {
 
     }
 
 
-	LineReader::iterator LineReader::begin( ) const
+	inline LineReader::iterator LineReader::begin( ) const
     {
         return iterator{ &m_input, m_buflen };
     }
     
 
-	LineReader::iterator LineReader::end( ) const
+	inline LineReader::iterator LineReader::end( ) const
     {
         return iterator{ nullptr, 0 };
     }
 
 
-    String::Array LineReader::readAll( )
+	inline StringArray LineReader::readAll( )
     {
-        String::Array results;
+		StringArray results;
         for ( auto & cursor : *this )
         {
             results.push_back( cursor.line );

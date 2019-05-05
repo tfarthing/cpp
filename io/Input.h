@@ -107,44 +107,44 @@ namespace cpp
 
 
 
-    Input::Input( )
+    inline Input::Input( )
         : m_source( nullptr )
     {
     }
 
 
-    Input::Input( nullptr_t )
+	inline Input::Input( nullptr_t )
         : m_source( nullptr )
     {
     }
 
 
-    Input::Input( Source::ptr_t source )
+	inline Input::Input( Source::ptr_t source )
         : m_source( source )
     {
     }
 
 
-    void Input::close( )
+	inline void Input::close( )
     {
         if ( m_source )
             { m_source->close( ); }
     }
 
 
-    bool Input::isOpen( ) const
+	inline bool Input::isOpen( ) const
     {
         return m_source ? m_source->isOpen( ) : false;
     }
 
 
-    Input::operator bool( ) const
+	inline Input::operator bool( ) const
     {
         return isOpen( );
     }
 
 
-    Memory Input::readsome( Memory buffer )
+	inline Memory Input::readsome( Memory buffer )
     {
         if ( !m_source )
             { return Memory::Empty; }
@@ -156,7 +156,7 @@ namespace cpp
     }
 
 
-    Memory Input::readsome( Memory buffer, std::error_code & errorCode )
+	inline Memory Input::readsome( Memory buffer, std::error_code & errorCode )
     {
         if ( !m_source )
             { return Memory::Empty; }
@@ -164,7 +164,7 @@ namespace cpp
         return m_source->readsome( buffer, errorCode );
     }
 
-    Memory Input::read( Memory buffer )
+	inline Memory Input::read( Memory buffer )
     {
         std::error_code errorCode;
         buffer = read( buffer, errorCode );
@@ -172,7 +172,7 @@ namespace cpp
         return buffer;
     }
 
-    Memory Input::read( Memory buffer, std::error_code & errorCode )
+	inline Memory Input::read( Memory buffer, std::error_code & errorCode )
     {
         size_t bytes = 0;
         if ( m_source )
@@ -189,7 +189,7 @@ namespace cpp
         return buffer.substr(0, bytes);
     }
 
-    String Input::readAll( )
+	inline String Input::readAll( )
     {
         StringBuffer buffer{ 64 * 1024 };
         while ( isOpen( ) )
@@ -202,14 +202,14 @@ namespace cpp
     }
 
 
-    LineReader Input::lines( size_t buflen )
+	inline LineReader Input::lines( size_t buflen )
     {
         return LineReader{ *this, buflen };
     }
 
 
 
-    Input::Source::~Source( )
+	inline Input::Source::~Source( )
     {
         close( );
     }

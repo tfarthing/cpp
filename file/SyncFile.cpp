@@ -80,14 +80,14 @@ namespace cpp
 
         if ( access == Access::Create || access == Access::Write )
         {
-            Files::create_directories( filepath.parent_path( ) );
+            Files::create_directories( filepath.parent( ) );
         }
 
-        HANDLE fileHandle = CreateFile( filepath.c_str( ), accessMode, shareMode, 0, creationMode, FILE_ATTRIBUTE_NORMAL, 0 );
+        HANDLE fileHandle = CreateFile( filepath.toWindows( ), accessMode, shareMode, 0, creationMode, FILE_ATTRIBUTE_NORMAL, 0 );
         if ( fileHandle == INVALID_HANDLE_VALUE )
         {
             DWORD err = GetLastError( );
-            throw IOException( String::format( "Unable to open file: error( % )", (uint32_t)err ) );
+            throw IOException( cpp::format( "Unable to open file: error( % )", (uint32_t)err ) );
         }
 
         std::shared_ptr<Detail> detail = std::make_shared<Detail>( );
@@ -342,6 +342,13 @@ namespace cpp
         assert( m_detail );
         m_detail->write( data );
     }
+
+
+	void SyncFile::flush( )
+	{
+		assert( m_detail );
+		m_detail->flush( );
+	}
 
 
     void SyncFile::truncate( size_t length )

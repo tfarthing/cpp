@@ -61,358 +61,377 @@ namespace cpp
 
     class DataBuffer;
 
-    namespace bit
-    {
+	namespace bit
+	{
 
-        class Object;
+		class Object;
 
-        Object decode( Memory text );
-        Object decode( DataBuffer & buffer );
-        Object decodeLine( DataBuffer & buffer );
-        
+		Object decode( Memory text );
+		Object decode( DataBuffer & buffer );
+		Object decodeLine( DataBuffer & buffer );
 
-        //template<class key_t>
-        struct Key
-        {
-            static Key                      append( const Key & parent, Memory childName );
 
-                                            Key( Memory path = "", size_t origin = 0 );
-                                            Key( const Key & copy );
-                                            Key( Key && move ) noexcept;
+		//template<class key_t>
+		struct Key
+		{
+			static Key                      append( const Key & parent, Memory childName );
 
-            Key &                           operator=( const Key & copy );
-            Key &                           operator=( Key && move ) noexcept;
+			Key( Memory path = "", size_t origin = 0 );
+			Key( const Key & copy );
+			Key( Key && move ) noexcept;
 
-            Memory                          get( ) const;                           // i.e. path.substr( origin ? origin + 1 : 0 )
-                                            operator Memory( ) const;
+			Key & operator=( const Key & copy );
+			Key & operator=( Key && move ) noexcept;
 
-            Memory                          name( ) const;                          // "server.region" -> "region"
+			Memory                          get( ) const;                           // i.e. path.substr( origin ? origin + 1 : 0 )
+			operator Memory( ) const;
 
-            bool                            hasParent( ) const;                     // i.e. matches ".*\..*"
-            Key                             parent( ) const;                        // "server.region" -> "server"
+			Memory                          name( ) const;                          // "server.region" -> "region"
 
-            bool                            isArrayItem( ) const;                   // i.e. matches ".+[.+]"
-            Memory                          arrayName( ) const;                     // "server.region[west] -> "server.region"
-            Memory                          arrayItemID( ) const;                   // "server.region[west] -> "west"
+			bool                            hasParent( ) const;                     // i.e. matches ".*\..*"
+			Key                             parent( ) const;                        // "server.region" -> "server"
 
-            bool                            isChild( Memory key ) const;
-            bool                            isChildOrSame( Memory key ) const;
-            Memory                          childName( Memory childKey ) const;     // e.g. <parentKey>.<childName>
+			bool                            isArrayItem( ) const;                   // i.e. matches ".+[.+]"
+			Memory                          arrayName( ) const;                     // "server.region[west] -> "server.region"
+			Memory                          arrayItemID( ) const;                   // "server.region[west] -> "west"
 
-            std::string                     path;
-            size_t                          origin;
-        };
+			bool                            isChild( Memory key ) const;
+			bool                            isChildOrSame( Memory key ) const;
+			Memory                          childName( Memory childKey ) const;     // e.g. <parentKey>.<childName>
 
+			std::string                     path;
+			size_t                          origin;
+		};
 
 
-        //template<class key_t, class value_t>
-        class Object
-        {
-        public:
-                                            Object( );
-                                            Object( Object && move );
-                                            Object( const Object & copy );
-
-            typedef Object                  Self;                   // returned reference to itself
-            typedef Object                  View;                   // returned object is a reference to another Object
-            typedef Object                  ClipView;               // returned object is a clipped reference to another Object
 
-            Self &                          reset( );               // resets the object's reference & data
-            
-            bool                            isEmpty( ) const;       // this key has no value and has no subkey with a value
-            bool                            notEmpty( ) const;      // this key has a value or a subkey with a value
-            bool                            hasChild( ) const;      // this key has at least one child key which is not empty
-
-            const Key &                     key( ) const;
-            Memory                          value( ) const;
-                                            operator Memory( ) const;
-
-            Self &                          assign( Memory value );
-            Self &                          operator=( Memory value );
+		//template<class key_t, class value_t>
+		class Object
+		{
+		public:
+			Object( );
+			Object( Object && move );
+			Object( const Object & copy );
 
-            Self &                          assign( const Object & object );
-            Self &                          operator=( const Object & object );
+			typedef Object                  Self;                   // returned reference to itself
+			typedef Object                  View;                   // returned object is a reference to another Object
+			typedef Object                  ClipView;               // returned object is a clipped reference to another Object
 
-            Self &                          append( const Object & object );
-            Self &                          operator+=( const Object & object );
+			Self & reset( );               // resets the object's reference & data
 
-            Self &                          clear( );               // removes all values at this key and any subkey
-            Self &                          erase( );               // performs clear( ) and sets this key as "nulled"
+			bool                            isEmpty( ) const;       // this key has no value and has no subkey with a value
+			bool                            notEmpty( ) const;      // this key has a value or a subkey with a value
+			bool                            hasChild( ) const;      // this key has at least one child key which is not empty
 
-            View                            at( Memory childName );
-            const View                      at( Memory childName ) const;
-            View                            operator[]( Memory childName );
-            const View                      operator[]( Memory childName ) const;
-            
-            View                            parent( ) const;
-            View                            root( ) const;
+			const Key & key( ) const;
+			Memory                          value( ) const;
+			operator Memory( ) const;
 
-            ClipView                        clip( );                // clipped view of object
-            const ClipView                  clip( ) const;
-            
-            Object                          copy( ) const;          // deep copy at key
+			Self & assign( Memory value );
+			Self & operator=( Memory value );
 
-            class Array;
-            Array                           array( ) const;
+			Self & assign( const Object & object );
+			Self & operator=( const Object & object );
 
-            bool                            isView( ) const;        // returns true if this object refers to another's data
-            bool                            isNulled( ) const;      // returns true if this object (or its parent) was erased
+			Self & append( const Object & object );
+			Self & operator+=( const Object & object );
 
-            class List;
-            const List                      listSubkeys( ) const;
-            const List                      listValues( ) const;
-            const List                      listChildren( ) const;
-            const List                      listArrayItems( ) const;
+			Self & clear( );               // removes all values at this key and any subkey
+			Self & erase( );               // performs clear( ) and sets this key as "nulled"
 
-            enum class EncodeRow 
-                { Object, Child, Leaf, Value };
+			View                            at( Memory childName );
+			const View                      at( Memory childName ) const;
+			View                            operator[]( Memory childName );
+			const View                      operator[]( Memory childName ) const;
 
-            String                          encode( EncodeRow rowEncoding = EncodeRow::Leaf ) const;
-            String                          encodeRaw( EncodeRow rowEncoding = EncodeRow::Leaf ) const;
+			View                            parent( ) const;
+			View                            root( ) const;
 
-        private:
-            Object( const Object * copy, Key key );
+			ClipView                        clip( );                // clipped view of object
+			const ClipView                  clip( ) const;
 
-            void verifyArraysOnAdd( Memory fullKey );
-            void verifyArraysOnRemove( Memory fullKey );
+			Object                          copy( ) const;          // deep copy at key
 
-            Object getChild( Memory rootKey, Memory childKey ) const;
-            Object getArrayItem( Memory rootKey, Memory arrayKey ) const;
+			class Array;
+			Array                           array( ) const;
 
-            typedef String value_t;
-            typedef std::map<String, value_t> map_t;
-            typedef map_t::const_iterator iterator_t;
-            typedef std::set<String> set_t;
-            typedef std::map<String, cpp::IndexedSet<String>> arraymap_t;
+			bool                            isView( ) const;        // returns true if this object refers to another's data
+			bool                            isNulled( ) const;      // returns true if this object (or its parent) was erased
 
-            friend class Array;
-            friend class List;
+			class List;
+			const List                      listSubkeys( ) const;
+			const List                      listValues( ) const;
+			const List                      listChildren( ) const;
+			const List                      listArrayItems( ) const;
 
-            iterator_t firstKeyAt( Memory key ) const;
-            iterator_t firstSubkeyAt( Memory key ) const;
-            iterator_t nextKeyAt( Memory key, iterator_t itr ) const;
-            iterator_t findKeyAt( Memory key, iterator_t itr ) const;
+			enum class EncodeRow
+			{
+				Object, Child, Leaf, Value
+			};
 
-            iterator_t firstValueAt( Memory key ) const;
-            iterator_t nextValueAt( Memory key, iterator_t itr ) const;
-            iterator_t findValueAt( Memory key, iterator_t itr ) const;
+			String                          encode( EncodeRow rowEncoding = EncodeRow::Leaf ) const;
+			String                          encodeRaw( EncodeRow rowEncoding = EncodeRow::Leaf ) const;
 
-            iterator_t firstChildAt( Memory key ) const;
-            iterator_t nextChildAt( Memory key, iterator_t itr ) const;
-            iterator_t findChildAt( Memory key, iterator_t itr ) const;
+		private:
+			Object( const Object * copy, Key key );
 
-            bool hasKeyWithValueAt( Memory rootKey ) const;
-            
-        private:
-            struct Detail
-            {
-                map_t keys;             // keys and values
-                set_t nulled;           // nulled keys
-                arraymap_t records;     // ordered records
-            };
-            std::unique_ptr<Detail> m_detail;
-            Detail * m_data;
-            Key m_key;
-        };
+			void verifyArraysOnAdd( Memory fullKey );
+			void verifyArraysOnRemove( Memory fullKey );
 
+			Object getChild( Memory rootKey, Memory childKey ) const;
+			Object getArrayItem( Memory rootKey, Memory arrayKey ) const;
 
+			typedef String value_t;
+			typedef std::map<String, value_t> map_t;
+			typedef map_t::const_iterator iterator_t;
+			typedef std::set<String> set_t;
+			typedef std::map<String, cpp::IndexedSet<String>> arraymap_t;
 
-        class Object::Array
-        {
-        public:
-            bool                            isEmpty( ) const;
-            bool                            notEmpty( ) const;
-            size_t                          size( ) const;
-
-            View                            atIndex( size_t index ) const;
-            View                            at( String itemID ) const;
-
-            View                            append( );
-            View                            append( String itemID );
-
-            View                            insertAt( size_t index );
-            View                            insertAt( size_t index, String itemID );
-
-            void                            erase( String itemID );
-            void                            eraseAt( size_t index );
-
-        private:
-            friend class Object;
-                                            Array( Object * object );
-            Object *                        m_object;
-        };
-
-
-
-        class Object::List
-        {
-        public:
-            static List ofKeys( Object object );
-            static List ofValues( Object object );
-            static List ofChildren( Object object );
-
-            class iterator;
-
-            iterator begin( ) const;
-            iterator end( ) const;
-
-            std::vector<Object> get( ) const;
-
-        private:
-            enum Type { AllKeys, Value, Child };
-            friend class iterator;
-
-            List( Type type, Object object );
-
-        private:
-            Type m_type;
-            Object m_object;
-        };
-
-
-
-        class Object::List::iterator
-        {
-        public:
-            iterator( List * list, Object::iterator_t itr );
-
-            Object operator*( );
-            const Object operator*( ) const;
-            bool operator==( iterator & iter ) const;
-            bool operator!=( iterator & iter ) const;
-            iterator & operator++( );
-
-        private:
-            Type type( ) const;
-            Object & object( ) const;
-            Memory key( ) const;
-            Object * objectptr( ) const;
-
-        private:
-            List * m_list;
-            Object::iterator_t m_itr;
-        };
-
-
-        class Decoder
-        {
-        public:
-            class Exception;
-            enum class Error
-                { Null, IncompleteData, ExpectedKey, ExpectedAssignment, ExpectedValue, ExpectedValueOrValueSpec, ExpectedValueSpec, InvalidValueSpec, ExpectedValueDelimiter, ExpectedTokenDelimiter };
-
-            Error decode( DataBuffer & buffer );
-
-            bool hasResult( ) const;
-            Object & data( );
-
-            Memory line( ) const;
-            Memory comment( );
-
-            bool hasError( ) const;
-            Error error( ) const;
-            size_t errorPos( ) const;
-            
-        private:
-            bool step( DataBuffer & buffer );
-            void onBOL( uint8_t byte, DataBuffer & buffer );
-            void onPreToken( uint8_t byte, DataBuffer & buffer );
-            void onToken( uint8_t byte, DataBuffer & buffer );
-            void onPostToken( uint8_t byte, DataBuffer & buffer );
-            void onPreValue( uint8_t byte, DataBuffer & buffer );
-            void onNullValue( uint8_t byte, DataBuffer & buffer );
-            void onValueSpec( uint8_t byte, DataBuffer & buffer );
-            void onFastValue( DataBuffer & buffer );
-            void onValue( uint8_t byte, DataBuffer & buffer );
-            void onPostValue( uint8_t byte, DataBuffer & buffer );
-            void onComment( uint8_t byte, DataBuffer & buffer );
-            void onError( uint8_t byte, DataBuffer & buffer );
-
-            void reset( );
-            void completeLineBuffer( DataBuffer & buffer );
-            void maybeCopyBuffer( DataBuffer & buffer );
-            void copyBuffer( DataBuffer & buffer );
-            Memory line( DataBuffer & buffer );
-
-            size_t pos( );
-            uint8_t getch( DataBuffer & buffer );
-            Memory token( DataBuffer & buffer );
-            Memory record( DataBuffer & buffer );
-            Memory key( DataBuffer & buffer );
-            Memory valueSpec( DataBuffer & buffer );
-            Memory value( DataBuffer & buffer );
-            Memory comment( DataBuffer & buffer );
-
-        private:
-            enum class State 
-                { BOL, PreToken, Token, PostToken, PreValue, NullValue, ValueSpec, Value, PostValue, Comment, Error, EOL};
-            
-            State m_state = State::BOL;
-            size_t m_pos = 0;
-            size_t m_tokenBegin = Memory::npos;
-            size_t m_tokenEnd = Memory::npos;
-            size_t m_commentPos = Memory::npos;
-            size_t m_errorPos = Memory::npos;
-            Error m_error = Error::Null;
-            bool m_escaped = false;
-            String m_line;
-            String m_value;
-            size_t m_valueBegin = Memory::npos;
-            size_t m_valueEnd = Memory::npos;
-            size_t m_valueSpecBegin = Memory::npos;
-            size_t m_valueSpecEnd = Memory::npos;
-            size_t m_keyBegin = Memory::npos;
-            size_t m_keyEnd = Memory::npos;
-            size_t m_recordBegin = Memory::npos;
-            size_t m_recordEnd = Memory::npos;
-            bool m_hasResult = false;
-            Object m_result;
-        };
-
-
-        class Decoder::Exception
-            : public cpp::DecodeException
-        {
-        public:
-            Exception( const Decoder & decoder );
-
-            String line( );
-            Error error( );
-            size_t errorPos( );
-
-        private:
-            String m_line;
-            Decoder::Error m_error;
-            size_t m_errorPos;
-        };
-
-
-        inline Object::List::List( Object::List::Type type, Object object )
-            : m_type( type ), m_object( std::move( object ) ) { }
-
-        inline Object::List Object::List::ofKeys( Object object )
-            { return List{ Type::AllKeys, std::move( object ) }; }
-
-        inline Object::List Object::List::ofValues( Object object )
-            { return List{ Type::Value, std::move( object ) }; }
-
-        inline Object::List Object::List::ofChildren( Object object )
-            { return List{ Type::Child, std::move( object ) }; }
-
-        inline Object::List::iterator Object::List::end( ) const
-            { return iterator{ (List *)this, m_object.m_data->keys.end() }; }
-
-        inline std::vector<Object> Object::List::get( ) const
-        { 
-            std::vector<Object> result;
-            for ( auto & object : *this )
-            {
-                result.push_back( object );
-            }
-            return result;
-        }
+			friend class Array;
+			friend class List;
 
+			iterator_t firstKeyAt( Memory key ) const;
+			iterator_t firstSubkeyAt( Memory key ) const;
+			iterator_t nextKeyAt( Memory key, iterator_t itr ) const;
+			iterator_t findKeyAt( Memory key, iterator_t itr ) const;
 
+			iterator_t firstValueAt( Memory key ) const;
+			iterator_t nextValueAt( Memory key, iterator_t itr ) const;
+			iterator_t findValueAt( Memory key, iterator_t itr ) const;
+
+			iterator_t firstChildAt( Memory key ) const;
+			iterator_t nextChildAt( Memory key, iterator_t itr ) const;
+			iterator_t findChildAt( Memory key, iterator_t itr ) const;
+
+			bool hasKeyWithValueAt( Memory rootKey ) const;
+
+		private:
+			struct Detail
+			{
+				map_t keys;             // keys and values
+				set_t nulled;           // nulled keys
+				arraymap_t records;     // ordered records
+			};
+			std::unique_ptr<Detail> m_detail;
+			Detail * m_data;
+			Key m_key;
+		};
+
+
+
+		class Object::Array
+		{
+		public:
+			bool                            isEmpty( ) const;
+			bool                            notEmpty( ) const;
+			size_t                          size( ) const;
+
+			View                            atIndex( size_t index ) const;
+			View                            at( String itemID ) const;
+
+			View                            append( );
+			View                            append( String itemID );
+
+			View                            insertAt( size_t index );
+			View                            insertAt( size_t index, String itemID );
+
+			void                            erase( String itemID );
+			void                            eraseAt( size_t index );
+
+		private:
+			friend class Object;
+			Array( Object * object );
+			Object * m_object;
+		};
+
+
+
+		class Object::List
+		{
+		public:
+			static List ofKeys( Object object );
+			static List ofValues( Object object );
+			static List ofChildren( Object object );
+
+			class iterator;
+
+			iterator begin( ) const;
+			iterator end( ) const;
+
+			std::vector<Object> get( ) const;
+
+		private:
+			enum Type { AllKeys, Value, Child };
+			friend class iterator;
+
+			List( Type type, Object object );
+
+		private:
+			Type m_type;
+			Object m_object;
+		};
+
+
+
+		class Object::List::iterator
+		{
+		public:
+			iterator( List * list, Object::iterator_t itr );
+
+			Object operator*( );
+			const Object operator*( ) const;
+			bool operator==( iterator & iter ) const;
+			bool operator!=( iterator & iter ) const;
+			iterator & operator++( );
+
+		private:
+			Type type( ) const;
+			Object & object( ) const;
+			Memory key( ) const;
+			Object * objectptr( ) const;
+
+		private:
+			List * m_list;
+			Object::iterator_t m_itr;
+		};
+
+
+		class Decoder
+		{
+		public:
+			class Exception;
+			enum class Error
+			{
+				Null, IncompleteData, ExpectedKey, ExpectedAssignment, ExpectedValue, ExpectedValueOrValueSpec, ExpectedValueSpec, InvalidValueSpec, ExpectedValueDelimiter, ExpectedTokenDelimiter
+			};
+
+			Error decode( DataBuffer & buffer );
+
+			bool hasResult( ) const;
+			Object & data( );
+
+			Memory line( ) const;
+			Memory comment( );
+
+			bool hasError( ) const;
+			Error error( ) const;
+			size_t errorPos( ) const;
+
+		private:
+			bool step( DataBuffer & buffer );
+			void onBOL( uint8_t byte, DataBuffer & buffer );
+			void onPreToken( uint8_t byte, DataBuffer & buffer );
+			void onToken( uint8_t byte, DataBuffer & buffer );
+			void onPostToken( uint8_t byte, DataBuffer & buffer );
+			void onPreValue( uint8_t byte, DataBuffer & buffer );
+			void onNullValue( uint8_t byte, DataBuffer & buffer );
+			void onValueSpec( uint8_t byte, DataBuffer & buffer );
+			void onFastValue( DataBuffer & buffer );
+			void onValue( uint8_t byte, DataBuffer & buffer );
+			void onPostValue( uint8_t byte, DataBuffer & buffer );
+			void onComment( uint8_t byte, DataBuffer & buffer );
+			void onError( uint8_t byte, DataBuffer & buffer );
+
+			void reset( );
+			void completeLineBuffer( DataBuffer & buffer );
+			void maybeCopyBuffer( DataBuffer & buffer );
+			void copyBuffer( DataBuffer & buffer );
+			Memory line( DataBuffer & buffer );
+
+			size_t pos( );
+			uint8_t getch( DataBuffer & buffer );
+			Memory token( DataBuffer & buffer );
+			Memory record( DataBuffer & buffer );
+			Memory key( DataBuffer & buffer );
+			Memory valueSpec( DataBuffer & buffer );
+			Memory value( DataBuffer & buffer );
+			Memory comment( DataBuffer & buffer );
+
+		private:
+			enum class State
+			{
+				BOL, PreToken, Token, PostToken, PreValue, NullValue, ValueSpec, Value, PostValue, Comment, Error, EOL
+			};
+
+			State m_state = State::BOL;
+			size_t m_pos = 0;
+			size_t m_tokenBegin = Memory::npos;
+			size_t m_tokenEnd = Memory::npos;
+			size_t m_commentPos = Memory::npos;
+			size_t m_errorPos = Memory::npos;
+			Error m_error = Error::Null;
+			bool m_escaped = false;
+			String m_line;
+			String m_value;
+			size_t m_valueBegin = Memory::npos;
+			size_t m_valueEnd = Memory::npos;
+			size_t m_valueSpecBegin = Memory::npos;
+			size_t m_valueSpecEnd = Memory::npos;
+			size_t m_keyBegin = Memory::npos;
+			size_t m_keyEnd = Memory::npos;
+			size_t m_recordBegin = Memory::npos;
+			size_t m_recordEnd = Memory::npos;
+			bool m_hasResult = false;
+			Object m_result;
+		};
+
+
+		class Decoder::Exception
+			: public cpp::DecodeException
+		{
+		public:
+			Exception( const Decoder & decoder );
+
+			String line( );
+			Error error( );
+			size_t errorPos( );
+
+		private:
+			String m_line;
+			Decoder::Error m_error;
+			size_t m_errorPos;
+		};
+
+
+		inline Object::List::List( Object::List::Type type, Object object )
+			: m_type( type ), m_object( std::move( object ) ) { }
+
+		inline Object::List Object::List::ofKeys( Object object )
+		{
+			return List{ Type::AllKeys, std::move( object ) };
+		}
+
+		inline Object::List Object::List::ofValues( Object object )
+		{
+			return List{ Type::Value, std::move( object ) };
+		}
+
+		inline Object::List Object::List::ofChildren( Object object )
+		{
+			return List{ Type::Child, std::move( object ) };
+		}
+
+		inline Object::List::iterator Object::List::end( ) const
+		{
+			return iterator{ (List *)this, m_object.m_data->keys.end( ) };
+		}
+
+		inline std::vector<Object> Object::List::get( ) const
+		{
+			std::vector<Object> result;
+			for ( auto & object : *this )
+			{
+				result.push_back( object );
+			}
+			return result;
+		}
+
+	}
+
+	String toString( bit::Decoder::Error error );
+
+	namespace bit
+	{
 
         inline Object::List::iterator::iterator( List * list, Object::iterator_t itr )
             : m_list( list ), m_itr( itr ) { }
@@ -429,10 +448,8 @@ namespace cpp
         inline Object * Object::List::iterator::objectptr( ) const
             { return ( Object * )&( object( ) ); }
 
-
-
         inline Decoder::Exception::Exception( const Decoder & decoder )
-            : cpp::DecodeException( String::format( "bit::Decoder::Exception - %", decoder.error( ) ) ), m_line( decoder.line( ) ), m_error( decoder.error( ) ), m_errorPos( decoder.errorPos( ) ) { }
+			: cpp::DecodeException( String::format( "bit::Decoder::Exception - %", cpp::toString( decoder.error( ) ) ) ), m_line( decoder.line( ) ), m_error( decoder.error( ) ), m_errorPos( decoder.errorPos( ) ) { }
 
         inline String Decoder::Exception::line( )
             { return m_line; }
@@ -445,9 +462,4 @@ namespace cpp
 
     }
 
-}
-
-namespace cpp
-{
-    const char * toString( bit::Decoder::Error error );
 }

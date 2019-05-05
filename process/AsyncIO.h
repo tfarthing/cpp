@@ -124,18 +124,18 @@ namespace cpp
 	}
 
 
-	size_t AsyncIO::poll( )
+	inline size_t AsyncIO::poll( )
 	{
 		return io->poll( );
 	}
 
 
-	size_t AsyncIO::runOne( )
+	inline size_t AsyncIO::runOne( )
 	{
 		return io->run_one( );
 	}
 
-	size_t AsyncIO::runOne( Duration timeout )
+	inline size_t AsyncIO::runOne( Duration timeout )
 	{
 		if ( timeout.isInfinite( ) )
 			{ return runOne( ); }
@@ -145,7 +145,7 @@ namespace cpp
 			{ return runOne( Time::now( ) + timeout ); }
 	}
 
-	size_t AsyncIO::runOne( Time timeout )
+	inline size_t AsyncIO::runOne( Time timeout )
 	{
 		if ( timeout < Time::now( ) )
 			{ return poll( ); }

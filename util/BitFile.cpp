@@ -26,7 +26,7 @@ namespace cpp::bit
 
     const Object & File::data( ) const
     {
-        m_data;
+        return m_data;
     }
 
 
@@ -44,7 +44,7 @@ namespace cpp::bit
 
     void File::reload( )
     {
-        assert( !m_filename.empty() );
+        assert( !m_filename.isEmpty( ) );
         
         m_file.seek( 0 );
         m_data.reset( );

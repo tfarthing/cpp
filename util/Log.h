@@ -2,28 +2,30 @@
 
 #include <set>
 
-#include "../data/String.h"
-#include "../time/Duration.h"
-#include "../time/DateTime.h"
-#include "../process/Thread.h"
-#include "../file/Files.h"
+#include "../../cpp/data/Memory.h"
+#include "../../cpp/time/Duration.h"
+#include "../../cpp/time/DateTime.h"
+#include "../../cpp/process/Thread.h"
+#include "../../cpp/process/Program.h"
+#include "../../cpp/file/Files.h"
+#include "../../cpp/file/FilePath.h"
+#include "../../cpp/file/SyncFile.h"
+
+
 
 namespace cpp
 {
 
     enum class LogLevel
-        { Null, Emerg, Alert, Crit, Error, Warning, Notice, Info, Debug };
+        { Alert, Error, Warning, Notice, Info, Debug, None };
 
-    const char * toString( LogLevel logLevel );
-    LogLevel parseLogLevel( const Memory & text );
-
-    struct LogFilter
-    { 
-        using ptr_t = std::shared_ptr<LogFilter>;
-        virtual ~LogFilter( ) { }
-        virtual void log( DateTime time, LogLevel level, const String & category, const String & message ) = 0; 
-        virtual void flush( ) { } 
-    };
+	void log( std::string message );
+	void log( LogLevel level, std::string message );
+	template<typename... Params> void log( const Memory & fmt, Params... parameters );
+	template<typename... Params> void log( LogLevel level, const Memory & fmt, Params... parameters );
+	
+	void debug( std::string message );
+	template<typename... Params> void debug( const Memory & fmt, Params... parameters );
 
     class Logger
     {
@@ -31,63 +33,75 @@ namespace cpp
         Logger( );
         ~Logger( );
 
-        void log( LogLevel level, String category, String message );
+		typedef std::function<void( DateTime time, LogLevel level, const std::string & message )> handler_t;
+
+		void setConsole( LogLevel level );
+		void setDebug( LogLevel level );
+		void setFile( LogLevel level );
+		void setFile( LogLevel level, std::string filename, std::function<void( FilePath )> onArchive );
+		void setHandler( LogLevel level, handler_t handler );
+
+        void log( LogLevel level, std::string message );
         void flush( );
         void close( );
-
-        void addFilter( LogFilter::ptr_t filter );
-        void removeFilter( const LogFilter::ptr_t & filter );
-
-        static void addDebug( LogLevel level = LogLevel::Debug );
-        static void addStdout( LogLevel level = LogLevel::Info );
-        static void addFile( FilePath dir, String name = "", String ext = "log.txt", LogLevel level = LogLevel::Info );
 
     private:
         struct Entry
         {
-            Entry( DateTime time, LogLevel level, String category, String message )
-                : m_time( time ), m_level( level ), m_category( std::move( category ) ), m_message( message ) { }
-            
-            DateTime m_time;
-            LogLevel m_level;
-            String m_category;
-            String m_message;
+            DateTime time;
+            LogLevel level;
+			std::string message;
         };
     private:
         void fn( );
 
-        void filter( Duration timeout );
-        std::vector<Entry> dequeue(Duration timeout);
+		void openFile( );
+        std::vector<Entry> dequeue( );
     private:
-        std::atomic_bool m_running;
-        std::set<LogFilter::ptr_t> m_filters;
-        std::vector<Entry> m_queue;
-        Mutex m_mutex;
+		LogLevel m_consoleLevel = LogLevel::None;
+		LogLevel m_debugLevel = LogLevel::None;
+		LogLevel m_fileLevel = LogLevel::None;
+		LogLevel m_handlerLevel = LogLevel::None;
+		handler_t m_handler;
+
+		SyncFile m_file;
+		std::string m_filename;
+		FilePath m_filepath;
+		DateTime m_archiveTime;
+		std::function<void( FilePath )> m_archiveHandler;
+        
+		std::vector<Entry> m_queue;
         Thread m_thread;
-    };
+		Mutex m_mutex;
+	};
 
-    Logger & logger();
 
-    inline void xlog( LogLevel level, String category, String message )
+
+	const char * encodeLogLevel( LogLevel logLevel );
+
+
+	LogLevel decodeLogLevel( const Memory & text );
+
+
+
+    inline void log( std::string message )
     {
-        logger( ).log( level, std::move( category ), std::move( message ) );
+        log( LogLevel::Info, std::move( message ) );
     }
 
-    inline void log( String message )
+
+    inline void log( LogLevel level, std::string message )
     {
-        xlog( LogLevel::Info, "", std::move( message ) );
+		cpp::Program::logger( ).log( level, std::move( message ) );
     }
 
-    inline void log( LogLevel level, String message )
-    {
-        xlog( level, "", std::move( message ) );
-    }
-
+	
     template<typename... Params> 
     void log( const Memory & fmt, Params... parameters )
     {
         log( String::format( fmt, parameters... ) );
     }
+
 
     template<typename... Params> 
     void log( LogLevel level, const Memory & fmt, Params... parameters )
@@ -95,19 +109,14 @@ namespace cpp
         log( level, String::format( fmt, parameters... ) );
     }
 
-    inline void xdebug( String category, String message )
+
+    inline void debug( std::string message )
     {
 #ifdef _DEBUG
-        xlog( LogLevel::Debug, std::move( category ), std::move( message ) );
+		log( LogLevel::Debug, std::move( message ) );
 #endif
     }
 
-    inline void debug( String message )
-    {
-#ifdef _DEBUG
-        xlog( LogLevel::Debug, "", std::move( message ) );
-#endif
-    }
 
     template<typename... Params> 
     void debug( const Memory & fmt, Params... parameters )

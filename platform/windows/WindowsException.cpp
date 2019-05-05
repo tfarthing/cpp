@@ -28,7 +28,7 @@ namespace cpp
 				(LPTSTR)text.c_str( ), (DWORD)text.size( ), NULL ) );
 			if ( text.size( ) == 0 )
 			{
-				return String::format( "error code: % (%)", (uint32_t)error, Integer::toHex( error, 8 ) );
+				return cpp::format( "error code: % (%)", (uint32_t)error, Integer::toHex( error, 8 ) );
 			}
 			return toUtf8( text );
 		}
@@ -46,7 +46,7 @@ namespace cpp
 			}
 
 			// Not a Win32 HRESULT so return a generic error code.
-			return String::format( "hresult(%)", Integer::toHex( hresult, 8 ) );
+			return cpp::format( "hresult(%)", Integer::toHex( hresult, 8 ) );
 		}
 
 	}

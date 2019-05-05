@@ -128,9 +128,6 @@
     <ClInclude Include="util\Log.h">
       <Filter>util</Filter>
     </ClInclude>
-    <ClInclude Include="util\LogFilter.h">
-      <Filter>util</Filter>
-    </ClInclude>
     <ClInclude Include="file\MemoryFile.h">
       <Filter>file</Filter>
     </ClInclude>
@@ -288,9 +285,6 @@
       <Filter>data</Filter>
     </ClCompile>
     <ClCompile Include="util\Log.cpp">
-      <Filter>util</Filter>
-    </ClCompile>
-    <ClCompile Include="util\LogFilter.cpp">
       <Filter>util</Filter>
     </ClCompile>
     <ClCompile Include="file\MemoryFile.cpp">

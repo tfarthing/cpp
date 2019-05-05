@@ -4,6 +4,7 @@
 #include "../../cpp/file/FilePath.h"
 #include "../../cpp/process/Program.h"
 #include "../../cpp/process/Random.h"
+#include "../../cpp/text/Utf16.h"
 
 
 
@@ -13,13 +14,13 @@ namespace cpp
 
 	FilePath FilePath::currentPath( )
 	{
-		return std::filesystem::current_path( );
+		return FilePath{ std::filesystem::current_path( ) };
 	}
 
 
 	FilePath FilePath::tempPath( )
 	{
-		return std::filesystem::temp_directory_path( );
+		return FilePath{ std::filesystem::temp_directory_path( ) };
 	}
 
 
@@ -30,7 +31,7 @@ namespace cpp
 		do
 		{
 			uint32_t rnd = (uint32_t)Program::rng( ).rand( );
-			path = tempPath( ) / String::format( "%%.%", prefix, Integer::toHex( rnd ), ext );
+			path = tempPath( ) / cpp::format( "%%.%", prefix, Integer::toHex( rnd ), ext );
 		} while ( Files::exists( path ) );
 
 		return path;
@@ -39,21 +40,24 @@ namespace cpp
 
 	FilePath::FilePath( )
 	{
+	}
 
+
+	FilePath::FilePath( Memory path )
+		: m_path( path )
+	{
 	}
 
 
 	FilePath::FilePath( std::string path )
 		: m_path( std::move( path ) )
 	{
-
 	}
 
 
 	FilePath::FilePath( const std::filesystem::path & path )
 		: m_path( path.generic_string( ) )
 	{
-
 	}
 
 
@@ -64,7 +68,7 @@ namespace cpp
 	}
 
 
-	FilePath::FilePath( FilePath && move )
+	FilePath::FilePath( FilePath && move ) noexcept
 		: m_path( std::move( move.m_path) )
 	{
 
@@ -175,7 +179,21 @@ namespace cpp
 	}
 
 
+	FilePath & FilePath::append( const FilePath & path )
+	{
+		m_path += '/';
+		m_path.append( path );
+		return *this;
+	}
+
+
 	FilePath & FilePath::operator/=( Memory path )
+	{
+		return append( path );
+	}
+
+
+	FilePath & FilePath::operator/=( const FilePath & path )
 	{
 		return append( path );
 	}
@@ -188,7 +206,20 @@ namespace cpp
 	}
 
 
+	FilePath & FilePath::concat( const FilePath & path )
+	{
+		m_path.append( path.m_path );
+		return *this;
+	}
+
+
 	FilePath & FilePath::operator+=( Memory path )
+	{
+		return concat( path );
+	}
+
+
+	FilePath & FilePath::operator+=( const FilePath & path )
 	{
 		return concat( path );
 	}
@@ -264,12 +295,25 @@ namespace cpp
 		if ( !nativeSeperator )
 			{ return m_path; }
 
-		String path = m_path;
-		path.replaceAll( "/", "\\" );
-		return path;
+		return Memory{ m_path }.replaceAll( "/", "\\" );
+	}
+
+
+	const wchar_t * FilePath::toWindows( std::wstring & buffer ) const
+	{
+		buffer = toUtf16( toString( true ) );
+		return buffer.c_str( );
 	}
 
 }
+
+
+cpp::FilePath operator/( const cpp::FilePath & lhs, cpp::Memory rhs )
+{
+	cpp::FilePath result = lhs;
+	return result /= rhs;
+}
+
 
 cpp::FilePath operator/( const cpp::FilePath & lhs, const cpp::FilePath & rhs )
 {

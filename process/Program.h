@@ -2,6 +2,10 @@
 
 #include <random>
 #include <memory>
+#include <string>
+#include <vector>
+
+#include <../../cpp/data/Memory.h>
 
 
 
@@ -20,8 +24,10 @@ namespace cpp
     class Program
     {
     public:
+		typedef std::vector<std::string> StringArray_t;
+
 											Program( );
-											Program( const String::Array & args );
+											Program( const StringArray_t & args );
 											Program( const wchar_t * cmdline );
 											Program( int argc, const char ** argv );
 											Program( int argc, const wchar_t ** argv );
@@ -43,8 +49,8 @@ namespace cpp
     protected:
         void								initArgs( int argc, const wchar_t ** argv );
         void								initArgs( int argc, const char ** argv );
-        void								initArgs( const String & cmdline );
-        void								initArgs( const String::Array & arguments );
+        void								initArgs( const std::string & cmdline );
+        void								initArgs( const StringArray_t & arguments );
         void								init( );
 
     protected:
@@ -62,13 +68,13 @@ namespace cpp
     };
 
 
-    Program & Program::instance( )
+	inline Program & Program::instance( )
     {
 		return threadProgram.empty( ) ? *globalProgram : *threadProgram.back( );
     }
 
 
-    void Program::addInstance( Program * instance )
+	inline void Program::addInstance( Program * instance )
     {
         if ( !globalProgram )
         {
@@ -78,7 +84,7 @@ namespace cpp
     }
 
 
-    void Program::removeInstance( Program * instance )
+	inline void Program::removeInstance( Program * instance )
     {
         if ( globalProgram == instance )
         {

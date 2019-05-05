@@ -107,9 +107,9 @@ namespace cpp
                     if ( result == ERROR_FILE_NOT_FOUND )
                         { size = 0; }
                     else if ( result == ERROR_MORE_DATA )
-                        { throw cpp::Exception( String::format( "RegGetValue() failed for key [%], value is too large [% bytes]", name, (uint32_t)size) ); }
+                        { throw cpp::Exception( cpp::format( "RegGetValue() failed for key [%], value is too large [% bytes]", name, (uint32_t)size) ); }
                     else if ( result != ERROR_SUCCESS )
-                        { throw cpp::Exception( String::format( "RegGetValue() failed for key [%]", name ) ); }
+                        { throw cpp::Exception( cpp::format( "RegGetValue() failed for key [%]", name ) ); }
                     
                     buffer.resize( size ? size/sizeof(wchar_t) - 1 : 0 );
                     return toUtf8( buffer );

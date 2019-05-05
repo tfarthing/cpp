@@ -2,7 +2,8 @@
 
 #include "../../../cpp/process/Platform.h"
 #include "../../../cpp/file/Files.h"
-#include "../../../cpp/data/String.h"
+#include "../../../cpp/file/FilePath.h"
+#include "../../../cpp/data/DataArray.h"
 
 #include <Shellapi.h>
 #include <Shlobj.h>
@@ -39,8 +40,8 @@ namespace cpp
             void setAppPath( FilePath appFile );
             void removeAppPath( FilePath appFile );
 
-            void setOpenWith( FilePath appFile, String appLabel, const String::Array & exts );
-            void removeOpenWith( FilePath appFile, String appLabel, const String::Array & exts );
+            void setOpenWith( FilePath appFile, String appLabel, const StringArray & exts );
+            void removeOpenWith( FilePath appFile, String appLabel, const StringArray & exts );
 
         }
     }

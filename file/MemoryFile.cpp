@@ -1,5 +1,7 @@
 #include "MemoryFile.h"
 
+
+
 namespace cpp
 {
 	struct MemoryFile::Detail
@@ -33,7 +35,7 @@ namespace cpp
 		Share share )
 	{
 		fileHandle = CreateFile(
-			filepath.c_str( ),
+			filepath.toWindows( ),
 			( access != Access::Read ) ? GENERIC_WRITE | GENERIC_READ : GENERIC_READ,
 			( share == Share::AllowWrite ) ? FILE_SHARE_READ | FILE_SHARE_WRITE : FILE_SHARE_READ,
 			NULL,

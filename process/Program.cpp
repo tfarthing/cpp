@@ -3,7 +3,7 @@
 #include <cmath>
 #include "../data/DataMap.h"
 #include "../text/Utf16.h"
-#include "../file/Files.h"
+#include "../file/FilePath.h"
 #include "../util/Log.h"
 #include "../platform/windows/WindowsApp.h"
 #include "AsyncIO.h"
@@ -18,13 +18,13 @@ namespace cpp
 
 	struct Program::Detail
 	{
-		Detail( );
+											Detail( );
 
-		StringMap				args;
-		FilePath				modulePath;
-		Logger					logger;
-		Random					rng;
-		AsyncIO					io;
+		StringMap							args;
+		FilePath							modulePath;
+		Logger								logger;
+		Random								rng;
+		AsyncIO								io;
 	};
 
 	Program::Detail::Detail( )
@@ -42,7 +42,7 @@ namespace cpp
 		: detail( std::make_unique<Detail>( ) ) { init( ); }
 
 
-	Program::Program( const String::Array & args )
+	Program::Program( const StringArray_t & args )
 		: detail( std::make_unique<Detail>( ) ) { initArgs( args ); }
 
 
@@ -66,7 +66,7 @@ namespace cpp
 
 	void Program::initArgs( int argc, const wchar_t ** argv )
 	{
-		String::Array args;
+		StringArray_t args;
 		for ( int i = 0; i < argc; i++ )
 		{
 			args.push_back( cpp::toUtf8( argv[i] ) );
@@ -77,7 +77,7 @@ namespace cpp
 
 	void Program::initArgs( int argc, const char ** argv )
 	{
-		String::Array args;
+		StringArray_t args;
 		for ( int i = 0; i < argc; i++ )
 		{
 			args.push_back( argv[i] );
@@ -86,27 +86,29 @@ namespace cpp
 	}
 
 
-	void Program::initArgs( const String & cmdline )
+	void Program::initArgs( const std::string & cmdline )
 	{
 		detail->args.set( "cmdline", cmdline );
-		String::Array arguments;
+		StringArray_t arguments;
 		if constexpr ( Platform::isWindows( ) )
 		{
-			arguments = windows::App::parseCommandLine( cmdline );
+			for ( auto & arg : windows::App::parseCommandLine( cmdline ) )
+				{ arguments.push_back( arg ); }
 		}
 		initArgs( arguments );
 	}
 
 
-	void Program::initArgs( const String::Array & arguments )
+	void Program::initArgs( const StringArray_t & arguments )
 	{
 		detail->args.set( "argc", Integer::toDecimal( arguments.size( ) ) );
 
 		for ( size_t i = 0; i < arguments.size( ); i++ )
 		{
-			auto parts = arguments[i].split( "=", Memory::WhitespaceList, false );
+			Memory arg = arguments[i];
+			auto parts = arg.split( "=", Memory::WhitespaceList, false );
 			detail->args.set( parts[0], parts.size( ) > 1 ? parts[1] : "" );
-			detail->args.set( String::format( "arg[%]", i ), arguments[i] );
+			detail->args.set( cpp::format( "arg[%]", i ), arguments[i] );
 		}
 
 		init( );

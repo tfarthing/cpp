@@ -27,10 +27,11 @@ namespace cpp
 		static FilePath						tempFile( Memory prefix = "temp", Memory ext = "tmp" );
 
 											FilePath( );
-											FilePath( std::string path );
-											FilePath( const std::filesystem::path & path );
+											FilePath( Memory path );
+											explicit FilePath( std::string path );
+											explicit FilePath( const std::filesystem::path & path );
 											FilePath( const FilePath & copy );
-											FilePath( FilePath && move );
+											FilePath( FilePath && move ) noexcept;
 		
 		bool								isEmpty( ) const;
 		bool								notEmpty( ) const;
@@ -79,6 +80,7 @@ namespace cpp
 											operator std::filesystem::path( ) const;
 											operator std::string( ) const;
 		std::string							toString( bool nativeSeperator = false ) const;
+		const wchar_t *						toWindows( std::wstring & buffer = std::wstring{} ) const;
 
 	private:
 		std::string m_path;
@@ -86,6 +88,7 @@ namespace cpp
 
 }
 
+cpp::FilePath operator/( const cpp::FilePath & lhs, cpp::Memory rhs );
 cpp::FilePath operator/( const cpp::FilePath & lhs, const cpp::FilePath & rhs );
 
 bool operator==( const cpp::FilePath & lhs, const cpp::FilePath & rhs );

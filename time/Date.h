@@ -45,56 +45,56 @@ namespace cpp
     };
 
 
-	Date::Date( const std::tm & time, bool isLocalTime )
+	inline Date::Date( const std::tm & time, bool isLocalTime )
         : m_date( time ), m_isLocalTime( isLocalTime ) { }
 
-    int Date::year() const
+	inline int Date::year() const
         { return m_date.tm_year + 1900; }
     
-	int Date::month() const
+	inline int Date::month() const
         { return m_date.tm_mon + 1; }
     
-	int Date::day() const
+	inline int Date::day() const
         { return m_date.tm_mday; }
     
-	int Date::hour() const
+	inline int Date::hour() const
         { return m_date.tm_hour; }
     
-	int Date::minute() const
+	inline int Date::minute() const
         { return m_date.tm_min; }
     
-	int Date::second() const
+	inline int Date::second() const
         { return m_date.tm_sec; }
     
-	bool Date::isDST() const
+	inline bool Date::isDST() const
         { return m_date.tm_isdst > 0; }
 
-    int Date::dayOfYear() const
+	inline int Date::dayOfYear() const
         { return m_date.tm_yday; }
 
-	Weekday Date::dayOfWeek() const
+	inline Weekday Date::dayOfWeek() const
         { return (Weekday)m_date.tm_wday; }
 
-	bool Date::isLocalTime( ) const
+	inline bool Date::isLocalTime( ) const
 		{ return m_isLocalTime; }
 
-	const std::tm & Date::data( ) const
+	inline const std::tm & Date::data( ) const
 		{ return m_date; }
 
 
-	int Date::fromMonth( Month month )
+	inline int Date::fromMonth( Month month )
 		{ return (int)month; }
 
-	Month Date::toMonth( int monthIndex )
+	inline Month Date::toMonth( int monthIndex )
 	{ 
 		assert( monthIndex >= (int)Month::January && monthIndex <= (int)Month::December );
 		return (Month)monthIndex; 
 	}
 
-	int Date::fromWeekday( Weekday weekday )
+	inline int Date::fromWeekday( Weekday weekday )
 		{ return (int)weekday; }
 
-	Weekday Date::toWeekday( int weekdayIndex )
+	inline Weekday Date::toWeekday( int weekdayIndex )
 	{
 		assert( weekdayIndex >= (int)Weekday::Monday && weekdayIndex <= (int)Weekday::Monday );
 		return (Weekday)weekdayIndex;

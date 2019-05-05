@@ -64,44 +64,44 @@ namespace cpp
 
 
 
-    Output::Output( )
+    inline Output::Output( )
         : m_sink( nullptr ) 
     { 
     }
 
 
-    Output::Output( nullptr_t )
+	inline Output::Output( nullptr_t )
         : m_sink( nullptr ) 
     { 
     }
 
 
-    Output::Output( Sink::ptr_t sink )
+	inline Output::Output( Sink::ptr_t sink )
         : m_sink( std::move( sink ) ) 
     { 
     }
 
 
-    void Output::close( )
+	inline void Output::close( )
     {
         if ( m_sink ) 
             { m_sink->close( ); }
     }
 
 
-    Output::operator bool( ) const
+	inline Output::operator bool( ) const
     {
         return isOpen( );
     }
 
 
-    bool Output::isOpen( ) const
+	inline bool Output::isOpen( ) const
     {
         return m_sink && m_sink->isOpen( );
     }
 
 
-    Memory Output::write( Memory buffer )
+	inline Memory Output::write( Memory buffer )
     {
         std::error_code errorCode;
         buffer = write( buffer, errorCode );
@@ -110,7 +110,7 @@ namespace cpp
     }
 
 
-    Memory Output::write( Memory buffer, std::error_code & errorCode )
+	inline Memory Output::write( Memory buffer, std::error_code & errorCode )
     {
         if ( !m_sink )
             { return Memory::Empty; }
@@ -119,7 +119,7 @@ namespace cpp
     }
 
 
-    void Output::print( Memory string )
+	inline void Output::print( Memory string )
     {
         write( string );
     }
@@ -132,7 +132,7 @@ namespace cpp
     }
 
 
-    void Output::flush( )
+	inline void Output::flush( )
     {
         if ( m_sink ) 
             { m_sink->flush( ); }
@@ -140,7 +140,7 @@ namespace cpp
 
 
 
-    Output::Sink::~Sink( )
+	inline Output::Sink::~Sink( )
     {
         close( );
     }

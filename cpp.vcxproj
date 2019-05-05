@@ -69,7 +69,6 @@
     <ClInclude Include="data\DataMap.h" />
     <ClInclude Include="data\IndexedSet.h" />
     <ClInclude Include="util\Log.h" />
-    <ClInclude Include="util\LogFilter.h" />
     <ClInclude Include="data\Path.h" />
     <ClInclude Include="util\TimeoutSet.h" />
     <ClInclude Include="text\Unicode.h" />
@@ -116,7 +115,6 @@
     <ClCompile Include="data\DataMap.cpp" />
     <ClCompile Include="data\IndexedSet.cpp" />
     <ClCompile Include="util\Log.cpp" />
-    <ClCompile Include="util\LogFilter.cpp" />
     <ClCompile Include="data\Path.cpp" />
     <ClCompile Include="text\Utf16.cpp" />
     <ClCompile Include="text\Utf8.cpp" />

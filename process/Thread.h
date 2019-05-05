@@ -106,15 +106,15 @@ namespace cpp
 	}
 
 
-	Thread::Thread( )
+	inline Thread::Thread( )
 		: m_thread( ), m_info( nullptr ) { }
 
 
-	Thread::Thread( Thread && move )
+	inline Thread::Thread( Thread && move )
 		: m_thread( std::move( move.m_thread ) ), m_info( move.m_info ) { }
 
 
-	Thread & Thread::operator=( Thread && move )
+	inline Thread & Thread::operator=( Thread && move )
 	{
 		reset( );
 
@@ -124,47 +124,47 @@ namespace cpp
 	}
 
 
-	Thread::~Thread( )
+	inline Thread::~Thread( )
 	{
 		reset( );
 	}
 
 
-	bool Thread::isRunning( ) const
+	inline bool Thread::isRunning( ) const
 	{
 		return m_thread.joinable( );
 	}
 
 
-	void Thread::join( )
+	inline void Thread::join( )
 	{
 		if ( isRunning( ) ) 
 			{ m_thread.join( ); } 
 	}
 
 
-	void Thread::interrupt( )
+	inline void Thread::interrupt( )
 	{
 		if ( m_info ) 
 			{ m_info->interrupt( ); }
 	}
 
 
-	void Thread::check( )
+	inline void Thread::check( )
 	{
 		if ( m_info ) 
 			{ m_info->checkException( ); }
 	}
 
 
-	void Thread::detach( )
+	inline void Thread::detach( )
 	{
 		if ( isRunning( ) ) 
 			{ m_thread.detach( ); m_info = nullptr; }
 	}
 
 
-	void Thread::reset( )
+	inline void Thread::reset( )
 	{
 		if ( isRunning( ) )
 		{
@@ -182,31 +182,31 @@ namespace cpp
 	}
 
 
-	Thread::id_t Thread::id( )
+	inline Thread::id_t Thread::id( )
 		{ return std::this_thread::get_id( ); }
 
 
-	void Thread::yield( )
+	inline void Thread::yield( )
 		{ checkInterrupt( ); std::this_thread::yield( ); checkInterrupt( ); }
 
 
-	void Thread::sleep( const Duration & duration )
+	inline void Thread::sleep( const Duration & duration )
 		{ Mutex mutex; auto lock = mutex.lock( ); lock.waitFor( duration ); }
 
 
-	bool Thread::isInterrupted( )
+	inline bool Thread::isInterrupted( )
 		{ return s_info->m_isInterrupted; }
 
 
-	void Thread::checkInterrupt( )
+	inline void Thread::checkInterrupt( )
 		{ s_info->checkInterrupt( ); }
 
 
-	void Thread::clearInterrupt( )
+	inline void Thread::clearInterrupt( )
 		{ s_info->m_isInterrupted = false; }
 
 
-	void Thread::enterWait( std::function<void( )> waitEvent )
+	inline void Thread::enterWait( std::function<void( )> waitEvent )
 	{ 
 		assert( s_info->m_waitEvent == nullptr ); 
 		s_info->m_waitEvent = std::move( waitEvent ); 
@@ -214,7 +214,7 @@ namespace cpp
 	}
 
 
-	void Thread::leaveWait( )
+	inline void Thread::leaveWait( )
 	{
 		assert( s_info->m_waitEvent != nullptr ); 
 		s_info->m_waitEvent = nullptr; 
@@ -222,13 +222,13 @@ namespace cpp
 	}
 
 
-	Thread::Info::Info( )
+	inline Thread::Info::Info( )
 		: m_exception( nullptr ), m_isInterrupted( false ), m_waitEvent( nullptr ) 
 	{ 
 	}
 
 
-	void Thread::Info::interrupt( )
+	inline void Thread::Info::interrupt( )
 	{
 		m_isInterrupted.store( true ); 
 		if ( m_waitEvent ) 
@@ -236,14 +236,14 @@ namespace cpp
 	}
 
 
-	void Thread::Info::checkInterrupt( )
+	inline void Thread::Info::checkInterrupt( )
 	{
 		if ( m_isInterrupted ) 
 			{ m_waitEvent = nullptr; throw InterruptException{ }; }
 	}
 
 
-	void Thread::Info::checkException( )
+	inline void Thread::Info::checkException( )
 	{
 		if ( m_exception ) 
 		{ 

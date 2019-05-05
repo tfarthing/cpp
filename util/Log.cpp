@@ -1,9 +1,9 @@
 #ifndef TEST
 
 #include "../process/Program.h"
-//#include <cpp/io/StandardOutput.h>
+#include "../../cpp/process/Platform.h"
+#include "../../cpp/text/Utf16.h"
 #include "Log.h"
-#include "LogFilter.h"
 
 
 namespace cpp
@@ -13,134 +13,156 @@ namespace cpp
     {
         switch (level)
         {
-        case LogLevel::Emerg:         return "emerg";
-        case LogLevel::Alert:         return "alert";
-        case LogLevel::Crit:          return "crit";
-        case LogLevel::Error:         return "error";
-        case LogLevel::Warning:       return "warning";
-        case LogLevel::Notice:        return "notice";
-        case LogLevel::Info:          return "info";
-        case LogLevel::Debug:         return "debug";
-        default:                      return "null";
+			case LogLevel::Alert:			return "alert";
+			case LogLevel::Error:			return "error";
+			case LogLevel::Warning:			return "warning";
+			case LogLevel::Notice:			return "notice";
+			case LogLevel::Info:			return "info";
+			case LogLevel::Debug:			return "debug";
+			case LogLevel::None:			return "none";
+			default:						
+				assert( false );
+				return "unknown";
         }
     }
+
 
     LogLevel parseLogLevel(const Memory & str)
     {
         const LogLevel levels[] = 
-            { LogLevel::Null, LogLevel::Emerg, LogLevel::Alert, LogLevel::Crit, LogLevel::Error, LogLevel::Warning, LogLevel::Notice, LogLevel::Info, LogLevel::Debug };
+            { LogLevel::Alert, LogLevel::Error, LogLevel::Warning, LogLevel::Notice, LogLevel::Info, LogLevel::Debug, LogLevel::None };
         for (LogLevel level : levels)
         {
             if (str == toString(level))
                 { return level; }
         }
-        return LogLevel::Null;
+        return LogLevel::None;
     }
 
+    
 
-    Logger & logger()
+	Logger::Logger()
+        : m_thread( [=](){ fn(); } ) 
 	{
-		return cpp::program( ).logger( );
 	}
-
-
-    Logger::Logger()
-        : m_running(true), m_thread( [=](){ fn(); } ) { }
 
 
     Logger::~Logger()
     { 
         try
-        {
-            close( );
-        }
+			{ close( ); }
         catch ( cpp::IOException & )
-        {
-            //
-        }
+			{ }
     }
 
-    void Logger::flush( )
-    {
-        auto lock = m_mutex.lock( );
-        while ( !m_queue.empty( ) )
-            { lock.waitFor( cpp::Duration::ofMillis(50) ); }
-        
-        for ( auto & filter : m_filters )
-            { filter->flush(); }
-    }
 
-    void Logger::close()
-    {
-        auto lock = m_mutex.lock( );
-        m_running = false;
-        lock.notifyAll( );
-        lock.unlock( );
+	void Logger::setConsole( LogLevel level )
+	{
+		m_consoleLevel = level;
+	}
 
-        m_thread.join();
 
-        filter(0);                          //  finish processing items in the queue
-        m_filters.clear( );
-    }
+	void Logger::setDebug( LogLevel level )
+	{
+		m_debugLevel = level;
+	}
 
-    void Logger::log(LogLevel level, String category, String message)
-    {
-        auto lock = m_mutex.lock();
-        m_queue.emplace_back( DateTime::now(), level, std::move(category), std::move(message));
-        lock.notifyAll();
-    }
 
-    void Logger::addFilter( LogFilter::ptr_t filter )
-    {
-        m_filters.insert( std::move( filter ) );
-    }
+	void Logger::setFile( LogLevel level )
+	{
+		m_fileLevel = level;
+	}
 
-    void Logger::removeFilter( const LogFilter::ptr_t & filter )
-    {
-        m_filters.erase( filter );
-    }
+	void Logger::openFile( )
+	{
+		m_archiveTime = DateTime::trimAtDay( DateTime::now( ) ) + Duration::ofDays( 1 );
+		m_filepath = cpp::format( m_filename, DateTime::now( ).toString( "%Y-%m-%d" ) );
+		m_file.append( m_filepath );
+	}
 
-    void Logger::addDebug( LogLevel level )
-    {
-        logger( ).addFilter( DebugLogFilter{ level } );
-    }
+	void Logger::setFile( LogLevel level, std::string filename, std::function<void( FilePath )> onArchive )
+	{
+		m_fileLevel = level;
+		m_filename = std::move( filename );
+		m_archiveHandler = std::move( onArchive );
 
-    void Logger::addStdout( LogLevel level )
-    {
-        logger( ).addFilter( OutputLogFilter{ StandardOutput::output(), level } );
-    }
+		openFile( );
+	}
 
-    void Logger::addFile( FilePath dir, String name, String ext, LogLevel level )
-    {
-        logger( ).addFilter( FileLogFilter{ dir, name, ext, level } );
-    }
+
+	void Logger::setHandler( LogLevel level, handler_t handler )
+	{
+		m_handlerLevel = level;
+		m_handler = handler;
+	}
+
+
+	void Logger::log( LogLevel level, std::string message )
+	{
+		auto lock = m_mutex.lock( );
+		m_queue.emplace_back( Entry{ DateTime::now( ), level, std::move( message ) } );
+		lock.notifyAll( );
+	}
+
+
+	void Logger::flush( )
+	{
+		auto lock = m_mutex.lock( );
+		while ( !m_queue.empty( ) )
+		{
+			lock.waitFor( cpp::Duration::ofMillis( 50 ) );
+		}
+		m_file.flush( );
+	}
+
+
+	void Logger::close( )
+	{
+		m_thread.interrupt( );
+		m_thread.join( );
+	}
 
 
     void Logger::fn( )
     {
         Thread::setName( "Logger" );
-        while ( m_running )
+        while ( true )
         {
-            filter( Duration::ofSeconds( 1 ) );
+			std::vector<Entry> queue = dequeue( );
+			for ( Entry & entry : queue )
+			{
+				String line = cpp::format( "% % %\r\n",
+					entry.time.toString( ),
+					encodeLogLevel( entry.level ),
+					entry.message );
+
+				if ( m_fileLevel <= entry.level )
+				{
+					if ( entry.time > m_archiveTime )
+					{
+						m_file.close( );
+						m_archiveHandler( m_filepath );
+						openFile( );
+					}
+					m_file.write( line );
+				}
+				
+				if ( m_consoleLevel <= entry.level )
+					{ puts( line.c_str( ) ); }
+
+				if ( m_debugLevel <= entry.level )
+					{ OutputDebugString( toUtf16( line ).c_str( ) ); }
+
+				if ( m_handlerLevel <= entry.level )
+					{ m_handler( entry.time, entry.level, entry.message ); }
+			}
         }
     }
 
-    void Logger::filter(Duration maxWait)
-    {
-        std::vector<Entry> queue = dequeue(maxWait);
-        for (Entry & entry : queue)
-        {
-            for (auto & filter : m_filters)
-            {
-                filter->log( entry.m_time, entry.m_level, entry.m_category, entry.m_message );
-            }
-        }
-    }
-
-    std::vector<Logger::Entry> Logger::dequeue(Duration maxWait)
+    std::vector<Logger::Entry> Logger::dequeue( )
     {
         auto lock = m_mutex.lock();
-        while ( m_running && m_queue.empty( ) )
+        while ( m_queue.empty( ) )
             { lock.wait( ); }
 
         std::vector<Entry> queue;

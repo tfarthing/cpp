@@ -393,28 +393,28 @@ namespace cpp
 		{
 			if ( value < 0x80 )
 			{
-                dst.put( 0, (char)value );
+                dst.poke( 0, (char)value );
                 return dst.substr( 0, 1 );
 			}
 			else if ( value <= 0x7FF )
 			{
-                dst.put( 0, (char)( ( value >> 6 ) + 0xC0 ) );
-                dst.put( 1, (char)( ( value & 0x3F ) + 0x80 ) );
+                dst.poke( 0, (char)( ( value >> 6 ) + 0xC0 ) );
+                dst.poke( 1, (char)( ( value & 0x3F ) + 0x80 ) );
                 return dst.substr( 0, 2 );
 			}
 			else if ( value <= 0xFFFF )
 			{
-                dst.put( 0, (char)( ( value >> 12 ) + 0xE0 ) );
-                dst.put( 1, (char)( ( ( value >> 6 ) & 0x3F ) + 0x80 ) );
-                dst.put( 2, (char)( ( value & 0x3F ) + 0x80 ) );
+                dst.poke( 0, (char)( ( value >> 12 ) + 0xE0 ) );
+                dst.poke( 1, (char)( ( ( value >> 6 ) & 0x3F ) + 0x80 ) );
+                dst.poke( 2, (char)( ( value & 0x3F ) + 0x80 ) );
                 return dst.substr( 0, 3 );
 			}
 			else if ( value <= 0x10FFFF )
 			{
-                dst.put( 0, (char)( ( value >> 18 ) + 0xF0 ) );
-                dst.put( 1, (char)( ( ( value >> 12 ) & 0x3F ) + 0x80 ) );
-                dst.put( 2, (char)( ( ( value >> 6 ) & 0x3F ) + 0x80 ) );
-                dst.put( 3, (char)( ( value & 0x3F ) + 0x80 ) );
+                dst.poke( 0, (char)( ( value >> 18 ) + 0xF0 ) );
+                dst.poke( 1, (char)( ( ( value >> 12 ) & 0x3F ) + 0x80 ) );
+                dst.poke( 2, (char)( ( ( value >> 6 ) & 0x3F ) + 0x80 ) );
+                dst.poke( 3, (char)( ( value & 0x3F ) + 0x80 ) );
                 return dst.substr( 0, 4 );
 			}
 			else

@@ -6,7 +6,8 @@ SyncFile provides standard blocking file operations.
 	* for ( auto cursor : SyncFile::read( "file.txt" ).input( ).lines( ) )
 */
 
-#include "Files.h"
+#include "../../cpp/file/Files.h"
+#include "../../cpp/file/FilePath.h"
 #include "../../cpp/io/Input.h"
 #include "../../cpp/io/Output.h"
 
@@ -47,6 +48,7 @@ namespace cpp
 
         Memory 					            read( Memory buffer );
         void							    write( Memory data );
+		void								flush( );
 
         void							    truncate( size_t length = 0 );
         void							    close( );

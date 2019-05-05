@@ -1,6 +1,7 @@
 #ifndef TEST
 
 #include <cassert>
+#include <cstdarg>
 #include <algorithm>
 #include <regex>
 
@@ -245,6 +246,47 @@ namespace cpp
     }
 
 
+	std::string	Memory::replaceFirst( const Memory & sequence, const Memory & dst, size_t pos ) const
+	{
+		std::string result = *this;
+		size_t offset = result.find( sequence.data( ), pos, sequence.length( ) );
+		if ( offset != npos )
+		{
+			result.replace( offset, sequence.length( ), dst.data( ), dst.length( ) );
+		}
+		return result;
+	}
+
+
+	std::string	Memory::replaceLast( const Memory & sequence, const Memory & dst, size_t pos ) const
+	{
+		std::string result = *this;
+		size_t offset = result.rfind( sequence.data( ), pos, sequence.length( ) );
+		if ( offset != npos )
+		{
+			result.replace( offset, sequence.length( ), dst.data( ), dst.length( ) );
+		}
+		return result;
+	}
+
+
+	std::string	Memory::replaceAll( const Memory & sequence, const Memory & dst, size_t pos ) const
+	{
+		std::string result = *this;
+		while ( pos < length( ) )
+		{
+			size_t offset = result.find( sequence.data( ), pos, sequence.length( ) );
+			if ( offset == npos )
+			{
+				break;
+			}
+			result.replace( offset, sequence.length( ), dst.data( ), dst.length( ) );
+			pos = offset + dst.length( );
+		}
+		return result;
+	}
+
+
     Memory Memory::substr( size_t pos, size_t len ) const
     {
         if ( isNull( ) )
@@ -293,12 +335,12 @@ namespace cpp
     }
 
 
-    float Memory::swap( float value )
-        { return Float::fromBits( swap( Float::toBits( value ) ) ); }
+    float Memory::byteswap( float value )
+        { return Float::fromBits( byteswap( Float::toBits( value ) ) ); }
     
 
-    double Memory::swap( double value )
-        { return Float::fromBits( swap( Float::toBits( value ) ) ); }
+    double Memory::byteswap( double value )
+        { return Float::fromBits( byteswap( Float::toBits( value ) ) ); }
 
 
     bool Memory::isEscaped( size_t pos ) const
@@ -325,6 +367,26 @@ namespace cpp
 		return Memory{ dst.begin( ), src.length( ) };
 	}
 
+
+	Memory Memory::printf( const char * fmt, ... )
+	{
+		va_list args;
+		va_start( args, fmt );
+
+		int len = vsnprintf( data( ), length( ), fmt, args );
+		check<OutOfBoundsException>( len >= 0, "Memory::printf( ) : insufficient buffer space" );
+		
+		va_end( args );
+
+		return substr( 0, len );
+	}
+
+
+	Memory Memory::format( size_t pos, const Memory & fmt )
+	{
+		DataBuffer buffer{ substr( pos ) };
+		return buffer.put( fmt );
+	}
 
 
 	EncodedText::operator int8_t( ) const

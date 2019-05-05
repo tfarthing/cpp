@@ -227,7 +227,7 @@ namespace cpp
     template<typename T, typename = std::enable_if_t<std::is_arithmetic<T>::value>>
     void encodeBinary( DataBuffer & buffer, T value, ByteOrder byteOrder = ByteOrder::Host )
     { 
-        value = Memory::trySwap( value, byteOrder );
+        value = Memory::tryByteSwap( value, byteOrder );
         buffer.put( Memory::ofValue( value ) );
     }
 
@@ -237,7 +237,7 @@ namespace cpp
     { 
         Memory result = buffer.get( sizeof( value ) );
         Memory::copy( Memory::ofValue( value ), result );
-        value = Memory::trySwap<T>( value, byteOrder );
+        value = Memory::tryByteSwap<T>( value, byteOrder );
     }
 
 

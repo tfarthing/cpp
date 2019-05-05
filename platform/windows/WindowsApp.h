@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../../cpp/data/String.h"
+#include "../../../cpp/data/DataArray.h"
 
 namespace cpp
 {
@@ -8,7 +8,7 @@ namespace cpp
 	{
 		struct App
 		{
-			static String::Array parseCommandLine( const String & cmdline );
+			static StringArray parseCommandLine( const String & cmdline );
 		};
 	}
 }

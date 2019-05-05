@@ -21,19 +21,19 @@ namespace cpp
 	};
 
 
-	Random::Random( )
+	inline Random::Random( )
 		: m_rng( std::chrono::duration_cast<std::chrono::microseconds>( std::chrono::steady_clock::now( ).time_since_epoch( ) ).count( ) )
 	{
 	}
 
 
-	uint64_t Random::rand( )
+	inline uint64_t Random::rand( )
 	{
 		return m_rng( );
 	}
 
 
-	double Random::frand( )
+	inline double Random::frand( )
 	{
 		return std::generate_canonical<double, std::numeric_limits<double>::digits>( m_rng );
 	}

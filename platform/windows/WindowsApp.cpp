@@ -23,9 +23,9 @@ namespace cpp
 		  mark is "escaped" by the remaining backslash, causing a literal double quotation mark
 		  (") to be placed in argv.
 		*/
-		String::Array App::parseCommandLine( const String & cmdline )
+		StringArray App::parseCommandLine( const String & cmdline )
 		{
-			String::Array arguments;
+			StringArray arguments;
 
 			size_t pos = 0;
 			size_t argIndex = 0;
@@ -47,7 +47,7 @@ namespace cpp
 						pos += 1; break;
 					}
 
-					if ( !arg.isEmpty( ) || argIndex < pos )
+					if ( !arg.empty( ) || argIndex < pos )
 					{
 						arg += cmdline.substr( argIndex, pos - argIndex );
 						arguments.push_back( arg );

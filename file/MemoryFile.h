@@ -2,6 +2,7 @@
 
 #include "../data/Memory.h"
 #include "Files.h"
+#include "FilePath.h"
 #include "../platform/windows/WindowsException.h"
 #include "../../cpp/io/Input.h"
 

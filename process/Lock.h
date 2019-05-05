@@ -132,7 +132,7 @@ namespace cpp
 	}
 
 
-	std::cv_status Lock::waitFor( Duration duration )
+	inline std::cv_status Lock::waitFor( Duration duration )
 	{
 		if ( duration.isInfinite( ) )
 		{
@@ -166,7 +166,7 @@ namespace cpp
 	}
 
 
-	std::cv_status RecursiveLock::waitFor( Duration duration )
+	inline std::cv_status RecursiveLock::waitFor( Duration duration )
 	{
 		if ( duration.isInfinite( ) )
 		{

@@ -2,8 +2,9 @@
 
 #include "../data/DataBuffer.h"
 #include "../time/Timer.h"
-#include "../../cpp/text/Utf16.h"
 #include "AsyncFile.h"
+
+
 
 namespace cpp
 {
@@ -86,11 +87,11 @@ namespace cpp
 			Files::create_directories( filepath.parent( ) );
 		}
 
-		HANDLE fileHandle = CreateFile( toUtf8(filepath), accessMode, shareMode, 0, creationMode, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, 0 );
+		HANDLE fileHandle = CreateFile( filepath.toWindows( ), accessMode, shareMode, 0, creationMode, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, 0 );
 		if ( fileHandle == INVALID_HANDLE_VALUE )
 		{
 			DWORD err = GetLastError( );
-			throw IOException( String::format( "Unable to open file: error( % )", (uint32_t)err ) );
+			throw IOException( cpp::format( "Unable to open file: error( % )", (uint32_t)err ) );
 		}
 
 		std::shared_ptr<Detail> detail= std::make_shared<Detail>( io );

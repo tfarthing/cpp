@@ -19,7 +19,7 @@ namespace cpp
             virtual bool                    isOpen( ) const = 0;
             virtual Memory                  write( Memory src, std::error_code & errorCode ) = 0;
             virtual void                    flush( ) = 0;
-            virtual void                    close( ) = 0;
+            virtual void                    close( );
         };
         struct Exception;
                
@@ -144,5 +144,10 @@ namespace cpp
     {
         close( );
     }
+
+
+	inline void Output::Sink::close( )
+	{
+	}
 
 }

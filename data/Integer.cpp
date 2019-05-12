@@ -38,7 +38,7 @@ namespace cpp
 			{ fmt += std::to_string( width ); }
 		fmt += upper ? "llX" : "llx";
 
-		return String::printf( fmt.c_str( ), value );
+		return String::printf( fmt.begin( ), value );
 	}
 
 
@@ -53,7 +53,7 @@ namespace cpp
 			{ fmt += std::to_string( width ); }
 		fmt += "lli";
 
-		return String::printf( fmt.c_str( ), value );
+		return String::printf( fmt.begin( ), value );
 	}
 
 
@@ -68,6 +68,6 @@ namespace cpp
 			{ fmt += std::to_string( width ); }
 		fmt += "llu";
 
-		return String::printf( fmt.c_str( ), value );
+		return String::printf( fmt.begin( ), value );
 	}
 }

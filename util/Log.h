@@ -77,8 +77,8 @@ namespace cpp
 
 
 
+	std::string toString( LogLevel logLevel );
 	const char * encodeLogLevel( LogLevel logLevel );
-
 
 	LogLevel decodeLogLevel( const Memory & text );
 

@@ -14,66 +14,71 @@ namespace cpp
     {
         while ( pos < length( ) )
         {
-            size_t offset = find( pattern.data(), pos, pattern.length() );
+            size_t offset = data.find( pattern.data(), pos, pattern.length() );
             if ( offset == npos )
 				{ break; }
-            replace( offset, pattern.length( ), dst.data(), dst.length() );
+			data.replace( offset, pattern.length( ), dst.data(), dst.length() );
             pos = offset + dst.length( );
         }
         return *this;
     }
 
+
     String & String::replaceFirst( const Memory & pattern, const Memory & dst, size_t pos )
     {
-        size_t offset = find( pattern.data( ), pos, pattern.length( ) );
+        size_t offset = data.find( pattern.data( ), pos, pattern.length( ) );
         if ( offset != npos )
         {
-            replace( offset, pattern.length( ), dst.data( ), dst.length( ) );
+			data.replace( offset, pattern.length( ), dst.data( ), dst.length( ) );
         }
         return *this;
     }
 
+
     String & String::replaceLast( const Memory & pattern, const Memory & dst, size_t pos )
     {
-        size_t offset = rfind( pattern.data( ), pos, pattern.length( ) );
+        size_t offset = data.rfind( pattern.data( ), pos, pattern.length( ) );
         if ( offset != npos )
         {
-            replace( offset, pattern.length( ), dst.data( ), dst.length( ) );
+			data.replace( offset, pattern.length( ), dst.data( ), dst.length( ) );
         }
         return *this;
     }
+
 
     String & String::toUpper( )
     {
         for ( size_t i = 0; i<length( ); i++ )
         {
-            char & ch = at( i ); ch = toupper( ch );
+            char & ch = data.at( i ); ch = toupper( ch );
         }
         return *this;
     }
+
 
     String & String::toLower( )
     {
         for ( size_t i = 0; i<length( ); i++ )
         {
-            char & ch = at( i ); ch = tolower( ch );
+            char & ch = data.at( i ); ch = tolower( ch );
         }
         return *this;
     }
 
-	String String::printf(const char * fmt, ...)
+
+	String String::printf( const char * fmt, ...)
 	{
 		String result(22, '\0');
 
 		va_list args;
-		va_start(args, fmt);
+		va_start( args, fmt );
 
 		int len = 0;
-		while ( ( len = vsnprintf( (char *)result.c_str(), result.length(), fmt, args ) ) >= result.length() )
-		    { result.resize( len + 1, '\0' ); }
-		if (len < 0)
+		while ( ( len = vsnprintf( (char *)result.begin( ), result.length( ), fmt, args ) ) >= result.length( ) )
+		    { result.resize( len + 1 ); }
+		if ( len < 0 )
 			{ throw std::exception("Encoding error occured in String::format."); }
-		result.resize(len);
+		result.resize( len );
 
 		va_end(args);
 

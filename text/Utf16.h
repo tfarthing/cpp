@@ -9,8 +9,8 @@ namespace cpp
     namespace Utf8 { class Text; }
 
     std::wstring toUtf16( const cpp::Memory & src );
-    String toUtf8( const wchar_t * begin, const wchar_t * end );
-    String toUtf8( const std::wstring & utf16 );
+    std::string toUtf8( const wchar_t * begin, const wchar_t * end );
+	std::string toUtf8( const std::wstring & utf16 );
 
 	namespace Utf16
 	{

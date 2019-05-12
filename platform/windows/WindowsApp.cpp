@@ -47,7 +47,7 @@ namespace cpp
 						pos += 1; break;
 					}
 
-					if ( !arg.empty( ) || argIndex < pos )
+					if ( arg.notEmpty( ) || argIndex < pos )
 					{
 						arg += cmdline.substr( argIndex, pos - argIndex );
 						arguments.push_back( arg );

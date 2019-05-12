@@ -20,6 +20,15 @@ namespace cpp
 	const Memory Memory::WhitespaceList			= " \t\r\n";
 
 
+
+	Memory::Memory( const String & str )
+		: m_begin( str.begin( ) ), m_end( str.end( ) ) { }
+
+
+	Memory & Memory::operator=( const String & str )
+		{ m_begin = str.begin( ); m_end = str.end( ); return *this; }
+
+
 	int	Memory::compare( const Memory & lhs, const Memory & rhs )
 	{
 		// treat null like empty string
@@ -42,7 +51,7 @@ namespace cpp
 	}
 
 
-    Memory::Match Memory::match( Memory regex ) const
+    Memory::Match Memory::match( const Memory & regex ) const
     {
         return match( std::regex{ regex.begin( ), regex.end( ) } );
     }
@@ -60,7 +69,7 @@ namespace cpp
     }
 
     
-	Memory::Match Memory::searchOne( Memory regex, bool isContinuous ) const
+	Memory::Match Memory::searchOne( const Memory & regex, bool isContinuous ) const
     {
         return searchOne( std::regex{ regex.begin( ), regex.end( ) }, isContinuous );
     }
@@ -81,7 +90,7 @@ namespace cpp
     }
 
 
-    Memory::Matches Memory::searchAll( Memory regex ) const
+    Memory::Matches Memory::searchAll( const Memory & regex ) const
     {
         return searchAll( std::regex{ regex.begin( ), regex.end( ) } );
     }
@@ -107,13 +116,13 @@ namespace cpp
     }
 
 
-    std::string Memory::replace( Memory regex, Memory ecmaFormat ) const
+    std::string Memory::replace( const Memory & regex, const Memory & ecmaFormat ) const
     {
         return replace( std::regex{ regex.begin( ), regex.end( ) }, ecmaFormat );
     }
 
 
-    std::string Memory::replace( const std::regex & regex, Memory ecmaFormat ) const
+    std::string Memory::replace( const std::regex & regex, const Memory & ecmaFormat ) const
     {
         std::string result;
         std::regex_replace( std::back_inserter( result ), begin( ), end( ), regex, ecmaFormat.begin( ), std::regex_constants::match_default );
@@ -135,7 +144,7 @@ namespace cpp
     }
 
 
-    size_t Memory::find( Memory sequence, size_t pos ) const
+    size_t Memory::find( const Memory & sequence, size_t pos ) const
     {
         if ( length( ) >= sequence.length( ) && sequence.notEmpty( ) )
         {
@@ -167,7 +176,7 @@ namespace cpp
     }
 
 
-    size_t Memory::rfind( Memory pattern, size_t pos ) const
+    size_t Memory::rfind( const Memory & pattern, size_t pos ) const
     {
         if ( length( ) >= pattern.length( ) && !pattern.isEmpty( ) )
         {
@@ -184,7 +193,7 @@ namespace cpp
     }
 
 
-    size_t Memory::find_first_of( Memory matchset, size_t pos ) const
+    size_t Memory::findFirstOf( const Memory & matchset, size_t pos ) const
     {
         if ( notEmpty( ) && matchset.notEmpty( ) && pos < length( ) )
         {
@@ -198,7 +207,7 @@ namespace cpp
     }
 
 
-    size_t Memory::find_last_of( Memory matchset, size_t pos ) const
+    size_t Memory::findLastOf( const Memory & matchset, size_t pos ) const
     {
         if ( notEmpty( ) && matchset.notEmpty( ) )
         {
@@ -215,7 +224,7 @@ namespace cpp
     }
 
 
-    size_t Memory::find_first_not_of( Memory matchset, size_t pos ) const
+    size_t Memory::findFirstNotOf( const Memory & matchset, size_t pos ) const
     {
         if ( notEmpty( ) && matchset.notEmpty( ) && pos < length( ) )
         {
@@ -229,7 +238,7 @@ namespace cpp
     }
 
 
-    size_t Memory::find_last_not_of( Memory matchset, size_t pos ) const
+    size_t Memory::findLastNotOf( const Memory & matchset, size_t pos ) const
     {
         if ( notEmpty( ) && matchset.notEmpty( ) )
         {
@@ -302,26 +311,26 @@ namespace cpp
     }
 
 
-    Memory Memory::trim( Memory trimlist ) const
+    Memory Memory::trim( const Memory & trimlist ) const
     {
         if ( trimlist.isEmpty( ) )
             { return *this; }
 
-        size_t pos = find_first_not_of( trimlist );
+        size_t pos = findFirstNotOf( trimlist );
         if ( pos == npos )
             { return substr( length( ), 0 ); }
-        return substr( pos, find_last_not_of( trimlist ) - pos + 1 );
+        return substr( pos, findLastNotOf( trimlist ) - pos + 1 );
     }
 
 
-    Memory::Array Memory::split( Memory delimiter, Memory trimlist, bool ignoreEmpty ) const
+    Memory::Array Memory::split( const Memory & delimiter, const Memory & trimlist, bool ignoreEmpty ) const
     {
         Memory::Array results;
         
         size_t pos = 0;
         do
         {
-            size_t offset = find_first_of( delimiter, pos );
+            size_t offset = findFirstOf( delimiter, pos );
             if ( offset == npos )
                 { offset = length( ); }
             Memory str = substr( pos, offset - pos ).trim( trimlist );
@@ -389,35 +398,46 @@ namespace cpp
 	}
 
 
+
 	EncodedText::operator int8_t( ) const
 		{ return Integer::to<int8_t>( Integer::parse( data ) ); }
+
 
 	EncodedText::operator uint8_t( ) const
 		{ return Integer::to<uint8_t>( Integer::parseUnsigned( data ) ); }
 
+
 	EncodedText::operator int16_t( ) const
 		{ return Integer::to<int16_t>( Integer::parse( data ) ); }
+
 
 	EncodedText::operator uint16_t( ) const
 		{ return Integer::to<uint16_t>( Integer::parseUnsigned( data ) ); }
 
+
 	EncodedText::operator int32_t( ) const
 		{ return Integer::to<int32_t>( Integer::parse( data ) ); }
+
 
 	EncodedText::operator uint32_t( ) const
 		{ return Integer::to<uint32_t>( Integer::parseUnsigned( data ) ); }
 
+
 	EncodedText::operator int64_t( ) const
 		{ return Integer::parse( data ); }
+
 
 	EncodedText::operator uint64_t( ) const
 		{ return Integer::parseUnsigned( data ); }
 
+
 	EncodedText::operator float( ) const
 		{ return (float)Float::parse( data ); }
 
+
 	EncodedText::operator double( ) const
 		{ return Float::parse( data ); }
+
 
 	EncodedText::operator bool( ) const
 	{  
@@ -433,29 +453,38 @@ namespace cpp
 	EncodedDecimal::operator int8_t( ) const
 		{ return Integer::to<int8_t>( Integer::parse( data ) ); }
 
+
 	EncodedDecimal::operator uint8_t( ) const
 		{ return Integer::to<uint8_t>( Integer::parseUnsigned( data ) ); }
+
 
 	EncodedDecimal::operator int16_t( ) const
 		{ return Integer::to<int16_t>( Integer::parse( data ) ); }
 
+
 	EncodedDecimal::operator uint16_t( ) const
 		{ return Integer::to<uint16_t>( Integer::parseUnsigned( data ) ); }
+
 
 	EncodedDecimal::operator int32_t( ) const
 		{ return Integer::to<int32_t>( Integer::parse( data ) ); }
 
+
 	EncodedDecimal::operator uint32_t( ) const
 		{ return Integer::to<uint32_t>( Integer::parseUnsigned( data ) ); }
+
 
 	EncodedDecimal::operator int64_t( ) const
 		{ return Integer::parse( data ); }
 
+
 	EncodedDecimal::operator uint64_t( ) const
 		{ return Integer::parseUnsigned( data ); }
 
+
 	EncodedDecimal::operator float( ) const
 		{ return (float)Float::parse( data ); }
+
 
 	EncodedDecimal::operator double( ) const
 		{ return Float::parse( data ); }
@@ -465,14 +494,18 @@ namespace cpp
 	EncodedHex::operator uint8_t( ) const
 		{ return Integer::to<uint8_t>( Integer::parseUnsigned( data, 16 ) ); }
 
+
 	EncodedHex::operator uint16_t( ) const
 		{ return Integer::to<uint16_t>( Integer::parseUnsigned( data, 16 ) ); }
+
 
 	EncodedHex::operator uint32_t( ) const
 		{ return Integer::to<uint32_t>( Integer::parseUnsigned( data, 16 ) ); }
 
+
 	EncodedHex::operator uint64_t( ) const
 		{ return Integer::parseUnsigned( data, 16 ); }
+
 
 	EncodedHex::operator std::string( ) const
 		{ return Hex::decode( data ); }
@@ -487,43 +520,65 @@ namespace cpp
 	EncodedBinary::operator int8_t( ) const
         { return DataBuffer::readFrom( data ).getBinary<int8_t>( byteOrder ); }
 
+
 	EncodedBinary::operator uint8_t( ) const
         { return DataBuffer::readFrom( data ).getBinary<uint8_t>( byteOrder ); }
+
 
 	EncodedBinary::operator int16_t( ) const
         { return DataBuffer::readFrom( data ).getBinary<int16_t>( byteOrder ); }
 
+
 	EncodedBinary::operator uint16_t( ) const
         { return DataBuffer::readFrom( data ).getBinary<uint16_t>( byteOrder ); }
+
 
 	EncodedBinary::operator int32_t( ) const
         { return DataBuffer::readFrom( data ).getBinary<int32_t>( byteOrder ); }
 
+
 	EncodedBinary::operator uint32_t( ) const
         { return DataBuffer::readFrom( data ).getBinary<uint32_t>( byteOrder ); }
+
 
 	EncodedBinary::operator int64_t( ) const
         { return DataBuffer::readFrom( data ).getBinary<int64_t>( byteOrder ); }
 
+
 	EncodedBinary::operator uint64_t( ) const
         { return DataBuffer::readFrom( data ).getBinary<uint64_t>( byteOrder ); }
+
 
 	EncodedBinary::operator float( ) const
         { return DataBuffer::readFrom( data ).getBinary<float>( byteOrder ); }
 
+
 	EncodedBinary::operator double( ) const
         { return DataBuffer::readFrom( data ).getBinary<double>( byteOrder ); }
 
+
 	EncodedBinary::operator bool( ) const
-	{  
-		if ( _stricmp( data.begin( ), "true" ) == 0 && data.length( ) == 4 )
-			{ return true; }
-		if ( _stricmp( data.begin( ), "false" ) == 0 && data.length( ) == 5 )
-			{ return false; }
-		throw DecodeException{ "EncodedText::bool() : unable to decode boolean text value" };
+		{ return DataBuffer::readFrom( data ).getBinary<bool>( byteOrder ); }
+
+
+
+	std::string toString( const String & str )
+	{
+		return str;
 	}
 
 
+    std::string toString( const std::vector<String> & array )
+    { 
+        std::string result; 
+        for ( auto & element : array )
+        {
+            if ( !result.empty() )
+                { result += ", "; }
+            result += element;
+        }
+        return result;
+    }
 
 }
 

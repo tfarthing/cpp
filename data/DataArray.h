@@ -25,40 +25,40 @@ namespace cpp
 	struct StringArray;
 
 	struct DataArray
-		: public std::vector<Memory>
 	{
-		typedef std::vector<Memory>	Array;
+											DataArray( );
+											explicit DataArray( size_t count );
+											DataArray( DataArray && move ) noexcept;
+											DataArray( const DataArray & copy );
+											DataArray( std::vector<Memory> && move ) noexcept;
+											DataArray( const std::vector<Memory> & copy );
+											DataArray( const StringArray & copy );
+											DataArray( std::initializer_list<Memory> init );
 
-		static DataArray	fromBinary( DataBuffer & buffer );
+											DataArray( const EncodedText & encodedText );	//	from comma-separated list e.g. "one, two, three"
+											DataArray( const EncodedBinary & encodedBinary );	//	from comma-separated list e.g. "one, two, three"
 
-		DataArray( );
-		explicit DataArray( size_t count );
-		DataArray( DataArray && move ) noexcept;
-		DataArray( const DataArray & copy );
-		DataArray( Array && move ) noexcept;
-		DataArray( const Array & copy );
-		DataArray( const StringArray & copy );
-		DataArray( std::initializer_list<Memory> init );
-		DataArray( const EncodedText & encodedText );	//	from comma-separated list e.g. "one, two, three"
+		DataArray &							operator=( DataArray && move ) noexcept;
+		DataArray &							operator=( const DataArray & copy );
+		DataArray &							operator=( std::vector<Memory> && move ) noexcept;
+		DataArray &							operator=( const std::vector<Memory> & copy );
+		DataArray &							operator=( const StringArray & copy );
 
-		DataArray &			operator=( DataArray && move ) noexcept;
-		DataArray &			operator=( const DataArray & copy );
-		DataArray &			operator=( Array && move ) noexcept;
-		DataArray &			operator=( const Array & copy );
-		DataArray &			operator=( const StringArray & copy );
+		Memory								operator[]( size_t index ) const;
 
-		Memory				operator[]( size_t index ) const;
+		bool								isEmpty( ) const;
+		bool								notEmpty( ) const;
 
-		bool				isEmpty( ) const;
-		bool				notEmpty( ) const;
+		void								add( const Memory & value );
+		Memory								get( size_t index ) const;
+		void								set( size_t index, const Memory & value );
+		Memory								remove( size_t index );
 
-		Memory				get( size_t index ) const;
-		void				set( size_t index, Memory value );
-		Memory				remove( size_t index );
-
-		String				toString( ) const;	//	comma-separated list
-		Memory				toBinary( DataBuffer & buffer, ByteOrder byteOrder = ByteOrder::Host ) const;
+		std::vector<Memory>					data;
 	};
+
+	Memory									toText( DataBuffer & buffer );	//	comma-separated list
+	Memory									toBinary( DataBuffer & buffer, ByteOrder byteOrder = ByteOrder::Host );
 
 
 

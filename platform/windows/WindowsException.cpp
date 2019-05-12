@@ -26,10 +26,10 @@ namespace cpp
 				error,
 				MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ),
 				(LPTSTR)text.c_str( ), (DWORD)text.size( ), NULL ) );
+
 			if ( text.size( ) == 0 )
-			{
-				return cpp::format( "error code: % (%)", (uint32_t)error, Integer::toHex( error, 8 ) );
-			}
+				{ return cpp::format( "error code: % (%)", (uint32_t)error, Integer::toHex( error, 8 ) ); }
+			
 			return toUtf8( text );
 		}
 

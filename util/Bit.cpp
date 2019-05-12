@@ -17,9 +17,9 @@ namespace cpp::bit
         size_t rpos = Memory::npos;
 
         if ( key && key[key.length( ) - 1] == ']' )
-            { rpos = key.find_last_of( "[" ); }
+            { rpos = key.findLastOf( "[" ); }
 
-        size_t pos = key.find_last_of( ".", rpos );
+        size_t pos = key.findLastOf( ".", rpos );
         return ( pos != Memory::npos )
             ? key.substr( pos + 1 )
             : key;
@@ -32,10 +32,10 @@ namespace cpp::bit
 
         // avoid matching '.' inside of an array item ID
         if ( key && key[key.length( ) - 1] == ']' )
-            { rpos = key.find_last_of( "[" ); }
+            { rpos = key.findLastOf( "[" ); }
 
         // parent is the portion before the last '.', otherwise null.
-        size_t pos = key.find_last_of( ".", rpos );
+        size_t pos = key.findLastOf( ".", rpos );
         return ( pos != Memory::npos )
             ? key.substr( 0, pos )
             : "";
@@ -47,7 +47,7 @@ namespace cpp::bit
         if ( !key || key[key.length( ) - 1] != ']' )
             { return Memory::Empty; }
 
-        size_t pos = key.find_last_of( "[" );
+        size_t pos = key.findLastOf( "[" );
         return ( pos != Memory::npos )
             ? key.substr( 0, pos )
             : Memory::Empty;
@@ -59,7 +59,7 @@ namespace cpp::bit
         if ( !key || key[key.length( ) - 1] != ']' )
             { return Memory::Empty; }
 
-        size_t pos = key.find_last_of( "[" );
+        size_t pos = key.findLastOf( "[" );
         return ( pos != Memory::npos )
             ? key.substr( pos + 1, key.length( ) - pos - 2 )
             : Memory::Empty;
@@ -116,13 +116,13 @@ namespace cpp::bit
 
     size_t keyFindDelimiter( Memory fullKey, size_t pos = 0 )
     {
-        pos = fullKey.find_first_of( ".[", pos );
+        pos = fullKey.findFirstOf( ".[", pos );
         if ( pos == Memory::npos || fullKey[pos] == '.' )
         {
             return pos;
         }
 
-        pos = fullKey.find_first_of( "]", pos + 1 );
+        pos = fullKey.findFirstOf( "]", pos + 1 );
         if ( pos == Memory::npos )
         {
             return pos;
@@ -134,13 +134,13 @@ namespace cpp::bit
 
     size_t keyRfindDelimiter( Memory fullKey, size_t pos = Memory::npos )
     {
-        pos = fullKey.find_last_of( ".]", pos );
+        pos = fullKey.findLastOf( ".]", pos );
         if ( pos == Memory::npos || fullKey[pos] == '.' )
         {
             return pos;
         }
 
-        pos = fullKey.find_last_of( "[", pos );
+        pos = fullKey.findLastOf( "[", pos );
         if ( pos == 0 || pos == Memory::npos )
         {
             return Memory::npos;
@@ -615,7 +615,7 @@ namespace cpp::bit
         size_t rpos = 0;
         while ( rpos < value.length( ) )
         {
-            size_t pos = value.find_first_of( "\\\'\n\r\t", rpos );
+            size_t pos = value.findFirstOf( "\\\'\n\r\t", rpos );
             if ( pos != Memory::npos || !buffer.isEmpty( ) )
             {
                 buffer += value.substr( rpos, pos - rpos );

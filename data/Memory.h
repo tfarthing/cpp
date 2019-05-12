@@ -30,6 +30,14 @@ namespace cpp
 	struct EncodedHex;
 	struct EncodedBase64;
 	struct EncodedBinary;
+	struct String;
+	class Memory;
+
+
+
+	template<typename T, typename... Params>
+	std::string format( const Memory & fmt, const T & param, Params... parameters );
+	std::string format( const Memory & fmt );
 
 
 
@@ -41,11 +49,13 @@ namespace cpp
 											Memory( const char * ptr, size_t len );
 											Memory( const char * begin, const char * end );
 											Memory( const std::string & string );
+											Memory( const String & copy );
 											Memory( const Memory & copy );
 
 		Memory &							operator=( nullptr_t );
 		Memory &							operator=( const char * cstring );
 		Memory &							operator=( const std::string & string );
+		Memory &							operator=( const String & memory );
 		Memory &							operator=( const Memory & memory );
 
 		bool								operator<( const Memory & memory ) const;
@@ -60,7 +70,7 @@ namespace cpp
 		bool								isNull( ) const;
 		bool								notNull( ) const;
 		bool								operator!( ) const;				 // isEmpty()
-		explicit operator bool( ) const; // notEmpty()
+											explicit operator bool( ) const; // notEmpty()
 
 		size_t								length( ) const;
 
@@ -73,17 +83,17 @@ namespace cpp
 		char								operator[]( size_t pos ) const;
 
 		Memory								substr( size_t pos = 0, size_t len = npos ) const;
-		Memory::Array						split( Memory delimiter, Memory trimlist = WhitespaceList, bool ignoreEmpty = true ) const;
-		Memory								trim( Memory trimlist = WhitespaceList ) const;
+		Memory::Array						split( const Memory & delimiter, const Memory & trimlist = WhitespaceList, bool ignoreEmpty = true ) const;
+		Memory								trim( const Memory & trimlist = WhitespaceList ) const;
 
 		size_t								find( char ch, size_t pos = 0 ) const;
-		size_t								find( Memory sequence, size_t pos = 0 ) const;
+		size_t								find( const Memory & sequence, size_t pos = 0 ) const;
 		size_t								rfind( char ch, size_t pos = npos ) const;
-		size_t								rfind( Memory sequence, size_t pos = npos ) const;
-		size_t								find_first_of( Memory matchset, size_t pos = 0 ) const;
-		size_t								find_last_of( Memory matchset, size_t pos = npos ) const;
-		size_t								find_first_not_of( Memory matchset, size_t pos = 0 ) const;
-		size_t								find_last_not_of( Memory matchset, size_t pos = npos ) const;
+		size_t								rfind( const Memory & sequence, size_t pos = npos ) const;
+		size_t								findFirstOf( const Memory & matchset, size_t pos = 0 ) const;
+		size_t								findLastOf( const Memory & matchset, size_t pos = npos ) const;
+		size_t								findFirstNotOf( const Memory & matchset, size_t pos = 0 ) const;
+		size_t								findLastNotOf( const Memory & matchset, size_t pos = npos ) const;
 
 		std::string							replaceFirst( const Memory & sequence, const Memory & dst, size_t pos = 0 ) const;
 		std::string							replaceLast( const Memory & sequence, const Memory & dst, size_t pos = npos ) const;
@@ -91,14 +101,14 @@ namespace cpp
 
 		typedef RegexMatch<Memory>			Match;
 		typedef std::vector<Match>			Matches;
-		Match								match( Memory regex ) const;
+		Match								match( const Memory & regex ) const;
 		Match								match( const std::regex & regex ) const;
-		Match								searchOne( Memory regex, bool isContinuous = false ) const;
+		Match								searchOne( const Memory & regex, bool isContinuous = false ) const;
 		Match								searchOne( const std::regex & regex, bool isContinuous = false ) const;
-		Matches								searchAll( Memory regex ) const;
+		Matches								searchAll( const Memory & regex ) const;
 		Matches								searchAll( const std::regex & regex ) const;
-		std::string							replace( Memory regex, Memory ecmaFormat ) const;
-		std::string							replace( const std::regex & regex, Memory ecmaFormat ) const;
+		std::string							replace( const Memory & regex, const Memory & ecmaFormat ) const;
+		std::string							replace( const std::regex & regex, const Memory & ecmaFormat ) const;
 
 		std::string							toString( ) const;
 											operator std::string( ) const;
@@ -114,6 +124,7 @@ namespace cpp
 
 		Memory								printf( const char * fmt, ... );
 
+		Memory								format( const Memory & fmt );
 		template<typename T, typename... Params>
 		Memory								format( const Memory & fmt, const T & param, Params... parameters );
 		template<typename T, typename... Params>
@@ -150,6 +161,26 @@ namespace cpp
 	};
 
 
+
+	template<typename T, typename... Params>
+	std::string format( const Memory & fmt, const T & param, Params... parameters )
+	{
+		size_t fpos = fmt.find( '%' );
+		return ( fpos == Memory::npos )
+			? fmt
+			: fmt.substr( 0, fpos ) +
+			cpp::toString( param ) +
+			format( fmt.substr( fpos + 1 ), parameters... );
+	}
+
+
+	inline std::string format( const Memory & fmt )
+	{
+		return fmt;
+	}
+
+
+
     template<class T>
     T copy( const Memory::Array & src )
         { return T{ src.begin(), src.end() }; }
@@ -177,6 +208,12 @@ namespace cpp
 
 	inline Memory::Memory( const Memory & copy )
 		: m_begin( copy.m_begin ), m_end( copy.m_end ) { }
+
+
+	inline Memory Memory::format( const Memory & fmt )
+	{
+		return format( 0, fmt );
+	}
 
 
 	template<typename T, typename... Params>
@@ -435,6 +472,98 @@ namespace cpp
 
 	inline EncodedBinary Memory::asBinary( ByteOrder byteOrder ) const
 		{ return EncodedBinary{ *this, byteOrder }; }
+
+
+
+	inline std::string toString( bool value )
+        { return value ? "true" : "false"; }
+
+
+    inline std::string toString( int64_t value )
+    {
+        char buffer[32];
+        snprintf( buffer, sizeof( buffer ), "%lli", value );
+        return buffer;
+    }
+
+
+    inline std::string toString( uint64_t value )
+    {
+        char buffer[32];
+        snprintf( buffer, sizeof( buffer ), "%llu", value );
+        return buffer;
+    }
+
+
+    inline std::string toString( int32_t value )
+        { return toString( (int64_t)value ); }
+
+
+    inline std::string toString( uint32_t value )
+        { return toString( (uint64_t)value ); }
+
+
+    inline std::string toString( int16_t value )
+        { return toString( (int64_t)value ); }
+
+
+    inline std::string toString( uint16_t value )
+        { return toString( (uint64_t)value ); }
+
+
+    inline std::string toString( int8_t value )
+        { return toString( (int64_t)value ); }
+
+
+    inline std::string toString( uint8_t value )
+        { return toString( (uint64_t)value ); }
+
+
+    template<typename T> std::string toString( const T & value )
+        { return value.toString( ); }
+
+
+    inline std::string toString( const Memory::Array & array )
+    { 
+        std::string result; 
+        for ( auto & element : array )
+        {
+            if ( !result.empty( ) )
+                { result += ", "; }
+            result += element;
+        }
+        return result;
+    }
+
+
+	std::string toString( const String & str );
+	std::string toString( const std::vector<String> & array );
+
+
+    inline std::string toString( double value )
+    {
+        char buffer[32];
+        int len = snprintf( buffer, sizeof( buffer ), "%f", value );
+        while ( len > 0 && buffer[len - 1] == '0' )
+            { buffer[--len] = 0; }
+        return std::string{ buffer };
+    }
+
+
+    inline std::string toString( float value )
+        { return toString( (double)value ); }
+
+
+    inline std::string toString( const char * value )
+        { return std::string{ value }; }
+
+
+    inline std::string toString( const std::string & value )
+        { return value; }
+
+
+    inline std::string toString( const Memory & value )
+        { return std::string{ value }; }
 
 }
 

@@ -124,15 +124,15 @@ namespace cpp
 
                 auto env = Registry::currentUser( ).open( "Environment" );
                 String path = env.get( "Path", 4 * 1024 );
-                if ( path.empty( ) )
+                if ( path.isEmpty( ) )
                 {
 					path = appPath.toString( );
-                    env.set( "Path", path.c_str( ) );
+                    env.set( "Path", path );
                 }
-                else if ( path.find( appPath ) == String::npos )
+                else if ( path.find( appPath.toString( ) ) == String::npos )
                 {
                     path += ";" + appPath.toString( );
-                    env.set( "Path", path.c_str( ) );
+                    env.set( "Path", path );
                 }
             }
 
@@ -147,7 +147,7 @@ namespace cpp
 
                 auto env = Registry::currentUser( ).open( "Environment" );
                 String path = env.get( "Path", 4 * 1024 );
-                if ( path.find( appPath ) != String::npos )
+                if ( path.find( appPath.toString( ) ) != String::npos )
                 {
 					path = Memory{ path }.replaceFirst( appPath.toString( ), "" );
 					path = Memory{ path }.replaceAll( ";;", ";" );

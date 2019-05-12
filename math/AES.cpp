@@ -28,7 +28,7 @@ namespace cpp
     void Aes256::initEncrypt( String cipherKey, const Memory & initVector )
     {
         cipherKey.resize( 32 );
-        rijndael::rijndaelKeySetupEnc( rk, (uint8_t *)cipherKey.c_str( ), kKeyLen );
+        rijndael::rijndaelKeySetupEnc( rk, (uint8_t *)cipherKey.begin( ), kKeyLen );
         memcpy( iv, initVector.data( ), std::min( initVector.length( ), (size_t)kBlockSize ) );
         if ( initVector.length( ) < kBlockSize )
         {
@@ -43,7 +43,7 @@ namespace cpp
         String cipherText( numBlocks * kBlockSize, 0 );
 
         uint8_t * input = (uint8_t *)plainText.data( );
-        uint8_t * output = (uint8_t *)cipherText.c_str( );
+        uint8_t * output = (uint8_t *)cipherText.begin( );
 
         for ( int i = 0; i<numBlocks; i++ )
         {
@@ -72,7 +72,7 @@ namespace cpp
     void Aes256::initDecrypt( String cipherKey, const Memory & initVector )
     {
         cipherKey.resize( 32 );
-        rijndael::rijndaelKeySetupDec( rk, (uint8_t *)cipherKey.c_str( ), kKeyLen );
+        rijndael::rijndaelKeySetupDec( rk, (uint8_t *)cipherKey.begin( ), kKeyLen );
         memcpy( iv, initVector.data( ), std::min( initVector.length( ), (size_t)kBlockSize ) );
         if ( initVector.length( ) < kBlockSize )
         {
@@ -87,7 +87,7 @@ namespace cpp
         String plainText( cipherText.length( ), 0 );
 
         uint8_t * input = (uint8_t *)cipherText.data( );
-        uint8_t * output = (uint8_t *)plainText.c_str( );
+        uint8_t * output = (uint8_t *)plainText.begin( );
 
         /* all blocks but last */
         for ( int i = 0; i<numBlocks; i++ )

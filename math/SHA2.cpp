@@ -946,7 +946,7 @@ namespace cpp
             sha256_ctx context;
             sha256_init( &context );
             sha256_update( &context, (const uint8_t *)src.data( ), (uint32_t)src.length( ) );
-            sha256_final( &context, (uint8_t *)dst.c_str( ) );
+            sha256_final( &context, (uint8_t *)dst.begin( ) );
             return dst;
         }
 
@@ -956,7 +956,7 @@ namespace cpp
             sha512_ctx context;
             sha512_init( &context );
             sha512_update( &context, (const uint8_t *)src.data( ), (uint32_t)src.length( ) );
-            sha512_final( &context, (uint8_t *)dst.c_str( ) );
+            sha512_final( &context, (uint8_t *)dst.begin( ) );
             return dst;
         }
     }

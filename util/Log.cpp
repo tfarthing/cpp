@@ -9,7 +9,12 @@
 namespace cpp
 {
 
-    const char * toString( LogLevel level )
+	std::string toString( LogLevel logLevel )
+	{
+		return encodeLogLevel( logLevel );
+	}
+
+    const char * encodeLogLevel( LogLevel level )
     {
         switch (level)
         {
@@ -27,15 +32,17 @@ namespace cpp
     }
 
 
-    LogLevel parseLogLevel(const Memory & str)
+    LogLevel decodeLogLevel(const Memory & str)
     {
         const LogLevel levels[] = 
             { LogLevel::Alert, LogLevel::Error, LogLevel::Warning, LogLevel::Notice, LogLevel::Info, LogLevel::Debug, LogLevel::None };
+
         for (LogLevel level : levels)
         {
             if (str == toString(level))
                 { return level; }
         }
+
         return LogLevel::None;
     }
 
@@ -148,7 +155,7 @@ namespace cpp
 				}
 				
 				if ( m_consoleLevel <= entry.level )
-					{ puts( line.c_str( ) ); }
+					{ puts( line.begin( ) ); }
 
 				if ( m_debugLevel <= entry.level )
 					{ OutputDebugString( toUtf16( line ).c_str( ) ); }

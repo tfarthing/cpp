@@ -57,7 +57,7 @@ namespace cpp
             virtual                         ~Source( );
             virtual bool                    isOpen( ) const = 0;
             virtual Memory                  readsome( Memory dst, std::error_code & errorCode ) = 0;
-            virtual void                    close( ) = 0;
+            virtual void                    close( );
         };
         struct Exception;
 
@@ -215,7 +215,12 @@ namespace cpp
     }
 
 
-    /*
+	inline void Input::Source::close( )
+	{
+	}
+
+
+	/*
     void Input::Source::close( )
     {
         assert( false ); // implementation should always override this

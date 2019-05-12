@@ -15,6 +15,11 @@
     <ClCompile Include="file\SyncFile.cpp" />
     <ClCompile Include="meta\Test.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="cpp.vcxproj">
+      <Project>{899774d3-2670-47ad-bb32-549a69144f7f}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{D93B939B-30EA-49F6-9930-9107CF760CEF}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>

@@ -93,7 +93,7 @@ namespace cpp
 		if constexpr ( Platform::isWindows( ) )
 		{
 			for ( auto & arg : windows::App::parseCommandLine( cmdline ) )
-				{ arguments.push_back( arg ); }
+				{ arguments.push_back( arg.data ); }
 		}
 		initArgs( arguments );
 	}

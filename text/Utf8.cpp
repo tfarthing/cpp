@@ -50,7 +50,7 @@ namespace cpp
         Text & Text::assign( const char * begin, const char * end )
         {
             m_offsets.clear( );
-            m_str.assign( begin, end );
+			m_str.assign( Memory{ begin, end } );
             return *this;
         }
 
@@ -59,7 +59,7 @@ namespace cpp
             clear( );
             if ( str )
             { 
-                m_str.assign( str.begin( ), str.end( ) ); 
+                m_str.assign( str ); 
             }
             return *this;
         }
@@ -143,7 +143,7 @@ namespace cpp
 
         bool Text::isEmpty( ) const
         {
-            return m_str.empty( );
+            return m_str.isEmpty( );
         }
 
         Text::operator const char *( ) const
@@ -153,17 +153,17 @@ namespace cpp
 
         const char * Text::begin( ) const
         {
-            return m_str.data( );
+            return m_str.begin( );
         }
 
         const char * Text::end( ) const
         {
-            return m_str.data( ) + m_str.length( );
+            return m_str.end( );
         }
 
         size_t Text::size( ) const
         {
-            return m_str.size();
+            return m_str.length( );
         }
 
         Memory Text::data( ) const
@@ -211,10 +211,10 @@ namespace cpp
             uint32_t imax = end - 1;
             uint32_t imid = (imin + imax) / 2;
 
-            if ( end <= begin || ptr < m_str.c_str() )
+            if ( end <= begin || ptr < m_str.begin( ) )
                 { return begin; }
 
-            uint32_t offset = (uint32_t)( ptr - m_str.c_str( ) );
+            uint32_t offset = (uint32_t)( ptr - m_str.begin( ) );
 
             while ( imin <= imax )
             {

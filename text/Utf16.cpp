@@ -416,7 +416,7 @@ namespace cpp
     std::wstring toUtf16( const cpp::Memory & utf8 )
     {
         std::wstring result;
-        result.reserve( utf8.length( ) );
+		result.reserve( utf8.length( ) );
 
         size_t pos = 0;
         while ( pos < utf8.length() )
@@ -438,10 +438,11 @@ namespace cpp
         return result;
     }
 
-    String toUtf8( const wchar_t * begin, const wchar_t * end )
+
+	std::string toUtf8( const wchar_t * begin, const wchar_t * end )
     {
         String result;
-        result.reserve( end - begin );
+        result.data.reserve( end - begin );
         while ( begin < end )
         {
             //  decode utf-16
@@ -459,7 +460,8 @@ namespace cpp
         return result;
     }
 
-    String toUtf8( const std::wstring & utf16 )
+
+	std::string toUtf8( const std::wstring & utf16 )
     {
         return toUtf8( utf16.data( ), utf16.data( ) + utf16.length() );
     }

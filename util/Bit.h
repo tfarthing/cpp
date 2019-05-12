@@ -449,7 +449,7 @@ namespace cpp
             { return ( Object * )&( object( ) ); }
 
         inline Decoder::Exception::Exception( const Decoder & decoder )
-			: cpp::DecodeException( String::format( "bit::Decoder::Exception - %", cpp::toString( decoder.error( ) ) ) ), m_line( decoder.line( ) ), m_error( decoder.error( ) ), m_errorPos( decoder.errorPos( ) ) { }
+			: cpp::DecodeException( cpp::format( "bit::Decoder::Exception - %", cpp::toString( decoder.error( ) ) ) ), m_line( decoder.line( ) ), m_error( decoder.error( ) ), m_errorPos( decoder.errorPos( ) ) { }
 
         inline String Decoder::Exception::line( )
             { return m_line; }

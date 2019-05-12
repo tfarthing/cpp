@@ -44,7 +44,7 @@ namespace cpp
 	inline uint32 Float::toBits( float32 value )
 		{ uint32 bits; memcpy( &bits, &value, sizeof( bits ) ); return bits; }
 
-	inline uint64 toBits( float64 value )
+	inline uint64 Float::toBits( float64 value )
 		{ uint64 bits; memcpy( &bits, &value, sizeof( bits ) ); return bits; }
 
 }

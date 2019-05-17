@@ -35,7 +35,7 @@ namespace cpp
 											DataArray( const StringArray & copy );
 											DataArray( std::initializer_list<Memory> init );
 
-											DataArray( const EncodedText & encodedText );	//	from comma-separated list e.g. "one, two, three"
+											DataArray( const EncodedText & encodedText );
 											DataArray( const EncodedBinary & encodedBinary );	//	from comma-separated list e.g. "one, two, three"
 
 		DataArray &							operator=( DataArray && move ) noexcept;
@@ -54,48 +54,48 @@ namespace cpp
 		void								set( size_t index, const Memory & value );
 		Memory								remove( size_t index );
 
+        Memory								toText( DataBuffer & buffer );	//	comma-separated list
+        Memory								toBinary( DataBuffer & buffer, ByteOrder byteOrder = ByteOrder::Host );
+
 		std::vector<Memory>					data;
 	};
-
-	Memory									toText( DataBuffer & buffer );	//	comma-separated list
-	Memory									toBinary( DataBuffer & buffer, ByteOrder byteOrder = ByteOrder::Host );
 
 
 
 	struct StringArray
-		: std::vector<String>
 	{
-		typedef std::vector<String>	Array;
+							                StringArray( );
+							                explicit StringArray( size_t count );
+							                StringArray( StringArray && move ) noexcept;
+							                StringArray( const StringArray & copy );
+							                StringArray( std::vector<String> && move ) noexcept;
+							                StringArray( const std::vector<String> & copy );
+							                StringArray( const DataArray & copy );
+							                StringArray( std::initializer_list<String> init );
 
-		static StringArray	fromBinary( DataBuffer & buffer );
+                                            StringArray( const EncodedText & encodedText );
+                                            StringArray( const EncodedBinary & encodedBinary );
 
-							StringArray( );
-							explicit StringArray( size_t count );
-							StringArray( StringArray && move ) noexcept;
-							StringArray( const StringArray & copy );
-							StringArray( Array && move ) noexcept;
-							StringArray( const Array & copy );
-							StringArray( const DataArray & copy );
-							StringArray( std::initializer_list<String> init );
-							StringArray( const EncodedText & encodedText );
+		StringArray &		                operator=( StringArray && move ) noexcept;
+		StringArray &		                operator=( const StringArray & copy );
+		StringArray &		                operator=( std::vector<String> && move ) noexcept;
+		StringArray &		                operator=( const std::vector<String> & copy );
+		StringArray &		                operator=( const DataArray & copy );
 
-		StringArray &		operator=( StringArray && move ) noexcept;
-		StringArray &		operator=( const StringArray & copy );
-		StringArray &		operator=( Array && move ) noexcept;
-		StringArray &		operator=( const Array & copy );
-		StringArray &		operator=( const DataArray & copy );
+		Memory				                operator[]( size_t index ) const;
 
-		Memory				operator[]( size_t index ) const;
+		bool				                isEmpty( ) const;
+		bool				                notEmpty( ) const;
 
-		bool				isEmpty( ) const;
-		bool				notEmpty( ) const;
+        void								add( String value );
+        Memory				                get( size_t index ) const;
+		void				                set( size_t index, String value );
+		String				                remove( size_t index );
 
-		Memory				get( size_t index ) const;
-		void				set( size_t index, String value );
-		Memory				remove( size_t index );
-
-		String				toString( ) const;
-		Memory				toBinary( DataBuffer & buffer, ByteOrder byteOrder = ByteOrder::Host ) const;
-	};
+        Memory				                toString( DataBuffer & buffer ) const;
+		Memory				                toBinary( DataBuffer & buffer, ByteOrder byteOrder = ByteOrder::Host ) const;
+    
+        std::vector<String>                 data;
+    };
 
 }

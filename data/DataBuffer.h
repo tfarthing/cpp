@@ -241,6 +241,21 @@ namespace cpp
     }
 
 
+    inline void encodeBinary( DataBuffer & buffer, const cpp::Memory & value, ByteOrder byteOrder = ByteOrder::Host )
+    {
+        buffer.putBinary( (uint32_t)value.length( ), byteOrder );
+        buffer.put( Memory{ value } );
+    }
+
+
+    inline void decodeBinary( DataBuffer & buffer, cpp::Memory & value, ByteOrder byteOrder = ByteOrder::Host )
+    {
+        uint32_t size;
+        buffer.getBinary( size, byteOrder );
+        value = buffer.get( size );
+    }
+
+
     inline void encodeBinary( DataBuffer & buffer, const cpp::String & value, ByteOrder byteOrder = ByteOrder::Host )
     { 
         buffer.putBinary( (uint32_t)value.length( ), byteOrder );

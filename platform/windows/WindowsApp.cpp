@@ -50,7 +50,7 @@ namespace cpp
 					if ( arg.notEmpty( ) || argIndex < pos )
 					{
 						arg += cmdline.substr( argIndex, pos - argIndex );
-						arguments.push_back( arg );
+						arguments.add( arg );
 						arg.clear( );
 					}
 					bslashCount = 0;

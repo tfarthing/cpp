@@ -184,7 +184,7 @@ namespace cpp
                     Registry::currentUser( ).deleteKey( keyName );
                 }
 
-                for ( const String & ext : exts )
+                for ( const String & ext : exts.data )
                 {
                     auto key = Registry::currentUser( ).open( cpp::format( "Software\\Classes\\%\\OpenWithProgids", ext ) );
                     if ( key.isOpen( ) && key.has( appLabel ) )

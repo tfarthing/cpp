@@ -118,7 +118,7 @@ namespace cpp
 		StringArray results;
         for ( auto & cursor : *this )
         {
-            results.push_back( cursor.line );
+            results.add( cursor.line );
         }
         return results;
     }

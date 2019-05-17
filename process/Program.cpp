@@ -92,7 +92,7 @@ namespace cpp
 		StringArray_t arguments;
 		if constexpr ( Platform::isWindows( ) )
 		{
-			for ( auto & arg : windows::App::parseCommandLine( cmdline ) )
+			for ( auto & arg : windows::App::parseCommandLine( cmdline ).data )
 				{ arguments.push_back( arg.data ); }
 		}
 		initArgs( arguments );

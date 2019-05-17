@@ -368,7 +368,7 @@ namespace cpp
 
 
 	inline void Memory::ensureEnd( ) const
-		{ if ( !end( ) && begin( ) ) { m_end = begin( ) + strlen( begin( ) ); } }
+		{ if ( !m_end && m_begin ) { m_end = m_begin + strlen( m_begin ); } }
 
 
 
@@ -376,6 +376,8 @@ namespace cpp
 	{
 		EncodedMemory( Memory data_ )
 			: data( data_ ) { }
+        operator Memory( ) const
+            { return data; }
 		Memory data;
 	};
 

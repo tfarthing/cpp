@@ -52,9 +52,6 @@
     </ClInclude>
     <ClInclude Include="cpp.h" />
     <ClInclude Include="Data.h" />
-    <ClInclude Include="data\Path.h">
-      <Filter>util</Filter>
-    </ClInclude>
     <ClInclude Include="network\Http.h">
       <Filter>network</Filter>
     </ClInclude>
@@ -228,9 +225,6 @@
     </ClCompile>
     <ClCompile Include="meta\Test.cpp">
       <Filter>meta</Filter>
-    </ClCompile>
-    <ClCompile Include="data\Path.cpp">
-      <Filter>util</Filter>
     </ClCompile>
     <ClCompile Include="network\Http.cpp">
       <Filter>network</Filter>

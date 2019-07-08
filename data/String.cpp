@@ -89,35 +89,35 @@ namespace cpp
 
 #else
 
-#include <cpp/String.h>
-#include <cpp/util/Utf8.h>
-#include <cpp/util/Utf16.h>
-#include <cpp/meta/Unittest.h>
+#include <cpp/data/String.h>
+#include <cpp/text/Utf8.h>
+#include <cpp/text/Utf16.h>
+#include <cpp/meta/Test.h>
 
-SUITE( String )
+TEST_CASE( "String" )
 {
     using namespace cpp;
 
-    TEST( trim )
+    SECTION( "trim" )
     {
-        CHECK( String{ " hello " }.trim( ) == "hello" );
+        REQUIRE( String{ " hello " }.trim( ) == "hello" );
     }
 
-    TEST( split )
+    SECTION( "split" )
     {
-        auto lhs = String{ "one, two, three" }.split( "," );
-        auto rhs = String::Array{ "one", "two", "three" };
-        CHECK( lhs == rhs );
+        StringArray lhs = String{ "one, two, three" }.split( "," );
+        StringArray rhs = StringArray{ "one", "two", "three" };
+        REQUIRE( lhs == rhs );
     }
 
-    TEST( utf16 )
+    SECTION( "utf16" )
     {
         String string = u8"ありがとう";
         
         std::wstring utf16 = toUtf16( string );
         String utf8 = toUtf8( utf16 );
 
-        CHECK( utf8 == string );
+        REQUIRE( utf8 == string );
     }
 
 }

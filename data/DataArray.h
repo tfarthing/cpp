@@ -2,7 +2,7 @@
 
 /*
 
-	DataArray and StringArray are extensions of std::vector.
+	DataArray abstracts a std::vector for binary data items, i.e. MemoryArray and StringArray.
 
 	(1) Objects of each can convert to/from DataArray & StringArray.
 	(2) Extends the interface of std::vector, except operator[] which is overridden as read-only.
@@ -16,86 +16,442 @@
 #include <vector>
 
 #include "String.h"
+#include "DataBuffer.h"
 
 
 namespace cpp
 {
 
 	class DataBuffer;
-	struct StringArray;
 
+    template<class T>
 	struct DataArray
 	{
+        static DataArray<T>                 ofSize( size_t count, const T & value = T{} );
+
 											DataArray( );
-											explicit DataArray( size_t count );
-											DataArray( DataArray && move ) noexcept;
-											DataArray( const DataArray & copy );
-											DataArray( std::vector<Memory> && move ) noexcept;
-											DataArray( const std::vector<Memory> & copy );
-											DataArray( const StringArray & copy );
-											DataArray( std::initializer_list<Memory> init );
+											DataArray( DataArray<T> && move ) noexcept;
+											DataArray( const DataArray<T> & copy );
+                                            DataArray( std::initializer_list<T> init );
 
-											DataArray( const EncodedText & encodedText );
-											DataArray( const EncodedBinary & encodedBinary );	//	from comma-separated list e.g. "one, two, three"
+		template<class Y>	                DataArray( std::vector<Y> && move ) noexcept;
+		template<class Y>	                DataArray( const std::vector<Y> & copy );
+        template<class Y>	                DataArray( DataArray<Y> && move ) noexcept;
+        template<class Y>	                DataArray( const DataArray<Y> & copy );
 
-		DataArray &							operator=( DataArray && move ) noexcept;
-		DataArray &							operator=( const DataArray & copy );
-		DataArray &							operator=( std::vector<Memory> && move ) noexcept;
-		DataArray &							operator=( const std::vector<Memory> & copy );
-		DataArray &							operator=( const StringArray & copy );
+											DataArray( const EncodedText & encodedText );     // from comma-separated list e.g. "one, two, three"
+											DataArray( const EncodedBinary & encodedBinary ); // from length encoded list
 
-		Memory								operator[]( size_t index ) const;
+        DataArray<T> &	                    operator=( std::vector<T> && move ) noexcept;
+        DataArray<T> &	                    operator=( const std::vector<T> & copy );
+        DataArray<T> &	                    operator=( DataArray<T> && move ) noexcept;
+        DataArray<T> &	                    operator=( const DataArray<T> & copy );
+        template<class Y> DataArray<T> &	operator=( std::vector<Y> && move ) noexcept;
+        template<class Y> DataArray<T> &	operator=( const std::vector<Y> & copy );
+        template<class Y> DataArray<T> &	operator=( DataArray<Y> && move ) noexcept;
+        template<class Y> DataArray<T> &	operator=( const DataArray<Y> & copy );
 
-		bool								isEmpty( ) const;
+        DataArray<T> &                      operator=( const EncodedText & encodedText );     // from comma-separated list e.g. "one, two, three"
+        DataArray<T> &                      operator=( const EncodedBinary & encodedBinary ); // from length encoded list
+
+        bool								isEmpty( ) const;
 		bool								notEmpty( ) const;
+        size_t                              size( ) const;
 
-		void								add( const Memory & value );
-		Memory								get( size_t index ) const;
-		void								set( size_t index, const Memory & value );
-		Memory								remove( size_t index );
+        Memory							    get( size_t index ) const;
+        Memory								operator[]( size_t index ) const;
 
-        Memory								toText( DataBuffer & buffer );	//	comma-separated list
-        Memory								toBinary( DataBuffer & buffer, ByteOrder byteOrder = ByteOrder::Host );
+        template<class Y> void				add( Y && value );
+        template<class Y> void				add( const Y & value );
+        template<class Y> void				set( size_t index, const Y & value );
+        template<class Y> void 			    set( size_t index, Y && value );
+        void    						    remove( size_t index );
+        void                                clear( );
 
-		std::vector<Memory>					data;
+        Memory								toText( DataBuffer & buffer = StringBuffer::writeTo( 1024 ) );	//	comma-separated list
+        Memory								toBinary( DataBuffer & buffer = StringBuffer::writeTo( 1024 ), ByteOrder byteOrder = ByteOrder::Host );
+
+		std::vector<T>					    data;
 	};
 
 
+    template<class T>
+    DataArray<T> DataArray<T>::ofSize( size_t count, const T & value )
+    {
+        DataArray<T> result;
+        result.data.resize( 10, value );
+        return result;
+    }
 
-	struct StringArray
-	{
-							                StringArray( );
-							                explicit StringArray( size_t count );
-							                StringArray( StringArray && move ) noexcept;
-							                StringArray( const StringArray & copy );
-							                StringArray( std::vector<String> && move ) noexcept;
-							                StringArray( const std::vector<String> & copy );
-							                StringArray( const DataArray & copy );
-							                StringArray( std::initializer_list<String> init );
 
-                                            StringArray( const EncodedText & encodedText );
-                                            StringArray( const EncodedBinary & encodedBinary );
+    template<class T>
+    DataArray<T>::DataArray( )
+        { }
 
-		StringArray &		                operator=( StringArray && move ) noexcept;
-		StringArray &		                operator=( const StringArray & copy );
-		StringArray &		                operator=( std::vector<String> && move ) noexcept;
-		StringArray &		                operator=( const std::vector<String> & copy );
-		StringArray &		                operator=( const DataArray & copy );
 
-		Memory				                operator[]( size_t index ) const;
+    template<class T>
+    DataArray<T>::DataArray( DataArray<T> && move ) noexcept
+        : data( std::move( move.data ) ) { }
 
-		bool				                isEmpty( ) const;
-		bool				                notEmpty( ) const;
 
-        void								add( String value );
-        Memory				                get( size_t index ) const;
-		void				                set( size_t index, String value );
-		String				                remove( size_t index );
+    template<class T>
+    DataArray<T>::DataArray( const DataArray<T> & copy )
+        : data( copy.data ) { }
 
-        Memory				                toString( DataBuffer & buffer ) const;
-		Memory				                toBinary( DataBuffer & buffer, ByteOrder byteOrder = ByteOrder::Host ) const;
-    
-        std::vector<String>                 data;
-    };
+
+    template<class T>
+    template<class Y> DataArray<T>::DataArray( std::vector<Y> && move ) noexcept
+    { 
+        data.reserve( move.size( ) );
+        for ( size_t i = 0; i < move.size( ); i++ )
+        {
+            data.emplace_back( std::move( move[i] ) );
+        }
+    }
+
+
+    template<class T>
+    template<class Y> DataArray<T>::DataArray( const std::vector<Y> & copy )
+    {
+        data.reserve( copy.size( ) );
+        for ( size_t i = 0; i < copy.size( ); i++ )
+        {
+            data.emplace_back( copy[i] );
+        }
+    }
+
+
+    template<class T>
+    template<class Y> DataArray<T>::DataArray( DataArray<Y> && move ) noexcept
+    {
+        data.reserve( move.size( ) );
+        for ( size_t i = 0; i < move.size( ); i++ )
+        {
+            data.emplace_back( std::move( move.data[i] ) );
+        }
+    }
+
+
+    template<class T>
+    template<class Y> DataArray<T>::DataArray( const DataArray<Y> & copy )
+    {
+        data.reserve( copy.size( ) );
+        for ( size_t i = 0; i < copy.size( ); i++ )
+        {
+            data.emplace_back( copy.data[i] );
+        }
+    }
+
+
+    template<class T>
+    DataArray<T>::DataArray( std::initializer_list<T> init )
+        : data( std::move( init ) ) { }
+
+
+    template<class T>
+    DataArray<T>::DataArray( const EncodedText & encodedText )
+    {
+        for ( auto & item : encodedText.data.split( ",", Memory::WhitespaceList, false ) )
+        {
+            data.push_back( EncodedText{ item } );
+        }
+    }
+
+
+    template<class T>
+    DataArray<T>::DataArray( const EncodedBinary & encodedBinary )
+    {
+        DataBuffer buffer{ encodedBinary.data };
+        uint32_t len = buffer.getBinary<uint32_t>( );
+        for ( size_t i = 0; i < len; i++ )
+        {
+            data.push_back( buffer.getBinary<Memory>( ) );
+        }
+    }
+
+
+    template<class T>
+    DataArray<T> & DataArray<T>::operator=( std::vector<T> && move ) noexcept
+    {
+        data = std::move( move );
+        return *this;
+    }
+
+
+    template<class T>
+    DataArray<T> & DataArray<T>::operator=( const std::vector<T> & copy )
+    {
+        data = copy;
+        return *this;
+    }
+
+
+    template<class T>
+    DataArray<T> & DataArray<T>::operator=( DataArray <T> && move ) noexcept
+    {
+        data = std::move( move.data );
+        return *this;
+    }
+
+
+    template<class T>
+    DataArray<T> & DataArray<T>::operator=( const DataArray<T> & copy )
+    {
+        data = move.data;
+        return *this;
+    }
+
+
+    template<class T>
+    template<class Y> DataArray<T> & DataArray<T>::operator=( std::vector<Y> && move ) noexcept
+    {
+        data.clear( );
+        data.reserve( move.size( ) );
+        for ( size_t i = 0; i < move.size( ); i++ )
+        {
+            data.emplace_back( std::move( move[i] ) );
+        }
+        return *this;
+    }
+
+
+    template<class T>
+    template<class Y> DataArray<T> & DataArray<T>::operator=( const std::vector<Y> & copy )
+    {
+        data.clear( );
+        data.reserve( copy.size( ) );
+        for ( size_t i = 0; i < copy.size( ); i++ )
+        {
+            data.emplace_back( copy[i] );
+        }
+        return *this;
+    }
+
+
+    template<class T>
+    template<class Y> DataArray<T> & DataArray<T>::operator=( DataArray<Y> && move ) noexcept
+    {
+        return operator=( std::move( move.data ) );
+    }
+
+
+    template<class T>
+    template<class Y> DataArray<T> & DataArray<T>::operator=( const DataArray<Y> & copy )
+    {
+        return operator=( copy.data );
+    }
+
+
+    template<class T>
+    DataArray<T> & DataArray<T>::operator=( const EncodedText & encodedText )
+    {
+        for ( auto & item : encodedText.data.split( ",", Memory::WhitespaceList, false ) )
+        {
+            data.push_back( EncodedText{ item } );
+        }
+        return *this;
+    }
+
+
+    template<class T>
+    DataArray<T> & DataArray<T>::operator=( const EncodedBinary & encodedBinary )
+    {
+        DataBuffer buffer{ encodedBinary.data };
+        uint32_t len = buffer.getBinary<uint32_t>( );
+        for ( size_t i = 0; i < len; i++ )
+        {
+            data.push_back( buffer.getBinary<Memory>( ) );
+        }
+        return *this;
+    }
+
+
+    template<class T>
+    Memory DataArray<T>::operator[]( size_t index ) const
+    {
+        return data[index];
+    }
+
+
+    template<class T>
+    bool DataArray<T>::isEmpty( ) const
+    {
+        return data.empty( );
+    }
+
+
+    template<class T>
+    bool DataArray<T>::notEmpty( ) const
+    {
+        return !data.empty( );
+    }
+
+
+    template<class T>
+    size_t DataArray<T>::size( ) const
+    {
+        return data.size( );
+    }
+
+
+    template<class T>
+    template<class Y> void DataArray<T>::add( const Y & value )
+    {
+        data.emplace_back( value );
+    }
+
+
+    template<class T>
+    template<class Y> void DataArray<T>::add( Y && value )
+    {
+        data.emplace_back( std::move( value ) );
+    }
+
+
+    template<class T>
+    Memory DataArray<T>::get( size_t index ) const
+    {
+        return ( index <= size( ) ) ? Memory{ data[index] } : nullptr;
+    }
+
+
+    template<class T>
+    template<class Y> void DataArray<T>::set( size_t index, const Y & value )
+    {
+        data[index] = value;
+    }
+
+
+    template<class T>
+    template<class Y> void DataArray<T>::set( size_t index, Y && value )
+    {
+        data[index] = std::move( value );
+    }
+
+
+    template<class T>
+    void DataArray<T>::remove( size_t index )
+    {
+        Memory item = data[index]; data.erase( data.begin( ) + index ); return item;
+    }
+
+
+    template<class T>
+    void DataArray<T>::clear( )
+    {
+        data.clear( );
+    }
+
+
+    template<class T>
+    Memory DataArray<T>::toText( DataBuffer & buffer )
+    {
+        size_t pos = buffer.getable( ).length( );
+        for ( auto & item : data )
+        {
+            if ( buffer.getPutPos( ) != pos )
+            {
+                buffer.put( "," );
+            }
+            buffer.put( item );
+        }
+        return buffer.getable( ).substr( pos );
+    }
+
+
+    template<class T>
+    Memory DataArray<T>::toBinary( DataBuffer & buffer, ByteOrder byteOrder )
+    {
+        size_t pos = buffer.getable( ).length( );
+        buffer.putBinary( data.size( ) );
+        for ( size_t i = 0; i < data.size( ); i++ )
+        {
+            buffer.putBinary( data[i] );
+        }
+        return buffer.getable( ).substr( pos );
+    }
+
+
+    template<class T, class Y> int compare( const std::vector<T> & lhs, const std::vector<Y> & rhs )
+    {
+        for ( size_t i = 0; i < lhs.size( ); i++ )
+        {
+            if ( rhs.size( ) <= i )
+                { return -1; }
+
+            int itemCompare = Memory::compare( lhs[i], rhs[i] );
+            if ( itemCompare == 0 )
+                { continue; }
+            return itemCompare;
+        }
+
+        return ( rhs.size( ) == lhs.size( ) ) ? 0 : 1;
+    }
+
+
+    template<class T, class Y> int compare( const DataArray<T> & lhs, const std::vector<Y> & rhs )
+    {
+        return compare( lhs.data, rhs );
+    }
+
+
+    template<class T, class Y> int compare( const std::vector<Y> & lhs, const DataArray<T> & rhs )
+    {
+        return compare( lhs, rhs.data );
+    }
+
+
+    template<class T, class Y> int compare( const DataArray<Y> & lhs, const DataArray<T> & rhs )
+    {
+        return compare( lhs.data, rhs.data );
+    }
+
+
+    typedef DataArray<Memory> MemoryArray;
+    typedef DataArray<String> StringArray;
 
 }
+
+
+
+
+
+
+template<class T, class Y> bool operator==( const cpp::DataArray<T> & lhs, const cpp::DataArray<Y> & rhs )
+    { return cpp::compare( lhs, rhs ) == 0; }
+template<class T, class Y> bool operator!=( const cpp::DataArray<T> & lhs, const cpp::DataArray<Y> & rhs )
+    { return cpp::compare( lhs, rhs ) != 0; }
+template<class T, class Y> bool operator<( const cpp::DataArray<T> & lhs, const cpp::DataArray<Y> & rhs )
+    { return cpp::compare( lhs, rhs ) < 0; }
+template<class T, class Y> bool operator>( const cpp::DataArray<T> & lhs, const cpp::DataArray<Y> & rhs )
+    { return cpp::compare( lhs, rhs ) > 0; }
+template<class T, class Y> bool operator<=( const cpp::DataArray<T> & lhs, const cpp::DataArray<Y> & rhs )
+    { return cpp::compare( lhs, rhs ) <= 0; }
+template<class T, class Y> bool operator>=( const cpp::DataArray<T> & lhs, const cpp::DataArray<Y> & rhs )
+    { return cpp::compare( lhs, rhs ) >= 0; }
+
+template<class T, class Y> bool operator==( const cpp::DataArray<T> & lhs, const std::vector<Y> & rhs )
+    { return cpp::compare( lhs, rhs ) == 0; }
+template<class T, class Y> bool operator!=( const cpp::DataArray<T> & lhs, const std::vector<Y> & rhs )
+    { return cpp::compare( lhs, rhs ) != 0; }
+template<class T, class Y> bool operator<( const cpp::DataArray<T> & lhs, const std::vector<Y> & rhs )
+    { return cpp::compare( lhs, rhs ) < 0; }
+template<class T, class Y> bool operator>( const cpp::DataArray<T> & lhs, const std::vector<Y> & rhs )
+    { return cpp::compare( lhs, rhs ) > 0; }
+template<class T, class Y> bool operator<=( const cpp::DataArray<T> & lhs, const std::vector<Y> & rhs )
+    { return cpp::compare( lhs, rhs ) <= 0; }
+template<class T, class Y> bool operator>=( const cpp::DataArray<T> & lhs, const std::vector<Y> & rhs )
+    { return cpp::compare( lhs, rhs ) >= 0; }
+
+template<class T, class Y> bool operator==( const std::vector<T> & lhs, const cpp::DataArray<Y> & rhs )
+    { return cpp::compare( lhs, rhs ) == 0; }
+template<class T, class Y> bool operator!=( const std::vector<T> & lhs, const cpp::DataArray<Y> & rhs )
+    { return cpp::compare( lhs, rhs ) != 0; }
+template<class T, class Y> bool operator<( const std::vector<T> & lhs, const cpp::DataArray<Y> & rhs )
+    { return cpp::compare( lhs, rhs ) < 0; }
+template<class T, class Y> bool operator>( const std::vector<T> & lhs, const cpp::DataArray<Y> & rhs )
+    { return cpp::compare( lhs, rhs ) > 0; }
+template<class T, class Y> bool operator<=( const std::vector<T> & lhs, const cpp::DataArray<Y> & rhs )
+    { return cpp::compare( lhs, rhs ) <= 0; }
+template<class T, class Y> bool operator>=( const std::vector<T> & lhs, const cpp::DataArray<Y> & rhs )
+    { return cpp::compare( lhs, rhs ) >= 0; }

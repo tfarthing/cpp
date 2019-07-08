@@ -17,6 +17,7 @@
 #include <string>
 #include <vector>
 
+#include "Primitive.h"
 #include "ByteOrder.h"
 #include "RegexMatch.h"
 
@@ -45,17 +46,23 @@ namespace cpp
 	{
 	public:
 											Memory( );
+                                            Memory( nullptr_t );
 											Memory( const char * cstring );
 											Memory( const char * ptr, size_t len );
 											Memory( const char * begin, const char * end );
-											Memory( const std::string & string );
-											Memory( const String & copy );
+                                            Memory( const char8_t * cstring );
+                                            Memory( const std::string & string );
+        explicit                            Memory( std::string && string ) = delete;
+                                            Memory( const String & copy );
+        explicit                            Memory( String && string ) = delete;
 											Memory( const Memory & copy );
 
 		Memory &							operator=( nullptr_t );
 		Memory &							operator=( const char * cstring );
 		Memory &							operator=( const std::string & string );
 		Memory &							operator=( const String & memory );
+		Memory &							operator=( std::string && string ) = delete;
+		Memory &							operator=( String && memory ) = delete;
 		Memory &							operator=( const Memory & memory );
 
 		bool								operator<( const Memory & memory ) const;
@@ -189,6 +196,8 @@ namespace cpp
 	inline Memory::Memory( )
 		: m_begin( nullptr ), m_end( nullptr ) { }
 	
+    inline Memory::Memory( nullptr_t )
+        : m_begin( nullptr ), m_end( nullptr ) { }
 
 	inline Memory::Memory( const char * cstring )
 		: m_begin( cstring ), m_end( nullptr ) { }
@@ -201,6 +210,8 @@ namespace cpp
 	inline Memory::Memory( const char * begin, const char * end )
 		: m_begin( begin ), m_end( end ) { }
 	
+    inline Memory::Memory( const char8_t * cstring )
+        : m_begin( (char *)cstring ), m_end( nullptr ) { }
 
 	inline Memory::Memory( const std::string & string )
 		: m_begin( string.c_str( ) ), m_end( string.c_str( ) + string.length( ) ) { }

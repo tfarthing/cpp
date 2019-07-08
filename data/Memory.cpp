@@ -584,16 +584,17 @@ namespace cpp
 
 #else
 
-#include <cpp/meta/Unittest.h>
-#include <cpp/Float.h>
-#include <cpp/Memory.h>
-#include <cpp/String.h>
+#include <cpp/meta/Test.h>
+#include <cpp/data/Float.h>
+#include <cpp/data/Memory.h>
+#include <cpp/data/String.h>
 
-SUITE( Memory )
+
+TEST_CASE( "Memory" )
 {
     using namespace cpp;
 
-    TEST( ctor )
+    SECTION( "ctor" )
     {
         std::string s1{ "hello" };
         String s2{ "hello" };
@@ -605,15 +606,15 @@ SUITE( Memory )
         Memory e{ "hello", 3 };
         Memory f{ "" };
 
-        CHECK( a.isNull( ) );
-        CHECK( b == "hello" );
-        CHECK( c == "hello" );
-        CHECK( d == "hello" );
-        CHECK( e == "hel" );
-        CHECK( f == Memory::Empty );
+        REQUIRE( a.isNull( ) );
+        REQUIRE( b == "hello" );
+        REQUIRE( c == "hello" );
+        REQUIRE( d == "hello" );
+        REQUIRE( e == "hel" );
+        REQUIRE( f == Memory::Empty );
     }
 
-    TEST( assign )
+    SECTION( "assign" )
     {
         std::string s1{ "hello" };
         String s2{ "hello" };
@@ -624,37 +625,37 @@ SUITE( Memory )
         c = s1;
         d = s2;
 
-        CHECK( a.isNull( ) );
-        CHECK( b == "hello" );
-        CHECK( c == "hello" );
-        CHECK( d == "hello" );
+        REQUIRE( a.isNull( ) );
+        REQUIRE( b == "hello" );
+        REQUIRE( c == "hello" );
+        REQUIRE( d == "hello" );
     }
 
-    TEST( compare )
+    SECTION( "compare" )
     {
         std::string s1{ "hello" };
         String s2{ "hello" };
 
-        CHECK( Memory{ "hello" } == s1 );
-        CHECK( Memory{ "hello" } == s2 );
+        REQUIRE( Memory{ "hello" } == s1 );
+        REQUIRE( Memory{ "hello" } == s2 );
     }
 
-    TEST( swap )
+    SECTION( "byteswap" )
     {
-        CHECK( Float::toBits( Memory::swap( 1.2f ) ) == 0x9a99993f );
-        CHECK( Memory::swap( Float::fromBits( 0x9a99993f ) ) == 1.2f );
+        REQUIRE( Float::toBits( Memory::byteswap( 1.2f ) ) == 0x9a99993f );
+        REQUIRE( Memory::byteswap( Float::fromBits( 0x9a99993f ) ) == 1.2f );
     }
 
-    TEST( search )
+    SECTION( "search" )
     {
         Memory sample{ "This is a sentence." };
         auto results = sample.searchAll( R"(\w+)" );
 
-        CHECK( results.size( ) == 4 );
-        CHECK( results[0][0] == "This" );
-        CHECK( results[1][0] == "is" );
-        CHECK( results[2][0] == "a" );
-        CHECK( results[3][0] == "sentence" );
+        REQUIRE( results.size( ) == 4 );
+        REQUIRE( results[0][0] == "This" );
+        REQUIRE( results[1][0] == "is" );
+        REQUIRE( results[2][0] == "a" );
+        REQUIRE( results[3][0] == "sentence" );
     }
 
 }

@@ -66,9 +66,9 @@ namespace cpp
 
 		class Object;
 
-		Object decode( Memory text );
-		Object decode( DataBuffer & buffer );
-		Object decodeLine( DataBuffer & buffer );
+		Object                              decode( Memory text );
+		Object                              decode( DataBuffer & buffer );
+		Object                              decodeLine( DataBuffer & buffer );
 
 
 		//template<class key_t>
@@ -76,12 +76,12 @@ namespace cpp
 		{
 			static Key                      append( const Key & parent, Memory childName );
 
-			Key( Memory path = "", size_t origin = 0 );
-			Key( const Key & copy );
-			Key( Key && move ) noexcept;
+			                                Key( Memory path = "", size_t origin = 0 );
+			                                Key( const Key & copy );
+			                                Key( Key && move ) noexcept;
 
-			Key & operator=( const Key & copy );
-			Key & operator=( Key && move ) noexcept;
+			                                Key & operator=( const Key & copy );
+			                                Key & operator=( Key && move ) noexcept;
 
 			Memory                          get( ) const;                           // i.e. path.substr( origin ? origin + 1 : 0 )
 			operator Memory( ) const;
@@ -109,35 +109,35 @@ namespace cpp
 		class Object
 		{
 		public:
-			Object( );
-			Object( Object && move );
-			Object( const Object & copy );
+			                                Object( );
+			                                Object( Object && move );
+			                                Object( const Object & copy );
 
 			typedef Object                  Self;                   // returned reference to itself
 			typedef Object                  View;                   // returned object is a reference to another Object
 			typedef Object                  ClipView;               // returned object is a clipped reference to another Object
 
-			Self & reset( );               // resets the object's reference & data
+			Self &                          reset( );               // resets the object's reference & data
 
 			bool                            isEmpty( ) const;       // this key has no value and has no subkey with a value
 			bool                            notEmpty( ) const;      // this key has a value or a subkey with a value
 			bool                            hasChild( ) const;      // this key has at least one child key which is not empty
 
-			const Key & key( ) const;
+			const Key &                     key( ) const;
 			Memory                          value( ) const;
-			operator Memory( ) const;
+			                                operator Memory( ) const;
 
-			Self & assign( Memory value );
-			Self & operator=( Memory value );
+			Self &                          assign( Memory value );
+			Self &                          operator=( Memory value );
 
-			Self & assign( const Object & object );
-			Self & operator=( const Object & object );
+			Self &                          assign( const Object & object );
+			Self &                          operator=( const Object & object );
 
-			Self & append( const Object & object );
-			Self & operator+=( const Object & object );
+			Self &                          append( const Object & object );
+			Self &                          operator+=( const Object & object );
 
-			Self & clear( );               // removes all values at this key and any subkey
-			Self & erase( );               // performs clear( ) and sets this key as "nulled"
+			Self &                          clear( );               // removes all values at this key and any subkey
+			Self &                          erase( );               // performs clear( ) and sets this key as "nulled"
 
 			View                            at( Memory childName );
 			const View                      at( Memory childName ) const;
@@ -162,7 +162,6 @@ namespace cpp
 			const List                      listSubkeys( ) const;
 			const List                      listValues( ) const;
 			const List                      listChildren( ) const;
-			const List                      listArrayItems( ) const;
 
 			enum class EncodeRow
 			{
@@ -173,13 +172,13 @@ namespace cpp
 			String                          encodeRaw( EncodeRow rowEncoding = EncodeRow::Leaf ) const;
 
 		private:
-			Object( const Object * copy, Key key );
+			                                Object( const Object * copy, Key key );
 
-			void verifyArraysOnAdd( Memory fullKey );
-			void verifyArraysOnRemove( Memory fullKey );
+			void                            verifyArraysOnAdd( Memory fullKey );
+			void                            verifyArraysOnRemove( Memory fullKey );
 
-			Object getChild( Memory rootKey, Memory childKey ) const;
-			Object getArrayItem( Memory rootKey, Memory arrayKey ) const;
+			Object                          getChild( Memory rootKey, Memory childKey ) const;
+			Object                          getArrayItem( Memory rootKey, Memory arrayKey ) const;
 
 			typedef String value_t;
 			typedef std::map<String, value_t> map_t;
@@ -190,31 +189,31 @@ namespace cpp
 			friend class Array;
 			friend class List;
 
-			iterator_t firstKeyAt( Memory key ) const;
-			iterator_t firstSubkeyAt( Memory key ) const;
-			iterator_t nextKeyAt( Memory key, iterator_t itr ) const;
-			iterator_t findKeyAt( Memory key, iterator_t itr ) const;
+			iterator_t                      firstKeyAt( Memory key ) const;
+			iterator_t                      firstSubkeyAt( Memory key ) const;
+			iterator_t                      nextKeyAt( Memory key, iterator_t itr ) const;
+			iterator_t                      findKeyAt( Memory key, iterator_t itr ) const;
 
-			iterator_t firstValueAt( Memory key ) const;
-			iterator_t nextValueAt( Memory key, iterator_t itr ) const;
-			iterator_t findValueAt( Memory key, iterator_t itr ) const;
+			iterator_t                      firstValueAt( Memory key ) const;
+			iterator_t                      nextValueAt( Memory key, iterator_t itr ) const;
+			iterator_t                      findValueAt( Memory key, iterator_t itr ) const;
 
-			iterator_t firstChildAt( Memory key ) const;
-			iterator_t nextChildAt( Memory key, iterator_t itr ) const;
-			iterator_t findChildAt( Memory key, iterator_t itr ) const;
+			iterator_t                      firstChildAt( Memory key ) const;
+			iterator_t                      nextChildAt( Memory key, iterator_t itr ) const;
+			iterator_t                      findChildAt( Memory key, iterator_t itr ) const;
 
-			bool hasKeyWithValueAt( Memory rootKey ) const;
+			bool                            hasKeyWithValueAt( Memory rootKey ) const;
 
 		private:
 			struct Detail
 			{
-				map_t keys;             // keys and values
-				set_t nulled;           // nulled keys
-				arraymap_t records;     // ordered records
+				map_t                       keys;         // keys and values
+				set_t                       nulled;       // nulled keys
+				arraymap_t                  records;      // ordered records
 			};
-			std::unique_ptr<Detail> m_detail;
-			Detail * m_data;
-			Key m_key;
+			std::unique_ptr<Detail>         m_detail;
+			Detail *                        m_data;
+			Key                             m_key;
 		};
 
 
@@ -240,8 +239,8 @@ namespace cpp
 
 		private:
 			friend class Object;
-			Array( Object * object );
-			Object * m_object;
+			                                Array( Object * object );
+			Object *                        m_object;
 		};
 
 
@@ -249,26 +248,26 @@ namespace cpp
 		class Object::List
 		{
 		public:
-			static List ofKeys( Object object );
-			static List ofValues( Object object );
-			static List ofChildren( Object object );
+			static List                     ofKeys( Object object );
+			static List                     ofValues( Object object );
+			static List                     ofChildren( Object object );
 
 			class iterator;
 
-			iterator begin( ) const;
-			iterator end( ) const;
+			iterator                        begin( ) const;
+			iterator                        end( ) const;
 
-			std::vector<Object> get( ) const;
+			std::vector<Object>             get( ) const;
 
 		private:
 			enum Type { AllKeys, Value, Child };
 			friend class iterator;
 
-			List( Type type, Object object );
+			                                List( Type type, Object object );
 
 		private:
-			Type m_type;
-			Object m_object;
+			Type                            m_type;
+			Object                          m_object;
 		};
 
 

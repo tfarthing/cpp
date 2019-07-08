@@ -11,6 +11,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="data\DataArray.cpp" />
+    <ClCompile Include="data\Memory.cpp" />
+    <ClCompile Include="data\String.cpp" />
     <ClCompile Include="file\AsyncFile.cpp" />
     <ClCompile Include="file\SyncFile.cpp" />
     <ClCompile Include="meta\Test.cpp" />

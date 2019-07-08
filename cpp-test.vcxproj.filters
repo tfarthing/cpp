@@ -4,5 +4,8 @@
     <ClCompile Include="file\AsyncFile.cpp" />
     <ClCompile Include="meta\Test.cpp" />
     <ClCompile Include="file\SyncFile.cpp" />
+    <ClCompile Include="data\Memory.cpp" />
+    <ClCompile Include="data\String.cpp" />
+    <ClCompile Include="data\DataArray.cpp" />
   </ItemGroup>
 </Project>

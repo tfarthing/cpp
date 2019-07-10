@@ -195,62 +195,60 @@ namespace cpp
 
     size_t Memory::findFirstOf( const Memory & matchset, size_t pos ) const
     {
-        if ( notEmpty( ) && matchset.notEmpty( ) && pos < length( ) )
+        if ( pos > length( ) )
+            { pos = length( ); }
+
+        for ( const char * ptr = begin( ) + pos; ptr < end( ); ptr++ )
         {
-            for ( const char * ptr = begin( ) + pos; ptr < end( ); ptr++ )
-            {
-                if ( memchr( matchset.data( ), *ptr, matchset.length( ) ) )
-                    { return ptr - begin( ); }
-            }
+            if ( memchr( matchset.data( ), *ptr, matchset.length( ) ) )
+                { return ptr - begin( ); }
         }
+
         return npos;
     }
 
 
     size_t Memory::findLastOf( const Memory & matchset, size_t pos ) const
     {
-        if ( notEmpty( ) && matchset.notEmpty( ) )
-        {
-            if ( pos >= length( ) )
-                { pos = length( ) - 1; }
+        if ( pos >= length( ) )
+            { pos = length( ) - 1; }
 
-            for ( const char * ptr = begin( ) + pos; ptr >= begin( ); ptr-- )
-            {
-                if ( memchr( matchset.data( ), *ptr, matchset.length( ) ) )
-                    { return ptr - begin( ); }
-            }
+        for ( const char * ptr = begin( ) + pos; ptr >= begin( ); ptr-- )
+        {
+            if ( memchr( matchset.data( ), *ptr, matchset.length( ) ) )
+                { return ptr - begin( ); }
         }
+
         return npos;
     }
 
 
     size_t Memory::findFirstNotOf( const Memory & matchset, size_t pos ) const
     {
-        if ( notEmpty( ) && matchset.notEmpty( ) && pos < length( ) )
+        if ( pos > length( ) )
+            { pos = length( ); }
+
+        for ( const char * ptr = begin( ) + pos; ptr < end( ); ptr++ )
         {
-            for ( const char * ptr = begin( ) + pos; ptr < end( ); ptr++ )
-            {
-                if ( !memchr( matchset.data( ), *ptr, matchset.length( ) ) )
-                    { return ptr - begin( ); }
-            }
+            if ( !memchr( matchset.data( ), *ptr, matchset.length( ) ) )
+                { return ptr - begin( ); }
         }
+
         return npos;
     }
 
 
     size_t Memory::findLastNotOf( const Memory & matchset, size_t pos ) const
     {
-        if ( notEmpty( ) && matchset.notEmpty( ) )
-        {
-            if ( pos >= length( ) )
-                { pos = length( ) - 1; }
+        if ( pos >= length( ) )
+            { pos = length( ) - 1; }
 
-            for ( const char * ptr = begin( ) + pos; ptr >= begin( ); ptr-- )
-            {
-                if ( !memchr( matchset.data( ), *ptr, matchset.length( ) ) )
-                    { return ptr - begin( ); }
-            }
+        for ( const char * ptr = begin( ) + pos; ptr >= begin( ); ptr-- )
+        {
+            if ( !memchr( matchset.data( ), *ptr, matchset.length( ) ) )
+                { return ptr - begin( ); }
         }
+
         return npos;
     }
 
@@ -301,11 +299,12 @@ namespace cpp
         if ( isNull( ) )
             { return nullptr; }
 
-        if ( pos > length( ) )
-            { pos = length( ); }
+        auto maxlen = length( );
+        if ( pos > maxlen )
+            { pos = maxlen; }
 
-        if ( len > length( ) - pos )
-            { len = length( ) - pos; }
+        if ( len > maxlen - pos )
+            { len = maxlen - pos; }
 
         return Memory{ begin( ) + pos, len };
     }
@@ -313,13 +312,25 @@ namespace cpp
 
     Memory Memory::trim( const Memory & trimlist ) const
     {
-        if ( trimlist.isEmpty( ) )
-            { return *this; }
+        return trimFront( trimlist ).trimBack( trimlist );
+    }
 
+
+    Memory Memory::trimFront( const Memory & trimlist ) const
+    {
         size_t pos = findFirstNotOf( trimlist );
         if ( pos == npos )
             { return substr( length( ), 0 ); }
-        return substr( pos, findLastNotOf( trimlist ) - pos + 1 );
+        return substr( pos );
+    }
+
+
+    Memory Memory::trimBack( const Memory & trimlist ) const
+    {
+        size_t pos = findLastNotOf( trimlist );
+        if ( pos == npos )
+            { return substr( 0, 0 ); }
+        return substr( 0, pos + 1 );
     }
 
 
@@ -393,7 +404,7 @@ namespace cpp
 
 	Memory Memory::format( size_t pos, const Memory & fmt )
 	{
-		DataBuffer buffer{ substr( pos ) };
+		auto buffer = DataBuffer::writeTo( substr( pos ) );
 		return buffer.put( fmt );
 	}
 
@@ -507,6 +518,22 @@ namespace cpp
 		{ return Integer::parseUnsigned( data, 16 ); }
 
 
+	EncodedHex::operator int8_t( ) const
+		{ return Integer::to<uint8_t>( Integer::parse( data, 16 ) ); }
+
+
+	EncodedHex::operator int16_t( ) const
+		{ return Integer::to<uint16_t>( Integer::parse( data, 16 ) ); }
+
+
+	EncodedHex::operator int32_t( ) const
+		{ return Integer::to<uint32_t>( Integer::parse( data, 16 ) ); }
+
+
+	EncodedHex::operator int64_t( ) const
+		{ return Integer::parse( data, 16 ); }
+
+
 	EncodedHex::operator std::string( ) const
 		{ return Hex::decode( data ); }
 
@@ -600,11 +627,14 @@ TEST_CASE( "Memory" )
         String s2{ "hello" };
 
         Memory a{};
+        Memory aa = nullptr;
         Memory b{ "hello" };
         Memory c{ s1 };
         Memory d{ s2 };
         Memory e{ "hello", 3 };
         Memory f{ "" };
+        //Memory g{ std::string{""} };      // bad
+        //Memory h{ String{""} };           // bad
 
         REQUIRE( a.isNull( ) );
         REQUIRE( b == "hello" );
@@ -621,6 +651,7 @@ TEST_CASE( "Memory" )
 
         Memory a, b, c, d, e;
         a = Memory{};
+        a = nullptr;
         b = "hello";
         c = s1;
         d = s2;
@@ -633,11 +664,62 @@ TEST_CASE( "Memory" )
 
     SECTION( "compare" )
     {
-        std::string s1{ "hello" };
-        String s2{ "hello" };
+        Memory s0 = "hello";
+        std::string s1 = s0;
+        String s2 = s0;
 
-        REQUIRE( Memory{ "hello" } == s1 );
-        REQUIRE( Memory{ "hello" } == s2 );
+        REQUIRE( s0 == s1 );
+        REQUIRE( s1 == s0 );
+        REQUIRE( s0 == s2 );
+        REQUIRE( s2 == s0 );
+        REQUIRE( s0 == "hello" );
+        REQUIRE( "hello" == s0 );
+
+        s0 = "goodbye";
+        REQUIRE( s0 != s1 );
+        REQUIRE( s1 != s0 );
+        REQUIRE( s0 != s2 );
+        REQUIRE( s2 != s0 );
+        REQUIRE( s0 != "hello" );
+        REQUIRE( "hello" != s0 );
+
+        s0 = "hell";
+        REQUIRE( s0 < s1 );
+        REQUIRE( s0 <= s1 );
+        REQUIRE( s1 > s0 );
+        REQUIRE( s1 >= s0 );
+        REQUIRE( s0 < s2 );
+        REQUIRE( s0 <= s2 );
+        REQUIRE( s2 > s0 );
+        REQUIRE( s2 >= s0 );
+        REQUIRE( s0 < "hello" );
+        REQUIRE( s0 <= "hello" );
+        REQUIRE( "hello" > s0 );
+        REQUIRE( "hello" >= s0 );
+
+        s0 = "hello!";
+        REQUIRE( s0 > s1 );
+        REQUIRE( s0 >= s1 );
+        REQUIRE( s1 < s0 );
+        REQUIRE( s1 <= s0 );
+        REQUIRE( s0 > s2 );
+        REQUIRE( s0 >= s2 );
+        REQUIRE( s2 < s0 );
+        REQUIRE( s2 <= s0 );
+        REQUIRE( s0 > "hello" );
+        REQUIRE( s0 >= "hello" );
+        REQUIRE( "hello" < s0 );
+        REQUIRE( "hello" <= s0 );
+
+        REQUIRE( s0 != nullptr );
+        REQUIRE( nullptr != s0 );
+
+        s0 = nullptr;
+        REQUIRE( s0 == nullptr );
+        REQUIRE( nullptr == s0 );
+        REQUIRE( s0 < "hello" );
+        REQUIRE( s0 < s1 );
+        REQUIRE( s0 < s2 );
     }
 
     SECTION( "byteswap" )
@@ -656,6 +738,35 @@ TEST_CASE( "Memory" )
         REQUIRE( results[1][0] == "is" );
         REQUIRE( results[2][0] == "a" );
         REQUIRE( results[3][0] == "sentence" );
+    }
+
+    SECTION( "format" )
+    {
+        char buffer[32];
+
+        Memory str{ buffer, 32 };
+        REQUIRE( str.printf( "%d %f", 10, 100.001 ) == "10 100.001000");
+        REQUIRE( str.format( "% %", 10, 100.001 ) == "10 100.001");
+
+        REQUIRE( cpp::format( "% %", 10, 100.001 ) == "10 100.001" );
+        REQUIRE( cpp::format( "% % %", 10, 100.001, "some other extra long text to force alloc" ) == "10 100.001 some other extra long text to force alloc" );
+    }
+
+    SECTION( "encoding" )
+    {
+        int v1 = Memory{ "3a" }.asHex( );
+        REQUIRE( v1 == 0x3a );
+        uint8 v2 = Memory{ "3a" }.asHex( );
+        REQUIRE( v2 == 0x3a );
+        int8 v3 = Memory{ "3a" }.asHex( );
+        REQUIRE( v3 == 0x3a );
+
+        v1 = Memory{ "1001001" }.asDecimal( );
+        REQUIRE( v1 == 1001001 );
+        float64 v4 = Memory{ "1001001.01" }.asDecimal( );
+        REQUIRE( v4 == 1001001.01 );
+        v4 = Memory{ "1001001" }.asDecimal( );
+        REQUIRE( v4 == 1001001 );
     }
 
 }

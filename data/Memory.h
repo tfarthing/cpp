@@ -92,6 +92,8 @@ namespace cpp
 		Memory								substr( size_t pos = 0, size_t len = npos ) const;
 		Memory::Array						split( const Memory & delimiter, const Memory & trimlist = WhitespaceList, bool ignoreEmpty = true ) const;
 		Memory								trim( const Memory & trimlist = WhitespaceList ) const;
+        Memory								trimFront( const Memory & trimlist = WhitespaceList ) const;
+        Memory								trimBack( const Memory & trimlist = WhitespaceList ) const;
 
 		size_t								find( char ch, size_t pos = 0 ) const;
 		size_t								find( const Memory & sequence, size_t pos = 0 ) const;
@@ -246,7 +248,7 @@ namespace cpp
 		{
 			size_t end = pos;
 			end += format( end, fmt.substr( 0, fpos ) ).length( );
-			end += format( end, toString( param ) ).length( );
+			end += format( end, cpp::toString( param ) ).length( );
 			end += format( end, fmt.substr( fpos + 1 ), parameters... ).length();
 			return substr( pos, end - pos );
 		}
@@ -432,10 +434,14 @@ namespace cpp
 	struct EncodedHex : public EncodedMemory
 	{
 		using EncodedMemory::EncodedMemory;
-		operator uint8_t( ) const;
-		operator uint16_t( ) const;
-		operator uint32_t( ) const;
-		operator uint64_t( ) const;
+        operator uint8_t( ) const;
+        operator uint16_t( ) const;
+        operator uint32_t( ) const;
+        operator uint64_t( ) const;
+        operator int8_t( ) const;
+		operator int16_t( ) const;
+		operator int32_t( ) const;
+		operator int64_t( ) const;
 		operator std::string( ) const;
 	};
 

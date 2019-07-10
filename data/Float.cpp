@@ -1,3 +1,5 @@
+#ifndef TEST
+
 #include "Float.h"
 #include "String.h"
 
@@ -19,38 +21,33 @@ namespace cpp
 	//  * integer is output if fractional part is zero
 	std::string Float::toString( float64 value, int fdigits )
 	{
-		String result;
-
-		value = roundTo( value, fdigits );
-
-		int64_t ivalue = (int64_t)value;
-		if ( ivalue == 0 && value < 0.0 )
-		{
-			result += "-";
-		}
-		result += String::printf( "%lld", ivalue );
-
-		int mod = (int)std::pow( 10, fdigits );
-		int64_t fvalue = (int64_t)( value * mod ) % mod;
-		if ( fvalue != 0 )
-		{
-			result += ".";
-			if ( fvalue < 0 )
-			{
-				fvalue *= -1;
-			}
-			//  trim trailing zeros
-			while ( fvalue % 10 == 0 )
-			{
-				fvalue /= 10; mod /= 10;
-			}
-			//  include leading zeroes
-			while ( ( mod /= 10 ) > 0 )
-			{
-				result += (char)( '0' + ( fvalue / mod % 10 ) );
-			}
-		}
+        String format = String::printf( "%%.%df", fdigits );
+		String result = String::printf( format.data.data(), value );
+        result.trimBack( "0" );
+        result.trimBack( "." );
 		return result;
 	}
 
 }
+
+#else
+
+#include <cpp/meta/Test.h>
+
+#include "Float.h"
+
+TEST_CASE( "Float" )
+{
+    using namespace cpp;
+
+    SECTION( "toString" )
+    {
+        CHECK( Float::toString( 0.100, 2 ) == "0.1" );
+        CHECK( Float::toString( 0.106, 2 ) == "0.11" );
+        CHECK( Float::toString( 100.001, 2 ) == "100" );
+        CHECK( Float::toString( 100.0011, 3 ) == "100.001" );
+        CHECK( Float::toString( 100.1011, 1 ) == "100.1" );
+    }
+}
+
+#endif

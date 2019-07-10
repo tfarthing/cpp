@@ -79,13 +79,16 @@ namespace cpp
 
 		const char *						begin( ) const;
 		const char *						end( ) const;
+        const char *                        c_str( ) const;
 
 		char								at( size_t pos ) const;
 		char								operator[]( size_t pos ) const;
 
 		Memory								substr( size_t pos = 0, size_t len = npos ) const;
 		Memory::Array						split( const Memory & delimiter, const Memory & trimlist = Memory::WhitespaceList, bool ignoreEmpty = true ) const;
-		Memory								trim( const Memory & trimlist = Memory::WhitespaceList ) const;
+        String &                            trim( const Memory & trimlist = Memory::WhitespaceList );
+        String &                            trimFront( const Memory & trimlist = Memory::WhitespaceList );
+        String &                            trimBack( const Memory & trimlist = Memory::WhitespaceList );
 
 		size_t								find( char ch, size_t pos = 0 ) const;
 		size_t								find( const Memory & sequence, size_t pos = 0 ) const;
@@ -320,6 +323,10 @@ namespace cpp
 		{ return data.c_str( ) + data.length( ); }
 
 
+	inline const char * String::c_str( ) const
+		{ return data.c_str( ); }
+
+
 	inline char String::at( size_t pos ) const
 		{ return data.at( pos ); }
 
@@ -334,10 +341,6 @@ namespace cpp
 
 	inline Memory::Array String::split( const Memory & delimSet, const Memory & trimSet, bool ignoreEmpty ) const
 		{ return Memory{ data }.split( delimSet, trimSet, ignoreEmpty ); }
-
-
-	inline Memory String::trim( const Memory & trimlist ) const
-		{ return Memory{ data }.trim( trimlist ); }
 
 
 	inline size_t String::find( char ch, size_t pos ) const

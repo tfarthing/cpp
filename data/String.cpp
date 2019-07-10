@@ -10,6 +10,30 @@
 namespace cpp
 {
 
+    String & String::trim( const Memory & trimlist )
+    {
+        return trimBack( trimlist ).trimFront( trimlist );
+    }
+
+    String & String::trimFront( const Memory & trimlist )
+    {
+        size_t pos = findFirstNotOf( trimlist );
+        if ( pos == npos )
+            { clear(); return *this; }
+        data.erase( 0, pos );
+        return *this;
+    }
+
+    String & String::trimBack( const Memory & trimlist )
+    {
+        size_t pos = findLastNotOf( trimlist );
+        if ( pos == npos )
+            { clear( );  return *this; }
+        data.erase( pos + 1 );
+        return *this;
+    }
+
+
     String & String::replaceAll( const Memory & pattern, const Memory & dst, size_t pos )
     {
         while ( pos < length( ) )

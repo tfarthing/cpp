@@ -6,13 +6,13 @@
 #include <vector>
 
 #include <../../cpp/data/Memory.h>
+#include <../../cpp/data/DataMap.h>
 
 
 
 namespace cpp
 {
 
-	struct StringMap;
 	class Output;
 	class Input;
 	class Logger;

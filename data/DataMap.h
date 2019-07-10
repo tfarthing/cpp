@@ -14,174 +14,260 @@
 */
 
 #include <map>
+#include <cpp/data/Memory.h>
 
-#include "String.h"
 
 
 namespace cpp
 {
 
-	class DataBuffer;
-    struct StringMap;
-
+    template<class K, class V>
     struct DataMap
-		: public std::map<Memory, Memory>
     {
-		typedef std::map<Memory, Memory>	Map;
+		typedef std::map<K, V>              map_t;
 
-		static DataMap		fromBinary( DataBuffer & buffer );
+							                DataMap( );
+							                DataMap( DataMap && move ) noexcept;
+							                DataMap( const DataMap & copy );
+                                            DataMap( std::initializer_list<std::pair<Memory,Memory>> init );
 
-							DataMap( );
-							DataMap( DataMap && move ) noexcept;
-							DataMap( const DataMap & copy );
-							DataMap( Map && move ) noexcept;
-							DataMap( const Map & copy );
-							DataMap( const StringMap & copy );
-							DataMap( std::initializer_list<Map::value_type> init );
-							DataMap( const EncodedText & encodedText );
+        template<class Kb, class Vb>        DataMap( DataMap<Kb,Vb> && move ) noexcept;
+        template<class Kb, class Vb>        DataMap( const DataMap<Kb, Vb> & copy );
+        template<class Kb, class Vb>        DataMap( std::map<Kb, Vb> && move ) noexcept;
+        template<class Kb, class Vb>        DataMap( const std::map<Kb, Vb> & copy );
 
-        DataMap &			operator=( DataMap && move ) noexcept;
-        DataMap &			operator=( const DataMap & copy );
-		DataMap &			operator=( Map && move ) noexcept;
-		DataMap &			operator=( const Map & copy );
-		DataMap &			operator=( const StringMap & copy );
+        DataMap &			                operator=( DataMap && move ) noexcept;
+        DataMap &			                operator=( const DataMap & copy );
+        template<class Kb, class Vb>
+		DataMap &			                operator=( DataMap<Kb, Vb> && move ) noexcept;
+        template<class Kb, class Vb>
+		DataMap &			                operator=( const DataMap<Kb, Vb> & copy );
+        template<class Kb, class Vb>
+		DataMap &			                operator=( std::map<Kb, Vb> && move ) noexcept;
+        template<class Kb, class Vb>
+		DataMap &			                operator=( const std::map<Kb, Vb> & copy );
 
-        Memory				operator[]( Memory key ) const;
+        bool								isEmpty( ) const;
+        bool								notEmpty( ) const;
+        size_t                              size( ) const;
 
-        bool				isEmpty( ) const;
-        bool				notEmpty( ) const;
+        Memory							    get( const typename map_t::key_type & k ) const;
+        Memory								operator[]( const typename map_t::key_type & k ) const;
 
-        Memory				get( Memory key ) const;
-		void				set( Memory key, Memory value );
-		void 				remove( Memory key );
+        template<class M> void	            set( typename map_t::key_type && k, M && value );
+        template<class M> void 	            set( const typename map_t::key_type & k, M && value );
+        void    						    remove( Memory key );
+        void                                clear( );
 
-		String				toString( ) const;
-		Memory				toBinary( DataBuffer & buffer, ByteOrder byteOrder = ByteOrder::Host ) const;
+        map_t                               data;
     };
 
 
 
-    struct StringMap
-		: public std::map<String, String>
-    {
-		typedef std::map<String, String> Map;
-
-		static StringMap	fromBinary( DataBuffer & buffer );
-
-							StringMap( );
-							StringMap( StringMap && move ) noexcept;
-							StringMap( const StringMap & copy );
-							StringMap( Map && move ) noexcept;
-							StringMap( const Map & copy );
-							StringMap( const DataMap & copy );
-							StringMap( std::initializer_list<Map::value_type> init );
-							StringMap( const EncodedText & encodedText );
-
-        StringMap &			operator=( StringMap && move ) noexcept;
-        StringMap &			operator=( const StringMap & copy );
-		StringMap &			operator=( Map && move ) noexcept;
-		StringMap &			operator=( const Map & copy );
-		StringMap &			operator=( const DataMap & copy );
-
-        Memory				operator[]( Memory key ) const;
-
-        bool				isEmpty( ) const;
-        bool				notEmpty( ) const;
-
-        Memory				get( Memory key ) const;
-        void				set( Memory key, Memory value );
-		void				remove( Memory key );
-
-		String				toString( ) const;
-		Memory				toBinary( DataBuffer & buffer, ByteOrder byteOrder = ByteOrder::Host ) const;
-	};
-
-
-
-    inline DataMap::DataMap( )
-        : Map() {}
-
-    inline DataMap::DataMap( DataMap && move ) noexcept
-        : Map( std::move( move ) ) {}
-
-    inline DataMap::DataMap( const DataMap & copy )
-        : Map( copy ) {}
-
-    inline DataMap::DataMap( const StringMap & copy )
-        : Map( ) { for ( auto & itr : copy ) { insert_or_assign( itr.first, itr.second ); } }
-
-    inline DataMap::DataMap( std::initializer_list<std::map<Memory, Memory>::value_type> init )
-        : Map( init ) {}
-
-    inline DataMap & DataMap::operator=( DataMap && move ) noexcept
-        { Map::operator=( std::move( move ) ); return *this; }
-
-    inline DataMap & DataMap::operator=( const DataMap & copy )
-        { Map::operator=( copy ); return *this; }
-
-    inline DataMap & DataMap::operator=( const StringMap & copy )
-        { for ( auto itr : copy ) { insert_or_assign( itr.first, itr.second ); } return *this; }
-
-    inline Memory DataMap::operator[]( Memory key ) const
-        { return get( key ); }
-
-    inline bool DataMap::isEmpty( ) const
-        { return empty( ); }
-
-    inline bool DataMap::notEmpty( ) const
-        { return !empty( ); }
-
-    inline Memory DataMap::get( Memory key ) const
-        { auto & itr = find( key ); return itr != end( ) ? itr->second : nullptr; }
-
-    inline void DataMap::set( Memory key, Memory value )
-        { insert_or_assign( key, value ); }
-
-    inline void DataMap::remove( Memory key )
-        { erase( key ); }
-
-
-
-    inline StringMap::StringMap( )
-        : Map( ) {}
-
-    inline StringMap::StringMap( StringMap && move ) noexcept
-        : Map( std::move( move ) ) {}
-
-    inline StringMap::StringMap( const StringMap & copy )
-        : Map( copy ) {}
-
-    inline StringMap::StringMap( const DataMap & copy )
-        : Map( ) { for ( auto & itr : copy ) { insert_or_assign( itr.first, itr.second ); } }
-
-    inline StringMap::StringMap( std::initializer_list<Map::value_type> init )
-        : Map( init ) {}
-
-    inline StringMap & StringMap::operator=( StringMap && move ) noexcept
-        { Map::operator=( std::move( move ) ); return *this; }
-
-    inline StringMap & StringMap::operator=( const StringMap & copy )
-        { Map::operator=( copy );  return *this; }
-
-    inline StringMap & StringMap::operator=( const DataMap & copy )
-        { for ( auto itr : copy ) { insert_or_assign( itr.first, itr.second ); } return *this; }
-
-    inline Memory StringMap::operator[]( Memory key ) const
-        { return get( key ); }
-
-    inline bool StringMap::isEmpty( ) const
-        { return empty( ); }
+    typedef DataMap<Memory, Memory> MemoryMap;
+    typedef DataMap<String, String> StringMap;
     
-	inline bool StringMap::notEmpty( ) const
-        { return !empty( ); }
 
-    inline Memory StringMap::get( Memory key ) const
-        { auto & itr = find( key ); return itr != end( ) ? itr->second : nullptr; }
 
-    inline void StringMap::set( Memory key, Memory value )
-        { insert_or_assign( key, value ); }
+    template<class K, class V>
+    DataMap<K,V>::DataMap( )
+        {}
 
-    inline void StringMap::remove( Memory key )
-        { erase( key ); }
+
+    template<class K, class V>
+    DataMap<K,V>::DataMap( DataMap && move ) noexcept
+        : data( std::move( move.data ) ) {}
+
+
+    template<class K, class V>
+    DataMap<K,V>::DataMap( const DataMap & copy )
+        : data( copy.data ) {}
+
+
+    template<class K, class V>
+    DataMap<K,V>::DataMap( std::initializer_list<std::pair<Memory, Memory>> init )
+    {
+        for ( auto & item : init )
+        {
+            data.emplace_hint( data.end( ), std::map<K, V>::value_type{ item.first, item.second } );
+        }
+    }
+
+
+    template<class K, class V>
+    template<class Kb, class Vb> DataMap<K, V>::DataMap( DataMap<Kb, Vb> && move ) noexcept
+    {
+        for ( auto & itr : move.data )
+        {
+            data.emplace_hint( data.end( ), std::map<K, V>::value_type{ std::move(itr.first), std::move(itr.second) } );
+        }
+    }
+
+
+    template<class K, class V>
+    template<class Kb, class Vb> DataMap<K, V>::DataMap( const DataMap<Kb, Vb> & copy )
+    {
+        for ( auto & itr : copy.data )
+        {
+            data.emplace_hint( data.end( ), std::map<K, V>::value_type{ itr.first, itr.second } );
+        }
+    }
+
+
+    template<class K, class V>
+    template<class Kb, class Vb> DataMap<K, V>::DataMap( std::map<Kb, Vb> && move ) noexcept
+    {
+        for ( auto & itr : move )
+        {
+            data.emplace_hint( data.end( ), std::map<K, V>::value_type{ std::move( itr.first ), std::move( itr.second ) } );
+        }
+    }
+
+
+    template<class K, class V>
+    template<class Kb, class Vb> DataMap<K, V>::DataMap( const std::map<Kb, Vb> & copy )
+    {
+        for ( auto & itr : copy )
+        {
+            data.emplace_hint( data.end( ), std::map<K, V>::value_type{ itr.first, itr.second } );
+        }
+    }
+
+
+    template<class K, class V>
+    DataMap<K, V> & DataMap<K, V>::operator=( DataMap && move ) noexcept
+    {
+        data = std::move( move.data );
+        return *this;
+    }
+
+
+    template<class K, class V>
+    DataMap<K, V> & DataMap<K, V>::operator=( const DataMap & copy )
+    {
+        data = move.data;
+        return *this;
+    }
+
+
+    template<class K, class V>
+    template<class Kb, class Vb>
+    DataMap<K, V> & DataMap<K, V>::operator=( DataMap<Kb, Vb> && move ) noexcept
+    {
+        data.clear( );
+        for ( auto & itr : move.data )
+        {
+            data.emplace_hint( data.end( ), std::map<K, V>::value_type{ std::move( itr.first ), std::move( itr.second ) } );
+        }
+        return *this;
+    }
+
+
+    template<class K, class V>
+    template<class Kb, class Vb>
+    DataMap<K, V> & DataMap<K, V>::operator=( const DataMap<Kb, Vb> & copy )
+    {
+        data.clear( );
+        for ( auto & itr : copy.data )
+        {
+            data.emplace_hint( data.end( ), std::map<K, V>::value_type{ itr.first, itr.second } );
+        }
+        return *this;
+    }
+
+
+    template<class K, class V>
+    template<class Kb, class Vb>
+    DataMap<K, V> & DataMap<K, V>::operator=( std::map<Kb, Vb> && move ) noexcept
+    {
+        data.clear( );
+        for ( auto & itr : move )
+        {
+            data.emplace_hint( data.end( ), std::map<K, V>::value_type{ std::move( itr.first ), std::move( itr.second ) } );
+        }
+        return *this;
+    }
+
+
+    template<class K, class V>
+    template<class Kb, class Vb>
+    DataMap<K, V> & DataMap<K, V>::operator=( const std::map<Kb, Vb> & copy )
+    {
+        data.clear( );
+        for ( auto & itr : copy )
+        {
+            data.emplace_hint( data.end( ), std::map<K, V>::value_type{ itr.first, itr.second } );
+        }
+        return *this;
+    }
+
+
+    template<class K, class V>
+    bool DataMap<K, V>::isEmpty( ) const
+    {
+        return data.empty( );
+    }
+    
+    
+    template<class K, class V>
+    bool DataMap<K, V>::notEmpty( ) const
+    {
+        return !data.empty( );
+    }
+
+    
+    template<class K, class V>
+    size_t DataMap<K, V>::size( ) const
+    {
+        return data.size( );
+    }
+
+
+    template<class K, class V>
+    Memory DataMap<K, V>::get( const typename map_t::key_type & k ) const
+    {
+        auto itr = data.find( k );
+        return ( itr != data.end( ) )
+            ? Memory{ itr->second }
+            : nullptr;
+    }
+
+
+    template<class K, class V>
+    Memory DataMap<K, V>::operator[]( const typename map_t::key_type & k ) const
+    {
+        auto itr = data.find( k );
+        return ( itr != data.end( ) )
+            ? Memory{ itr->second }
+            : nullptr;
+    }
+
+
+    template<class K, class V>
+    template<class M> void DataMap<K, V>::set( typename map_t::key_type && k, M && value )
+    {
+        data.insert_or_assign( std::move( k ), std::forward<M>( value ) );
+    }
+
+
+    template<class K, class V>
+    template<class M> void DataMap<K, V>::set( const typename map_t::key_type & k, M && value )
+    {
+        data.insert_or_assign( k, std::forward<M>( value ) );
+    }
+
+
+    template<class K, class V>
+    void DataMap<K, V>::remove( Memory key )
+    {
+        data.erase( key );
+    }
+
+
+    template<class K, class V>
+    void DataMap<K, V>::clear( )
+    {
+        data.clear( );
+    }
 
 }

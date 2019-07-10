@@ -110,14 +110,14 @@ namespace cpp
 
 #else
 
-#include <cpp/meta/Unittest.h>
-#include <cpp/util/StringBuffer.h>
+#include <cpp/meta/Test.h>
+#include <cpp/data/DataBuffer.h>
 
-SUITE( StringBuffer )
+TEST_CASE( "StringBuffer" )
 {
     using namespace cpp;
 
-    TEST( encode_primitives )
+    SECTION( "encode_primitives" )
     {
         StringBuffer buffer(64);
 
@@ -128,15 +128,15 @@ SUITE( StringBuffer )
 
         CHECK( decode1 == encode1 );
 
-        f64_t encode2 = 3.14167 / 377;
+        float64 encode2 = 3.14167 / 377;
         buffer.putBinary( encode2 );
-        f64_t decode2;
+        float64 decode2;
         buffer.getBinary( decode2 );
 
         CHECK( decode2 == encode2 );
     }
 
-    TEST( encode_string )
+    SECTION( "encode_string" )
     {
         StringBuffer buffer(64);
 

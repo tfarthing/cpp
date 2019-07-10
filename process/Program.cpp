@@ -130,7 +130,7 @@ namespace cpp
 
 	const Memory Program::arg( Memory key )
 	{
-		return instance().detail->args.at( key );
+		return instance().detail->args.get( key );
 	}
 
 

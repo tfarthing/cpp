@@ -12,6 +12,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="data\DataArray.cpp" />
+    <ClCompile Include="data\DataBuffer.cpp" />
+    <ClCompile Include="data\DataMap.cpp" />
+    <ClCompile Include="data\Float.cpp" />
     <ClCompile Include="data\Memory.cpp" />
     <ClCompile Include="data\String.cpp" />
     <ClCompile Include="file\AsyncFile.cpp" />

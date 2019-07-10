@@ -2,8 +2,8 @@
 
 #else
 
-#include <cpp/data/DataArray.h>
 #include <cpp/meta/Test.h>
+#include <cpp/data/DataArray.h>
 
 
 
@@ -24,15 +24,6 @@ TEST_CASE( "DataArray" )
 
         String buffer = a.toText( );
         REQUIRE( buffer == "a,b,c" );
-    }
-
-    SECTION( "split" )
-    {
-        /*
-        DataArray lhs = String{ "one, two, three" }.split( "," );
-        DataArray rhs = StringArray{ "one", "two", "three" };
-        REQUIRE( lhs == rhs );
-        */
     }
 
 }

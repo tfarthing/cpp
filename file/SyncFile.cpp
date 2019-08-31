@@ -80,7 +80,7 @@ namespace cpp
 
         if ( access == Access::Create || access == Access::Write )
         {
-            Files::create_directories( filepath.parent( ) );
+            Files::createDirectories( filepath.parent( ) );
         }
 
         HANDLE fileHandle = CreateFile( filepath.toWindows( ), accessMode, shareMode, 0, creationMode, FILE_ATTRIBUTE_NORMAL, 0 );
@@ -378,10 +378,10 @@ namespace cpp
 
 #include "SyncFile.h"
 
-TEST_CASE( "SyncFile can create a new file", "[SyncFile]")
+TEST_CASE( "SyncFile" )
 {
     cpp::FilePath filename = "test.txt";
-    auto file = cpp::SyncFile::create( filename );
+    auto file = cpp::SyncFile::create( (const char *)"test.txt" );
 
     REQUIRE( cpp::Files::exists( filename ) );
 

@@ -16,7 +16,7 @@ namespace cpp
 	class Output;
 	class Input;
 	class Logger;
-	class FilePath;
+	struct FilePath;
 	class Random;
 
 

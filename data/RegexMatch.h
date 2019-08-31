@@ -25,7 +25,7 @@ namespace cpp
 
 
     template<typename T> RegexMatch<T>::RegexMatch( )
-        {}
+        { }
 
     template<typename T> RegexMatch<T>::RegexMatch( const std::cmatch & source )
         { for ( auto m : source ) { groups.push_back( Memory{ m.first, m.second } ); } }

@@ -1,3 +1,5 @@
+#ifndef TEST
+
 #include "Integer.h"
 #include "String.h"
 #include "../process/Exception.h"
@@ -71,3 +73,26 @@ namespace cpp
 		return String::printf( fmt.begin( ), value );
 	}
 }
+
+#else
+
+#include <cpp/meta/Test.h>
+
+#include "Integer.h"
+
+TEST_CASE( "Integer" )
+{
+    using namespace cpp;
+
+    SECTION( "to" )
+    {
+        CHECK( Integer::to<uint8>( 1 ) == 1 );
+        //CHECK( Integer::to<uint8>( -2 ) == -2 );
+        CHECK( Integer::to<uint8>( 255 ) == 255 );
+        //CHECK( Integer::to<uint8>( 256 ) == 256 );
+        CHECK( Integer::to<int8>( -128 ) == -128 );
+        //CHECK( Integer::to<int8>( -129 ) == -129 );
+    }
+}
+
+#endif

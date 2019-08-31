@@ -28,11 +28,11 @@ namespace cpp
 		template<class T, typename = std::enable_if_t<std::is_integral<T>::value>>
 		static int						compare( T lhs, T rhs );
 
-		template<class T> 
-		static T						to( uint64 value );
+        template<class T, class V, typename std::enable_if<std::is_integral<V>{} && std::is_unsigned<V>{}, int>::type = 0 >
+        static T						to( V value );
 
-		template<class T>
-		static T						to( int64 value );
+		template<class T, class V, typename std::enable_if<std::is_integral<V>{} && std::is_signed<V>{}, int>::type = 0>
+		static T						to( V value );
 	};
 
 
@@ -84,16 +84,16 @@ namespace cpp
 	}
 
 
-	template<class T>
-	T Integer::to( uint64 value )
+	template<class T, class V, typename std::enable_if<std::is_integral<V>{} && std::is_unsigned<V>{}, int>::type >
+	T Integer::to( V value )
 	{
 		assert( value <= std::numeric_limits<T>::max( ) );
 		return (T)value;
 	}
 
 
-	template<class T>
-	T Integer::to( int64 value )
+	template<class T, class V, typename std::enable_if<std::is_integral<V>{} && std::is_signed<V>{}, int>::type>
+	T Integer::to( V value )
 	{
 		if ( value >= 0 )
 			{ return to<T>( (uint64)value ); }

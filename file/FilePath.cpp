@@ -1,3 +1,5 @@
+#ifndef TEST
+
 #include "../../cpp/data/Integer.h"
 #include "../../cpp/data/String.h"
 #include "../../cpp/file/Files.h"
@@ -14,27 +16,27 @@ namespace cpp
 
 	FilePath FilePath::currentPath( )
 	{
-		return FilePath{ std::filesystem::current_path( ) };
+		return FilePath{ std::filesystem::current_path( ).generic_string( ) };
 	}
 
 
 	FilePath FilePath::tempPath( )
 	{
-		return FilePath{ std::filesystem::temp_directory_path( ) };
+		return FilePath{ std::filesystem::temp_directory_path( ).generic_string( ) };
 	}
 
 
 	FilePath FilePath::tempFile( Memory prefix, Memory ext )
 	{
-		FilePath path = tempPath( );
+		FilePath filepath = tempPath( );
 
 		do
 		{
 			uint32_t rnd = (uint32_t)Program::rng( ).rand( );
-			path = tempPath( ) / cpp::format( "%%.%", prefix, Integer::toHex( rnd ), ext );
-		} while ( Files::exists( path ) );
+            filepath = tempPath( ) / cpp::format( "%%.%", prefix, Integer::toHex( rnd ), ext );
+		} while ( Files::exists( filepath ) );
 
-		return path;
+		return filepath;
 	}
 
 
@@ -43,200 +45,162 @@ namespace cpp
 	}
 
 
-	FilePath::FilePath( Memory path )
-		: m_path( path )
-	{
-	}
+    FilePath::FilePath( const FilePath & copy )
+        : path( copy.path )
+    {
+    }
 
 
-	FilePath::FilePath( std::string path )
-		: m_path( std::move( path ) )
-	{
-	}
+    FilePath::FilePath( FilePath && move ) noexcept
+        : path( std::move( move.path ) )
+    {
+    }
+
+    FilePath::FilePath( const Memory & filepath )
+        : path( std::filesystem::path{ (const char8_t *)filepath.begin( ), (const char8_t *)filepath.end( ) }.generic_string( ) )
+    {
+    }
 
 
-	FilePath::FilePath( const std::filesystem::path & path )
-		: m_path( path.generic_string( ) )
-	{
-	}
+    FilePath::FilePath( const char * filepath )
+        : path( std::filesystem::path{ (const char8_t *)filepath }.generic_string( ) )
+    {
+    }
 
 
-	FilePath::FilePath( const FilePath & copy )
-		: m_path( copy.m_path )
-	{
+    FilePath::FilePath( const std::string & filepath )
+        : path( std::filesystem::path{ (const char8_t *)filepath.c_str( ), (const char8_t *)filepath.c_str( ) + filepath.length( ) }.generic_string( ) )
+    {
+    }
 
-	}
 
-
-	FilePath::FilePath( FilePath && move ) noexcept
-		: m_path( std::move( move.m_path) )
-	{
-
-	}
+    FilePath::FilePath( const String & filepath )
+        : path( std::filesystem::path{ (const char8_t *)filepath.begin( ), (const char8_t *)filepath.end( ) }.generic_string( ) )
+    {
+    }
 
 
 	bool FilePath::isEmpty( ) const
 	{
-		return m_path.empty( );
+		return path.isEmpty( );
 	}
 
 
 	bool FilePath::notEmpty( ) const
 	{
-		return !m_path.empty( );
+		return path.notEmpty( );
 	}
 
 
 	bool FilePath::operator!( ) const
 	{
-		return !m_path.empty( );
+		return path.notEmpty( );
 	}
 
 
 	bool FilePath::isAbsolute( ) const
 	{
-		return std::filesystem::path{ m_path }.is_absolute( );
+		return to_path( ).is_absolute( );
 	}
 
 
 	FilePath FilePath::normal( ) const
 	{
-		return std::filesystem::path{ m_path }.lexically_normal().generic_string( );
+        return to_path( ).lexically_normal( ).generic_string( );
 	}
 
 
 	FilePath FilePath::relative( const FilePath & base ) const
 	{
-		return std::filesystem::path{ m_path }.lexically_relative( base.m_path ).generic_string( );
+        return to_path( ).lexically_relative( base.to_path( ) ).generic_string( );
 	}
 
 
 	FilePath FilePath::absolute( ) const
 	{
-		return std::filesystem::absolute( std::filesystem::path{ m_path } ).generic_string( );
+        return std::filesystem::absolute( to_path( ) ).generic_string( );
 	}
 
 
 	FilePath FilePath::canonical( ) const
 	{
-		return std::filesystem::canonical( std::filesystem::path{ m_path } ).generic_string( );
+        return std::filesystem::canonical( to_path( ) ).generic_string( );
 	}
 
 
 	int FilePath::compare( const FilePath & lhs, const FilePath & rhs )
 	{
-		return strcmp( lhs.m_path.c_str( ), rhs.m_path.c_str( ) );
-	}
-
-
-	FilePath & FilePath::assign( std::string path )
-	{
-		m_path = std::move( path );
-		return *this;
+		return Memory::compare( lhs.path, rhs.path );
 	}
 
 
 	FilePath & FilePath::assign( const FilePath & copy )
 	{
-		m_path = copy.m_path;
+		path = copy.path;
 		return *this;
 	}
 
 
 	FilePath & FilePath::assign( FilePath && move )
 	{
-		m_path = std::move( move.m_path );
+		path = std::move( move.path );
 		return *this;
 	}
 
 	
-	FilePath & FilePath::operator=( std::string path )
-	{
-		m_path = std::move( path );
-		return *this;
-	}
-
-
 	FilePath & FilePath::operator=( const FilePath & copy )
 	{
-		m_path = copy.m_path;
+		path = copy.path;
 		return *this;
 	}
 
 
 	FilePath & FilePath::operator=( FilePath && move )
 	{
-		m_path = std::move( move.m_path );
+		path = std::move( move.path );
 		return *this;
 	}
 
 
-	FilePath & FilePath::append( Memory path )
+	FilePath & FilePath::append( const FilePath & other )
 	{
-		m_path += '/';
-		m_path.append( path.begin( ), path.end( ) );
+        path += '/';
+        path += other.path;
 		return *this;
 	}
 
 
-	FilePath & FilePath::append( const FilePath & path )
+	FilePath & FilePath::operator/=( const FilePath & other )
 	{
-		m_path += '/';
-		m_path.append( path );
+		return append( other );
+	}
+
+
+	FilePath & FilePath::concat( const FilePath & other )
+	{
+        path += other.path;
 		return *this;
 	}
 
 
-	FilePath & FilePath::operator/=( Memory path )
+	FilePath & FilePath::operator+=( const FilePath & other )
 	{
-		return append( path );
-	}
-
-
-	FilePath & FilePath::operator/=( const FilePath & path )
-	{
-		return append( path );
-	}
-
-
-	FilePath & FilePath::concat( Memory path )
-	{
-		m_path.append( path.begin( ), path.end( ) );
-		return *this;
-	}
-
-
-	FilePath & FilePath::concat( const FilePath & path )
-	{
-		m_path.append( path.m_path );
-		return *this;
-	}
-
-
-	FilePath & FilePath::operator+=( Memory path )
-	{
-		return concat( path );
-	}
-
-
-	FilePath & FilePath::operator+=( const FilePath & path )
-	{
-		return concat( path );
+		return concat( other );
 	}
 
 
 	void FilePath::clear( )
 	{
-		m_path.clear( );
+		path.clear( );
 	}
 
 
 	//  FilePath{ "c:/dir/file.ext1.ext2" }.parent() == "c:/dir"
 	FilePath FilePath::parent( ) const
 	{
-		size_t pos = m_path.find_last_of( '/' );
+		size_t pos = path.findLastOf( "/" );
 		return ( pos != std::string::npos )
-			? FilePath{ m_path.substr( 0, pos ) }
+            ? FilePath{ Memory{ path }.substr( 0, pos ) }
 			: FilePath{};
 	}
 
@@ -244,10 +208,10 @@ namespace cpp
 	//  FilePath{ "c:/dir/file.ext1.ext2" }.filename() == "file.ext1.ext2"
 	Memory FilePath::filename( ) const
 	{
-		size_t pos = m_path.find_last_of( '/' );
+		size_t pos = path.findLastOf( "/" );
 		return ( pos != std::string::npos )
-			? FilePath{ m_path.substr( pos + 1 ) }
-			: m_path;
+			? Memory{ path }.substr( pos + 1 )
+			: path;
 	}
 
 	//  FilePath{ "c:/dir/file.ext1.ext2" }.name() == "file"
@@ -278,24 +242,18 @@ namespace cpp
 	}
 
 
-	FilePath::operator std::filesystem::path( ) const
-	{
-		return std::filesystem::path{ m_path };
-	}
-
-
-	FilePath::operator std::string( ) const
-	{
-		return m_path;
-	}
+    std::filesystem::path FilePath::to_path( ) const
+    {
+        return std::filesystem::path{ (const char8_t *)path.begin( ), (const char8_t *)path.end( ) };
+    }
 
 
 	std::string FilePath::toString( bool nativeSeperator ) const
 	{
 		if ( !nativeSeperator )
-			{ return m_path; }
+			{ return path.data; }
 
-		return Memory{ m_path }.replaceAll( "/", "\\" );
+		return Memory{ path }.replaceAll( "/", "\\" );
 	}
 
 
@@ -308,7 +266,7 @@ namespace cpp
 }
 
 
-cpp::FilePath operator/( const cpp::FilePath & lhs, cpp::Memory rhs )
+cpp::FilePath operator/( const cpp::FilePath & lhs, const cpp::Memory & rhs )
 {
 	cpp::FilePath result = lhs;
 	return result /= rhs;
@@ -355,3 +313,50 @@ bool operator>=( const cpp::FilePath & lhs, const cpp::FilePath & rhs )
 {
 	return cpp::FilePath::compare( lhs, rhs ) >= 0;
 }
+
+#else
+
+
+
+#include "../meta/Test.h"
+#include "../../cpp/file/FilePath.h"
+
+
+
+TEST_CASE( "FilePath" )
+{
+    using namespace cpp;
+
+    const char * path1 = "something";
+    std::string path2 = "something";
+    String path3 = "something";
+
+    FilePath f1{ "something" };
+    FilePath f2{ path1 };
+    FilePath f3{ path2 };
+    FilePath f4{ path3 };
+    FilePath f5{ std::string{ path1 } };
+    FilePath f6 = "something";
+    FilePath f7 = path1;
+    FilePath f8 = path2;
+    FilePath f9 = path3;
+
+    f6 = "something";
+    f7 = path1;
+    f8 = path2;
+    f9 = path3;
+
+    REQUIRE( f1 == path1 );
+    REQUIRE( f2 == path1 );
+    REQUIRE( f3 == path1 );
+    REQUIRE( f4 == path1 );
+    REQUIRE( f5 == path1 );
+    REQUIRE( f6 == path1 );
+    REQUIRE( f7 == path1 );
+    REQUIRE( f8 == path1 );
+    REQUIRE( f9 == path1 );
+}
+
+
+#endif
+

@@ -25,10 +25,6 @@ namespace cpp
 		: m_begin( str.begin( ) ), m_end( str.end( ) ) { }
 
 
-	Memory & Memory::operator=( const String & str )
-		{ m_begin = str.begin( ); m_end = str.end( ); return *this; }
-
-
 	int	Memory::compare( const Memory & lhs, const Memory & rhs )
 	{
 		// treat null like empty string
@@ -623,18 +619,26 @@ TEST_CASE( "Memory" )
 
     SECTION( "ctor" )
     {
+        const char * s0 = "hello";
         std::string s1{ "hello" };
         String s2{ "hello" };
 
         Memory a{};
         Memory aa = nullptr;
         Memory b{ "hello" };
+        Memory bb{ s0 };
         Memory c{ s1 };
         Memory d{ s2 };
         Memory e{ "hello", 3 };
         Memory f{ "" };
         //Memory g{ std::string{""} };      // bad
         //Memory h{ String{""} };           // bad
+
+        aa = nullptr;
+        b = "hello";
+        bb = s0;
+        c = s1;
+        d = s2;
 
         REQUIRE( a.isNull( ) );
         REQUIRE( b == "hello" );

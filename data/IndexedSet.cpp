@@ -2,20 +2,23 @@
 
 #else
 
-#include <cpp/meta/Unittest.h>
-#include "IndexedSet.h"
+#include <cpp/meta/Test.h>
 
-SUITE( IndexedSet )
+#include <cpp/data/String.h>
+#include <cpp/data/IndexedSet.h>
+
+
+
+TEST_CASE( "IndexedSet" )
 {
-    TEST( test1 )
+    SECTION( "test1" )
     {
         cpp::IndexedSet<cpp::String> index;
 
         index.add( "apple" );
         index.add( "orange" );
         index.add( "avocado" );
-
-
+        
         CHECK( index.getAt( 0 ) == "apple" );
         CHECK( index.rgetAt( 0 ) == "avocado" );
         CHECK( index.getAt( 0 ) == index.rgetAt(2) );

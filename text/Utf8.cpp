@@ -501,35 +501,31 @@ namespace cpp
 
 #else
 
-#include <cpp/util/Utf8.h>
-#include <cpp/meta/Unittest.h>
+#include "../../cpp/meta/Test.h"
+#include "../../cpp/text/Utf8.h"
 
-SUITE( Utf8 )
+TEST_CASE( "Utf8" )
 {
-	using namespace cpp;
+    using namespace cpp;
 
-	TEST( Reader )
-	{
-		int len = 0;
-		for ( auto ch : Utf8::Reader{ "hello" } )
-			{ len++; }
-		CHECK( len == 5 );
-	}
-
-    TEST( Text )
-    {
-
-    }
-
-    TEST( substr )
+    SECTION( "substr" )
     {
         String utf8 = u8"ありがとう";
         
-        CHECK( Utf8::strlen( utf8 ) == 5 && utf8.length() != 5 );
-        CHECK( Utf8::substr( utf8, 1, 3 ) == u8"りがと" );
-        CHECK( Utf8::substr( utf8, 2 ) == u8"がとう" );
-        CHECK( Utf8::substr( utf8, 2, 10 ) == u8"がとう" );
-        CHECK( Utf8::substr( utf8, 10, 2 ).isEmpty() );
+        CHECK( utf8.length( ) != 5 );
+        CHECK( Utf8::strlen( utf8 ) == 5 );
+        
+        bool result = Utf8::substr( utf8, 1, 3 ) == u8"りがと"; 
+        CHECK( result );
+        
+        result = Utf8::substr( utf8, 2 ) == u8"がとう"; 
+        CHECK( result );
+        
+        result = Utf8::substr( utf8, 2, 10 ) == u8"がとう"; 
+        CHECK( result );
+        
+        result = Utf8::substr( utf8, 10, 2 ).isEmpty( ); 
+        CHECK( result );
     }
 
 }

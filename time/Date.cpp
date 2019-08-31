@@ -1,59 +1,70 @@
 #ifndef TEST
 
-#include "Date.h"
+#include <ctime>
+#include "../../cpp/time/Date.h"
+#include "../../cpp/data/Integer.h"
 
+
+
+namespace cpp
+{
+
+    std::string Date::toString( ) const
+    {
+        std::string result = toString( "%Y-%m-%d %H:%M:%S" );
+        result += "." + Integer::toDecimal( m_micros / 1000, 3, true );
+        return result;
+    }
+
+
+    std::string Date::toString( const char * format ) const
+    {
+        std::string result( 64, '\0' );
+
+        result.resize( strftime( (char *)result.c_str( ), result.length( ), format, &data( ) ) );
+
+        return result;
+    }
+
+}
 
 #else
 
-#include <cpp/meta/Unittest.h>
-#include <cpp/chrono/Date.h>
+#include "../../cpp/meta/Test.h"
+#include "../../cpp/time/Date.h"
+#include "../../cpp/time/DateTime.h"
 
-SUITE( Date )
+
+TEST_CASE( "Date" )
 {
     using namespace cpp;
 
-    TEST( utcDelta )
+    SECTION( "utcDelta" )
     {
-        DateTime now{};
-        DateTime utc = now.toUTC( );
-        DateTime local = utc.fromUTC( );
+        DateTime now;
 
-        Date utcDate = Date::fromTime( utc );
-        Date localDate = Date::fromTime( local );
+        Date localDate = now.toDate( );
+        Date utcDate = now.toUtcDate( );
 
-        CHECK( local == now );
+        DateTime localTime = localDate;
+        DateTime utcTime = utcDate;
+
+        CHECK( localTime == now );
+        CHECK( utcTime == now );
+
+
+        DateTime utc = DateTime::ofUtcDate( 1970, 1, 1 );
+        CHECK( utc.sinceEpoch() == Duration::Zero );
+
+        localDate = utc.toDate( );
+        utcDate = utc.toUtcDate( );
+
+        localTime = localDate;
+        utcTime = utcDate;
+
+        CHECK( localTime == utc );
+        CHECK( utcTime == utc );
     }
-
-    /*
-    TEST( localTimezone )
-    {
-        auto timezone = localTimezone();
-
-        auto epochTime = DateTime::epoch( );
-        auto gmtDate = Date::fromTime( epochTime, Timezone::GMT );
-        auto localDate = Date::fromTime( epochTime, cpp::localTimezone( ) );
-
-        CHECK( gmtDate.toTime( Timezone::GMT ).toEpochTime( ) == 0 );
-        CHECK( localDate.toTime( cpp::localTimezone( ) ).toEpochTime( ) == cpp::localTimezone( ).toSeconds( ) );
-    }
-
-    TEST( fromTime )
-    {
-        // I was in California (PST) on Jan 1, 2001 at 01:01:01
-        auto myWeirdDate = Date::create( 2001, 1, 1, 1, 1, 1 );
-        CHECK( myWeirdDate.isDST( ) == false );
-        // I had a datetime reference at this time
-        auto myWeirdTime = myWeirdDate.toTime( Timezone::PST );
-        //  The date was different at the same time in Greenwich
-        auto gmtWeirdDate = Date::fromTime( myWeirdTime, Timezone::GMT );
-        //  But the time from that date in Greenwich is no different from my time in California
-        auto gmtWeirdTime = gmtWeirdDate.toTime( Timezone::GMT );
-
-        CHECK( myWeirdTime == gmtWeirdTime );
-
-        String msg = cpp::String::format( "In California at % it was % in Greenwich.", myWeirdDate.toString( ), gmtWeirdDate.toString( ) );
-    }
-    */
 
 }
 

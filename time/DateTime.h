@@ -25,6 +25,7 @@ namespace cpp
 		static DateTime						now( );
 		static DateTime						epoch( );
 		static DateTime						ofDate( int year, int month, int day, int hour = 0, int min = 0, int sec = 0, int micros = 0 );
+        static DateTime						ofUtcDate( int year, int month, int day, int hour = 0, int min = 0, int sec = 0, int micros = 0 );
 
         typedef std::chrono::system_clock	clock_t;
 
@@ -43,9 +44,11 @@ namespace cpp
 
 		DateTime::clock_t::time_point		to_time_point( ) const;
 		time_t								to_time_t( ) const;
-		Date								toDate( bool localTime = true ) const;
-		std::string							toString( bool localTime = true ) const;
-		std::string							toString( const char * format, bool localTime = true ) const;
+		Date								toDate( ) const;
+        Date								toUtcDate( ) const;
+
+        std::string							toString( ) const;
+		std::string							toString( const char * format ) const;
 
 		static int							compare( const DateTime & lhs, const DateTime & rhs );
 
@@ -69,22 +72,6 @@ namespace cpp
 	inline DateTime DateTime::epoch( )
 	{
 		return DateTime{ 0 };
-	}
-
-
-	inline DateTime DateTime::ofDate( int year, int month, int day, int hour, int min, int sec, int micros )
-	{
-		std::tm input{ };
-		input.tm_year = year - 1900;
-		input.tm_mon = month - 1;
-		input.tm_mday = day;
-		input.tm_hour = hour;
-		input.tm_min = min;
-		input.tm_sec = sec;
-		input.tm_isdst = -1;
-		time_t epochSeconds = mktime( &input );
-		//	adjust the time to UTC by removing the local time difference
-		return DateTime{ Duration::ofSeconds( epochSeconds ) + Duration::ofMicros( micros ) - localTimeDelta( ) };
 	}
 
 
@@ -118,10 +105,12 @@ namespace cpp
 		return *this;
 	}
 
+
 	inline Duration DateTime::sinceEpoch( ) const
 	{
 		return m_sinceEpoch;
 	}
+
 
 	inline DateTime DateTime::trimAtHour( DateTime time )
 	{
@@ -129,11 +118,13 @@ namespace cpp
 		return std::chrono::floor<std::chrono::hours>( t );
 	}
 
+
 	inline DateTime DateTime::trimAtDay( DateTime time )
 	{
 		clock_t::time_point t = time.to_time_point( );
 		return std::chrono::floor<std::chrono::duration<int64_t, std::ratio<86400>>>( t );
 	}
+
 
 	inline int DateTime::compare( const DateTime & lhs, const DateTime & rhs )
 		{ return Duration::compare( lhs.sinceEpoch( ), rhs.sinceEpoch( ) ); }

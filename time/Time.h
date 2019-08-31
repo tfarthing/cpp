@@ -47,6 +47,7 @@ namespace cpp
 		return Time{ };
 	}
 
+
 	inline Time::Time( )
 		: m_sinceEpoch( clock_t::now( ).time_since_epoch( ) ) 
 	{

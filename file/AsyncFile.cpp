@@ -84,7 +84,7 @@ namespace cpp
 
 		if ( access == Access::Create || access == Access::Write )
 		{
-			Files::create_directories( filepath.parent( ) );
+			Files::createDirectories( filepath.parent( ) );
 		}
 
 		HANDLE fileHandle = CreateFile( filepath.toWindows( ), accessMode, shareMode, 0, creationMode, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, 0 );
@@ -526,12 +526,20 @@ namespace cpp
 
 #else
 
+
+
 #include "../meta/Test.h"
 #include "../../cpp/file/AsyncFile.h"
 
+
+
 TEST_CASE( "AsyncFile" ) 
 {
-    //cpp::AsyncFile{};
+    using namespace cpp;
+
+    AsyncIO io;
+    AsyncFile{ io.context( ), FilePath{"temp.txt"}, AsyncFile::Access::Create };
+
 
 	REQUIRE( 1 == 1 );
 	REQUIRE( 2 == 2 );

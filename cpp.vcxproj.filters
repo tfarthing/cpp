@@ -295,6 +295,7 @@
       <Filter>io\reader</Filter>
     </ClCompile>
     <ClCompile Include="file\FilePath.cpp" />
+    <ClCompile Include="file\Files.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="meta\cpp.natvis">

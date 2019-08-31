@@ -80,6 +80,7 @@
     <ClCompile Include="data\Integer.cpp" />
     <ClCompile Include="file\AsyncFile.cpp" />
     <ClCompile Include="file\FilePath.cpp" />
+    <ClCompile Include="file\Files.cpp" />
     <ClCompile Include="file\MemoryFile.cpp" />
     <ClCompile Include="file\SyncFile.cpp" />
     <ClCompile Include="network\TcpConnection.cpp" />

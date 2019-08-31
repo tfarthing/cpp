@@ -17,7 +17,7 @@ namespace cpp
             {
                 PWSTR path;
                 check( SHGetKnownFolderPath( folderId, 0, 0, &path ) );
-				FilePath result{ std::filesystem::path{ path } };
+				FilePath result{ std::filesystem::path{ path }.generic_string( ) };
                 CoTaskMemFree( path );
 
                 return result;

@@ -52,17 +52,9 @@ namespace cpp
 											Memory( const char * begin, const char * end );
                                             Memory( const char8_t * cstring );
                                             Memory( const std::string & string );
-        explicit                            Memory( std::string && string ) = delete;
                                             Memory( const String & copy );
-        explicit                            Memory( String && string ) = delete;
 											Memory( const Memory & copy );
 
-		Memory &							operator=( nullptr_t );
-		Memory &							operator=( const char * cstring );
-		Memory &							operator=( const std::string & string );
-		Memory &							operator=( const String & memory );
-		Memory &							operator=( std::string && string ) = delete;
-		Memory &							operator=( String && memory ) = delete;
 		Memory &							operator=( const Memory & memory );
 
 		bool								operator<( const Memory & memory ) const;
@@ -260,6 +252,7 @@ namespace cpp
 		{ return Memory{ (char *)&value, sizeof( value ) }; }
 
 
+    /*
 	inline Memory & Memory::operator=( nullptr_t )
 		{ m_begin = nullptr; m_end = nullptr; return *this; }
 
@@ -270,7 +263,7 @@ namespace cpp
 
 	inline Memory & Memory::operator=( const std::string & string )
 		{ m_begin = string.c_str( ); m_end = string.c_str( ) + string.length( ); return *this; }
-
+    */
 
 	inline Memory & Memory::operator=( const Memory & memory )
 		{ m_begin = memory.m_begin; m_end = memory.m_end; return *this; }

@@ -1,18 +1,18 @@
 #pragma once
 
 #include <functional>
-#include "../../cpp/file/Files.h"
+#include "../../cpp/file/File.h"
 #include "Bit.h"
 
 namespace cpp::bit
 {
-    class File
+    class BitFile
     {
     public:
         typedef std::function<void( Object )> Handler;
 
-                                            File( );
-                                            File( FilePath filename, Handler handler = nullptr );
+                                            BitFile( );
+                                            BitFile( FilePath filename, Handler handler = nullptr );
 
         const FilePath &                    filename( ) const;
         const Object &                      data( ) const;
@@ -32,7 +32,7 @@ namespace cpp::bit
     private:
         FilePath                            m_filename;
         Handler                             m_handler;
-        SyncFile                            m_file;
+        File                                m_file;
         Object                              m_data;
     };
 }

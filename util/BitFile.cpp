@@ -1,36 +1,35 @@
-#include "../../cpp/file/SyncFile.h"
 #include "../../cpp/util/BitFile.h"
 #include "../../cpp/process/Thread.h"
 
 
 namespace cpp::bit
 {
-    File::File( )
+    BitFile::BitFile( )
     {
 
     }
 
 
-    File::File( FilePath filename, Handler handler )
+    BitFile::BitFile( FilePath filename, Handler handler )
         : m_filename{ std::move( filename ) }, m_handler{ std::move( handler ) }
     {
         reload( );
     }
 
 
-    const FilePath & File::filename( ) const
+    const FilePath & BitFile::filename( ) const
     {
         return m_filename;
     }
 
 
-    const Object & File::data( ) const
+    const Object & BitFile::data( ) const
     {
         return m_data;
     }
 
 
-    void File::load( FilePath filename, Handler handler )
+    void BitFile::load( FilePath filename, Handler handler )
     {
         m_filename = std::move( filename );
         m_handler = std::move( handler );
@@ -42,7 +41,7 @@ namespace cpp::bit
     }
 
 
-    void File::reload( )
+    void BitFile::reload( )
     {
         assert( !m_filename.isEmpty( ) );
         
@@ -50,7 +49,7 @@ namespace cpp::bit
         m_data.reset( );
 
         auto reloadFilename = m_filename.append( ".reload" );
-        auto reloadFile = SyncFile::create( reloadFilename );
+        auto reloadFile = File::create( reloadFilename );
 
         for ( auto cursor : m_file.input( ).lines( ) )
         {
@@ -78,19 +77,19 @@ namespace cpp::bit
     }
 
 
-    bool File::isOpen( ) const
+    bool BitFile::isOpen( ) const
     {
         return m_file.isOpen( );
     }
 
 
-    Memory File::get( Memory key ) const
+    Memory BitFile::get( Memory key ) const
     {
         return m_data[key];
     }
 
 
-    void File::set( Memory key, Memory value )
+    void BitFile::set( Memory key, Memory value )
     {
         bit::Object data;
         data[key] = value;
@@ -101,7 +100,7 @@ namespace cpp::bit
     }
 
 
-    void File::remove( Memory key )
+    void BitFile::remove( Memory key )
     {
         bit::Object data;
         data[key].erase( );
@@ -112,7 +111,7 @@ namespace cpp::bit
     }
 
 
-    void File::write( Memory line )
+    void BitFile::write( Memory line )
     {
         m_file.write( line );
     }

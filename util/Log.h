@@ -9,7 +9,7 @@
 #include "../../cpp/process/Program.h"
 #include "../../cpp/file/Files.h"
 #include "../../cpp/file/FilePath.h"
-#include "../../cpp/file/SyncFile.h"
+#include "../../cpp/file/File.h"
 
 
 
@@ -64,7 +64,7 @@ namespace cpp
 		LogLevel m_handlerLevel = LogLevel::None;
 		handler_t m_handler;
 
-		SyncFile m_file;
+		File m_file;
 		std::string m_filename;
 		FilePath m_filepath;
 		DateTime m_archiveTime;

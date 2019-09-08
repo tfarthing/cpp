@@ -19,9 +19,8 @@
     <ClCompile Include="data\Integer.cpp" />
     <ClCompile Include="data\Memory.cpp" />
     <ClCompile Include="data\String.cpp" />
-    <ClCompile Include="file\AsyncFile.cpp" />
+    <ClCompile Include="file\File.cpp" />
     <ClCompile Include="file\FilePath.cpp" />
-    <ClCompile Include="file\SyncFile.cpp" />
     <ClCompile Include="meta\Test.cpp" />
     <ClCompile Include="text\Utf8.cpp" />
     <ClCompile Include="time\Date.cpp" />

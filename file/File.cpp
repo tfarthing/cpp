@@ -2,7 +2,7 @@
 
 #include <cassert>
 
-#include "SyncFile.h"
+#include "File.h"
 #include "../../cpp/process/Platform.h"
 #include "../../cpp/process/Exception.h"
 
@@ -11,7 +11,7 @@
 namespace cpp
 {
 
-    class SyncFile::Detail
+    class File::Detail
         : public Input::Source, public Output::Sink
     {
     public:
@@ -44,7 +44,7 @@ namespace cpp
     };
 
     
-    std::shared_ptr<SyncFile::Detail> SyncFile::Detail::create( const FilePath & filepath, Access access, Share share )
+    std::shared_ptr<File::Detail> File::Detail::create( const FilePath & filepath, Access access, Share share )
     {
         DWORD accessMode = 0;
         DWORD creationMode = 0;
@@ -68,11 +68,11 @@ namespace cpp
 
         switch ( share )
         {
-        case Share::AllowAll:
+        case Share::All:
             shareMode |= FILE_SHARE_DELETE;
-        case Share::AllowWrite:
+        case Share::Write:
             shareMode |= FILE_SHARE_WRITE;
-        case Share::AllowRead:
+        case Share::Read:
             shareMode |= FILE_SHARE_READ;
         default:
             break;
@@ -96,25 +96,25 @@ namespace cpp
     }
 
 
-    SyncFile::Detail::Detail( )
+    File::Detail::Detail( )
         : m_handle( INVALID_HANDLE_VALUE )
     {
     }
 
 
-    SyncFile::Detail::~Detail( )
+    File::Detail::~Detail( )
     {
         close( );
     }
 
 
-    bool SyncFile::Detail::isOpen( ) const
+    bool File::Detail::isOpen( ) const
     {
         return m_handle != INVALID_HANDLE_VALUE;
     }
 
 
-    size_t SyncFile::Detail::length( ) const
+    size_t File::Detail::length( ) const
     {
         assert( isOpen( ) );
 
@@ -125,7 +125,7 @@ namespace cpp
     }
 
 
-    size_t SyncFile::Detail::tell( ) const
+    size_t File::Detail::tell( ) const
     {
         assert( isOpen( ) );
 
@@ -138,7 +138,7 @@ namespace cpp
     }
 
 
-    void SyncFile::Detail::seek( size_t pos )
+    void File::Detail::seek( size_t pos )
     {
         assert( isOpen( ) );
 
@@ -150,7 +150,7 @@ namespace cpp
     }
 
 
-    void SyncFile::Detail::seekToEnd( )
+    void File::Detail::seekToEnd( )
     {
         assert( isOpen( ) );
 
@@ -162,7 +162,7 @@ namespace cpp
     }
 
 
-    Memory SyncFile::Detail::readsome( Memory buffer, std::error_code & errorCode )
+    Memory File::Detail::readsome( Memory buffer, std::error_code & errorCode )
     {
         DWORD bytes = 0;
         if ( m_error )
@@ -183,7 +183,7 @@ namespace cpp
     }
 
 
-    Memory SyncFile::Detail::read( Memory buffer )
+    Memory File::Detail::read( Memory buffer )
     {
         check<Input::Exception>( !m_error, m_error );
 
@@ -202,13 +202,13 @@ namespace cpp
     }
 
 
-    Memory SyncFile::Detail::write( const Memory src, std::error_code & errorCode )
+    Memory File::Detail::write( const Memory src, std::error_code & errorCode )
     {
         return src;
     }
 
     
-    void SyncFile::Detail::write( const Memory data )
+    void File::Detail::write( const Memory data )
     {
         assert( isOpen( ) );
         DWORD bytes = 0;
@@ -218,7 +218,7 @@ namespace cpp
     }
 
 
-    void SyncFile::Detail::truncate( size_t length )
+    void File::Detail::truncate( size_t length )
     {
         assert( isOpen( ) );
         _LARGE_INTEGER pos;
@@ -230,12 +230,12 @@ namespace cpp
     }
 
 
-    void SyncFile::Detail::flush( )
+    void File::Detail::flush( )
     {
         FlushFileBuffers( m_handle );
     }
 
-    void SyncFile::Detail::close( )
+    void File::Detail::close( )
     {
         if ( isOpen( ) )
         {
@@ -249,124 +249,131 @@ namespace cpp
 
 
 
-    SyncFile SyncFile::read( const FilePath & filepath, Share share )
+    File File::read( const FilePath & filepath, Share share )
     {
-        return SyncFile{ filepath, Access::Read, share };
+        return File{ filepath, Access::Read, share };
     }
 
 
-    SyncFile SyncFile::open( const FilePath & filepath, Share share )
+    File File::open( const FilePath & filepath, Share share )
     {
-        return SyncFile{ filepath, Access::Write, share };
+        return File{ filepath, Access::Write, share };
     }
 
 
-    SyncFile SyncFile::create( const FilePath & filepath, Share share )
+    File File::create( const FilePath & filepath, Share share )
     {
-        return SyncFile{ filepath, Access::Create, share };
+        return File{ filepath, Access::Create, share };
     }
 
 
-    SyncFile SyncFile::append( const FilePath & filepath, Share share )
+    File File::append( const FilePath & filepath, Share share )
     {
-        SyncFile result{ filepath, Access::Write, share };
+        File result{ filepath, Access::Write, share };
         result.seekToEnd( );
         return result;
     }
 
 
-    SyncFile::SyncFile( )
+    File::File( )
         : m_detail( )
     {
 
     }
 
 
-    SyncFile::SyncFile( const FilePath & filepath, Access access, Share share )
+    File::File( const FilePath & filepath, Access access, Share share )
         : m_detail( Detail::create( filepath, access, share ) )
     {
         
     }
 
 
-    SyncFile::~SyncFile( )
+    File::~File( )
     {
         if (m_detail )
             { close( ); }
     }
 
 
-    bool SyncFile::isOpen( ) const
+    bool File::isOpen( ) const
     {
         return ( m_detail ) ? m_detail->isOpen( ) : false;
     }
 
 
-    size_t SyncFile::length( ) const
+    size_t File::length( ) const
     {
         assert( m_detail );
         return m_detail->length( );
     }
     
 
-    size_t SyncFile::tell( ) const
+    size_t File::tell( ) const
     {
         assert( m_detail );
         return m_detail->tell( );
     }
 
 
-    void SyncFile::seek( size_t pos )
+    void File::seek( size_t pos )
     {
         assert( m_detail );
         m_detail->seek( pos );
     }
 
 
-    void SyncFile::seekToEnd( )
+    void File::seekToEnd( )
     {
         assert( m_detail );
         m_detail->seekToEnd( );
     }
 
 
-    Memory SyncFile::read( Memory buffer )
+    Memory File::read( Memory buffer )
     {
         assert( m_detail );
         return m_detail->read( buffer );
     }
 
 
-    void SyncFile::write( Memory data )
+    void File::write( Memory data )
     {
         assert( m_detail );
         m_detail->write( data );
     }
 
 
-	void SyncFile::flush( )
+	void File::flush( )
 	{
 		assert( m_detail );
 		m_detail->flush( );
 	}
 
 
-    void SyncFile::truncate( size_t length )
+    void File::truncate( size_t length )
     {
         assert( m_detail );
         m_detail->truncate( length );
     }
 
 
-    void SyncFile::close( )
+    void File::close( )
     {
         assert( m_detail );
         m_detail->close( );
     }
 
-    Input SyncFile::input( )
+
+    Input File::input( )
     {
         return Input{ m_detail };
+    }
+
+
+    Output File::output( )
+    {
+        return Output{ m_detail };
     }
 
 

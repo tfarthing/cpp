@@ -13,11 +13,10 @@
   <ItemGroup>
     <ClInclude Include="data\DataArray.h" />
     <ClInclude Include="data\Primitive.h" />
-    <ClInclude Include="file\AsyncFile.h" />
     <ClInclude Include="file\FilePath.h" />
     <ClInclude Include="file\Files.h" />
     <ClInclude Include="file\MemoryFile.h" />
-    <ClInclude Include="file\SyncFile.h" />
+    <ClInclude Include="file\File.h" />
     <ClInclude Include="io\Input.h" />
     <ClInclude Include="io\Output.h" />
     <ClInclude Include="network\TcpConnection.h" />
@@ -78,11 +77,10 @@
     <ClCompile Include="data\DataArray.cpp" />
     <ClCompile Include="data\Float.cpp" />
     <ClCompile Include="data\Integer.cpp" />
-    <ClCompile Include="file\AsyncFile.cpp" />
     <ClCompile Include="file\FilePath.cpp" />
     <ClCompile Include="file\Files.cpp" />
     <ClCompile Include="file\MemoryFile.cpp" />
-    <ClCompile Include="file\SyncFile.cpp" />
+    <ClCompile Include="file\File.cpp" />
     <ClCompile Include="network\TcpConnection.cpp" />
     <ClCompile Include="network\TcpServer.cpp" />
     <ClCompile Include="platform\windows\WindowsException.cpp" />

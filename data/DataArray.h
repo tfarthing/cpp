@@ -75,6 +75,12 @@ namespace cpp
 	};
 
 
+
+    typedef DataArray<Memory> MemoryArray;
+    typedef DataArray<String> StringArray;
+
+
+
     template<class T>
     DataArray<T> DataArray<T>::ofSize( size_t count, const T & value )
     {
@@ -107,6 +113,7 @@ namespace cpp
         {
             data.emplace_back( std::move( move[i] ) );
         }
+        move.clear( );
     }
 
 
@@ -129,6 +136,7 @@ namespace cpp
         {
             data.emplace_back( std::move( move.data[i] ) );
         }
+        move.clear( );
     }
 
 
@@ -211,6 +219,7 @@ namespace cpp
         {
             data.emplace_back( std::move( move[i] ) );
         }
+        move.clear( );
         return *this;
     }
 
@@ -405,10 +414,6 @@ namespace cpp
     {
         return compare( lhs.data, rhs.data );
     }
-
-
-    typedef DataArray<Memory> MemoryArray;
-    typedef DataArray<String> StringArray;
 
 }
 

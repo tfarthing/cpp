@@ -2,19 +2,17 @@
 
 #include <filesystem>
 
-#include "../../cpp/data/String.h"
-
 namespace cpp
 {
 
     struct FilePath;
 
-    struct File
+    struct FileBase
     {
         enum class                          Access               
                                                 { Create, Write, Read };
         enum class                          Share                
-                                                { AllowNone, AllowRead, AllowWrite, AllowAll };
+                                                { None, Read, Write, All };
     };
 
     struct Files

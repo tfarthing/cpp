@@ -15,29 +15,30 @@ SyncFile provides standard blocking file operations.
 namespace cpp
 {
 
-    class SyncFile
-        : public File
+    class File
+        : public FileBase
     {
     public:
-        static SyncFile				        read(
+        static File				            read(
                                                 const FilePath & filepath,
-                                                Share share = Share::AllowAll );
-        static SyncFile				        create(
+                                                Share share = Share::All );
+        static File				            create(
                                                 const FilePath & filepath,
-                                                Share share = Share::AllowRead );
-        static SyncFile				        open(
+                                                Share share = Share::Read );
+        static File				            open(
                                                 const FilePath & filepath,
-                                                Share share = Share::AllowRead );
-        static SyncFile				        append(
+                                                Share share = Share::Read );
+        static File				            append(
                                                 const FilePath & filepath,
-                                                Share share = Share::AllowRead );
+                                                Share share = Share::Read );
 
-                                            SyncFile( );
-                                            SyncFile(
+
+                                            File( );
+                                            File(
                                                 const FilePath & filepath,
                                                 Access access = Access::Read,
-                                                Share share = Share::AllowAll );
-                                            ~SyncFile( );
+                                                Share share = Share::All );
+                                            ~File( );
 
         bool							    isOpen( ) const;
         size_t							    length( ) const;

@@ -131,7 +131,6 @@
     <ClInclude Include="process\Process-Pipe.h" />
     <ClInclude Include="file\Files.h" />
     <ClInclude Include="process\AsyncIO.h" />
-    <ClInclude Include="file\AsyncFile.h" />
     <ClInclude Include="network\TcpConnection.h" />
     <ClInclude Include="network\TcpServer.h" />
     <ClInclude Include="platform\windows\WindowsApp.h" />
@@ -139,7 +138,6 @@
     <ClInclude Include="data\Hex.h" />
     <ClInclude Include="data\Primitive.h" />
     <ClInclude Include="util\BitFile.h" />
-    <ClInclude Include="file\SyncFile.h" />
     <ClInclude Include="io\LineReader.h">
       <Filter>io\reader</Filter>
     </ClInclude>
@@ -147,6 +145,7 @@
     <ClInclude Include="io\Output.h" />
     <ClInclude Include="file\FilePath.h" />
     <ClInclude Include="process\Random.h" />
+    <ClInclude Include="file\File.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="io">
@@ -284,18 +283,17 @@
     <ClCompile Include="file\MemoryFile.cpp">
       <Filter>file</Filter>
     </ClCompile>
-    <ClCompile Include="file\AsyncFile.cpp" />
     <ClCompile Include="process\AsyncIO.cpp" />
     <ClCompile Include="network\TcpConnection.cpp" />
     <ClCompile Include="network\TcpServer.cpp" />
     <ClCompile Include="platform\windows\WindowsException.cpp" />
     <ClCompile Include="util\BitFile.cpp" />
-    <ClCompile Include="file\SyncFile.cpp" />
     <ClCompile Include="io\LineReader.cpp">
       <Filter>io\reader</Filter>
     </ClCompile>
     <ClCompile Include="file\FilePath.cpp" />
     <ClCompile Include="file\Files.cpp" />
+    <ClCompile Include="file\File.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="meta\cpp.natvis">

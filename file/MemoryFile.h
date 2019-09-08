@@ -10,27 +10,27 @@ namespace cpp
 {
 
 	class MemoryFile
-        : public File
+        : public FileBase
     {
 	public:
         static MemoryFile				    read(
                                                 const FilePath & filepath,
-                                                Share share = Share::AllowAll );
+                                                Share share = Share::All );
         static MemoryFile				    create(
                                                 const FilePath & filepath,
                                                 size_t maxSize,
-                                                Share share = Share::AllowRead );
+                                                Share share = Share::Read );
         static MemoryFile				    open(
                                                 const FilePath & filepath,
                                                 size_t maxSize,
-                                                Share share = Share::AllowRead );
+                                                Share share = Share::Read );
 
                                             MemoryFile( );
                                             MemoryFile(
                                                 const FilePath & filepath,
                                                 size_t maxSize,
                                                 Access access = Access::Read,
-                                                Share share = Share::AllowAll );
+                                                Share share = Share::All );
 
         bool							    isOpen( ) const;
         size_t							    length( ) const;

@@ -11,7 +11,7 @@ namespace cpp
 			const FilePath & filepath,
 			size_t maxSize,
 			Access access = Access::Read,
-			Share share = Share::AllowAll );
+			Share share = Share::All );
 
 		~Detail( ) override;
 		bool								isOpen( ) const override;
@@ -37,7 +37,7 @@ namespace cpp
 		fileHandle = CreateFile(
 			filepath.toWindows( ),
 			( access != Access::Read ) ? GENERIC_WRITE | GENERIC_READ : GENERIC_READ,
-			( share == Share::AllowWrite ) ? FILE_SHARE_READ | FILE_SHARE_WRITE : FILE_SHARE_READ,
+			( share == Share::Write ) ? FILE_SHARE_READ | FILE_SHARE_WRITE : FILE_SHARE_READ,
 			NULL,
 			( access == Access::Create || !cpp::Files::exists( filepath ) ) ? CREATE_ALWAYS : OPEN_EXISTING,
 			NULL,

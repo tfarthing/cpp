@@ -49,7 +49,7 @@ namespace cpp
     
 
 	Logger::Logger()
-        : m_thread( [=](){ fn(); } ) 
+        : m_thread( ) 
 	{
 	}
 
@@ -107,6 +107,8 @@ namespace cpp
 	void Logger::log( LogLevel level, std::string message )
 	{
 		auto lock = m_mutex.lock( );
+        if ( !m_thread.isRunning() )
+            { m_thread = [=]( ) { fn( ); }; }
 		m_queue.emplace_back( Entry{ DateTime::now( ), level, std::move( message ) } );
 		lock.notifyAll( );
 	}

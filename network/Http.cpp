@@ -1,6 +1,5 @@
 #ifndef TEST
 
-/*
 #include <list>
 #include <set>
 #include <map>
@@ -24,6 +23,12 @@ namespace cpp
 
     const char * METHOD_GET = "GET";
     const char * METHOD_POST = "POST";
+
+
+    Http::Url::Url( const Memory & url )
+    {
+
+    }
 
 
     struct URL
@@ -835,6 +840,51 @@ namespace cpp
     }
 
 
+
+    Input Http::get(
+        const Memory & url,
+        const Memory & headers,
+        Duration connectTimeout )
+    {
+    
+    }
+    
+
+    Input Http::post(
+        const Memory & url,
+        const Memory & headers,
+        const Memory & body,
+        Duration connectTimeout )
+    {
+
+    }
+
+
+    Input Http::post(
+        const Memory & url,
+        const Memory & headers,
+        Input body,
+        Duration connectTimeout )
+    {
+
+    }
+
+
+    Input Http::post(
+        const Memory & url,
+        const Memory & headers,
+        std::vector<Input> parts,
+        Duration connectTimeout )
+    {
+
+    }
+
+    Http::Client & Http::client( )
+    {
+        return Program::httpClient( );
+    }
+
+
 }
 
 #else
@@ -881,6 +931,4 @@ SUITE( Http )
     }
 }
 
-
-*/
 #endif

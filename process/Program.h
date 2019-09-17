@@ -1,11 +1,19 @@
 #pragma once
 
-#include <random>
-#include <memory>
-#include <string>
-#include <vector>
+/*
+    Program is an encapsulation of singletons that provide an interface in any cpp module. These include:
+        * Program Arguments and Environment : argc, argv, env(), module path
+        * Input & Output : i.e. stdin & stdout
+        * Logging
+        * Http
+        * Random Number Generator
+        * Also instance accessor of any platform specific singletons (e.g. console or application handles, font maps, ect.)
 
-#include <../../cpp/data/Memory.h>
+    In general, any interface that wants to provide static accessors will use the Program object for access so that the 
+    lifetime of the singleton can be scoped inside of main().
+*/
+
+#include <../../cpp/data/DataArray.h>
 #include <../../cpp/data/DataMap.h>
 
 
@@ -13,44 +21,41 @@
 namespace cpp
 {
 
-	class Output;
+    struct FilePath;
+    class Output;
 	class Input;
 	class Logger;
-	struct FilePath;
 	class Random;
+    class HttpClient;
 
 
 
     class Program
     {
     public:
-		typedef std::vector<std::string> StringArray_t;
-
 											Program( );
-											Program( const StringArray_t & args );
-											Program( const wchar_t * cmdline );
-											Program( int argc, const char ** argv );
-											Program( int argc, const wchar_t ** argv );
-											~Program( );
-
-        static Input &						in( );
-		static Output &						out( );
-		static Output &						error( );
+                                            Program( int argc, const char ** argv );
+                                            Program( int argc, const wchar_t ** argv );
+                                            Program( const MemoryArray & args );
+                                            ~Program( );
 
 		static const Memory					arg( Memory key );
 		static const StringMap &			args( );
 
+        static const Memory					env( Memory key );
+
 		static const FilePath &				modulePath( );
         
 		static Logger &						logger( );
-        
+        static HttpClient &                 http( );
 		static Random &						rng( );
 
     protected:
+        void                                initModulePath( );
         void								initArgs( int argc, const wchar_t ** argv );
         void								initArgs( int argc, const char ** argv );
         void								initArgs( const std::string & cmdline );
-        void								initArgs( const StringArray_t & arguments );
+        void								initArgs( const MemoryArray & arguments );
         void								init( );
 
     protected:

@@ -5,6 +5,7 @@
 #include "../text/Utf16.h"
 #include "../file/FilePath.h"
 #include "../util/Log.h"
+#include "../network/Http.h"
 #include "../platform/windows/WindowsApp.h"
 #include "AsyncIO.h"
 #include "Platform.h"
@@ -22,9 +23,10 @@ namespace cpp
 
 		StringMap							args;
 		FilePath							modulePath;
-		Logger								logger;
+        AsyncIO								io;
+        Logger								logger;
+        Http::Client                        http;
 		Random								rng;
-		AsyncIO								io;
 	};
 
 	Program::Detail::Detail( )
@@ -42,20 +44,16 @@ namespace cpp
 		: detail( std::make_unique<Detail>( ) ) { init( ); }
 
 
-	Program::Program( const StringArray_t & args )
-		: detail( std::make_unique<Detail>( ) ) { initArgs( args ); }
+    Program::Program( int argc, const char ** argv )
+        : detail( std::make_unique<Detail>( ) ) { initArgs( argc, argv ); }
 
 
-	Program::Program( const wchar_t * cmdline )
-		: detail( std::make_unique<Detail>( ) ) { initArgs( toUtf8( cmdline ) ); }
+    Program::Program( int argc, const wchar_t ** argv )
+        : detail( std::make_unique<Detail>( ) ) { initArgs( argc, argv ); }
 
 
-	Program::Program( int argc, const char ** argv )
-		: detail( std::make_unique<Detail>( ) ) { initArgs( argc, argv ); }
-
-
-	Program::Program( int argc, const wchar_t ** argv )
-		: detail( std::make_unique<Detail>( ) ) { initArgs( argc, argv ); }
+    Program::Program( const MemoryArray & args )
+        : detail( std::make_unique<Detail>( ) ) { initArgs( args ); }
 
 
 	Program::~Program( )
@@ -66,10 +64,10 @@ namespace cpp
 
 	void Program::initArgs( int argc, const wchar_t ** argv )
 	{
-		StringArray_t args;
+		StringArray args;
 		for ( int i = 0; i < argc; i++ )
 		{
-			args.push_back( cpp::toUtf8( argv[i] ) );
+			args.add( cpp::toUtf8( argv[i] ) );
 		}
 		initArgs( args );
 	}
@@ -77,10 +75,10 @@ namespace cpp
 
 	void Program::initArgs( int argc, const char ** argv )
 	{
-		StringArray_t args;
+		StringArray args;
 		for ( int i = 0; i < argc; i++ )
 		{
-			args.push_back( argv[i] );
+			args.add( argv[i] );
 		}
 		initArgs( args );
 	}
@@ -89,17 +87,17 @@ namespace cpp
 	void Program::initArgs( const std::string & cmdline )
 	{
 		detail->args.set( "cmdline", cmdline );
-		StringArray_t arguments;
+		StringArray arguments;
 		if constexpr ( Platform::isWindows( ) )
 		{
 			for ( auto & arg : windows::App::parseCommandLine( cmdline ).data )
-				{ arguments.push_back( arg.data ); }
+				{ arguments.add( arg.data ); }
 		}
 		initArgs( arguments );
 	}
 
 
-	void Program::initArgs( const StringArray_t & arguments )
+	void Program::initArgs( const MemoryArray & arguments )
 	{
 		detail->args.set( "argc", Integer::toDecimal( arguments.size( ) ) );
 
@@ -110,24 +108,27 @@ namespace cpp
 			detail->args.set( parts[0], parts.size( ) > 1 ? parts[1] : "" );
 			detail->args.set( cpp::format( "arg[%]", i ), arguments[i] );
 		}
-
-		init( );
-	}
+    
+        init( );
+    }
 
 
 	void Program::init( )
 	{
-		std::wstring path( 1024, L'\0' );
-		int len = GetModuleFileName( NULL, (LPWSTR)path.c_str( ), (DWORD)path.size( ) );
-		if ( len > 0 )
-		{
-			detail->modulePath = cpp::toUtf8( path.substr( 0, len ) );
-		}
-
+        initModulePath( );
 		addInstance( this );
 	}
 
 
+    void Program::initModulePath( )
+    {
+        std::wstring path( 1024, L'\0' );
+        int len = GetModuleFileName( NULL, (LPWSTR)path.c_str( ), (DWORD)path.size( ) );
+        if ( len > 0 )
+            { detail->modulePath = cpp::toUtf8( path.substr( 0, len ) ); }
+    }
+
+ 
 	const Memory Program::arg( Memory key )
 	{
 		return instance().detail->args.get( key );
@@ -140,6 +141,12 @@ namespace cpp
 	}
 
 
+    const Memory Program::env( Memory key )
+    {
+        return ::getenv( key.data( ) );
+    }
+
+
 	const FilePath & Program::modulePath( )
 	{
 		return instance( ).detail->modulePath;
@@ -150,6 +157,12 @@ namespace cpp
 	{
 		return instance( ).detail->logger;
 	}
+
+
+    HttpClient & Program::http( )
+    {
+        return instance( ).detail->http;
+    }
 
 
 	Random & Program::rng( )

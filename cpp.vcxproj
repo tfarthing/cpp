@@ -21,6 +21,7 @@
     <ClInclude Include="io\Output.h" />
     <ClInclude Include="network\TcpConnection.h" />
     <ClInclude Include="network\TcpServer.h" />
+    <ClInclude Include="network\Url.h" />
     <ClInclude Include="platform\windows\WindowsApp.h" />
     <ClInclude Include="process\AsyncIO.h" />
     <ClInclude Include="process\Process-Pipe.h" />
@@ -83,6 +84,7 @@
     <ClCompile Include="file\File.cpp" />
     <ClCompile Include="network\TcpConnection.cpp" />
     <ClCompile Include="network\TcpServer.cpp" />
+    <ClCompile Include="network\Url.cpp" />
     <ClCompile Include="platform\windows\WindowsException.cpp" />
     <ClCompile Include="process\AsyncIO.cpp" />
     <ClCompile Include="time\Date.cpp" />

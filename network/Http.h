@@ -9,6 +9,8 @@
 
 */
 
+#if __has_include(<boost/network/protocol.hpp>)
+
 #include <memory>
 #include <functional>
 
@@ -99,27 +101,6 @@ namespace cpp
 
 
 
-    struct Http::Url
-    {
-                                            Url( const Memory & url );
-                                            Url( const Memory & protocol, const Memory & userinfo, const Memory & host, int port, const Memory & path, const MemoryMap & params, const Memory & fragment );
-
-        String                              toString( ) const;
-        String                              hostAndPort( ) const;
-
-        static String                       toQueryParams( const MemoryMap & params );
-
-
-        String                              protocol;
-        String                              userinfo;
-        String                              host;
-        int                                 port;
-        String                              path;
-        StringMap                           params;
-        String                              fragment;
-    };
-
-
 	class Http::Exception
 		: public cpp::Exception
 	{
@@ -175,3 +156,5 @@ namespace cpp
 	}
 
 }
+
+#endif

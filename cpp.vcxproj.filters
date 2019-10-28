@@ -146,7 +146,7 @@
     <ClInclude Include="file\FilePath.h" />
     <ClInclude Include="process\Random.h" />
     <ClInclude Include="file\File.h" />
-    <ClInclude Include="network\Url.h" />
+    <ClInclude Include="network\Uri.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="io">
@@ -295,7 +295,7 @@
     <ClCompile Include="file\FilePath.cpp" />
     <ClCompile Include="file\Files.cpp" />
     <ClCompile Include="file\File.cpp" />
-    <ClCompile Include="network\Url.cpp" />
+    <ClCompile Include="network\Uri.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="meta\cpp.natvis">

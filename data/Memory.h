@@ -50,7 +50,7 @@ namespace cpp
 											Memory( const char * cstring );
 											Memory( const char * ptr, size_t len );
 											Memory( const char * begin, const char * end );
-                                            Memory( const char8_t * cstring );
+        explicit                            Memory( const char8_t * cstring );
                                             Memory( const std::string & string );
                                             Memory( const String & copy );
 											Memory( const Memory & copy );

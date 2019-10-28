@@ -3,6 +3,8 @@
 #include <vector>
 #include <regex>
 
+
+
 namespace cpp
 {
     template<typename T>
@@ -28,10 +30,10 @@ namespace cpp
         { }
 
     template<typename T> RegexMatch<T>::RegexMatch( const std::cmatch & source )
-        { for ( auto m : source ) { groups.push_back( Memory{ m.first, m.second } ); } }
+        { for ( auto m : source ) { groups.push_back( T{ m.first, m.second } ); } }
 
     template<typename T> RegexMatch<T> & RegexMatch<T>::operator=( const std::cmatch & source )
-        { groups.clear( ); for ( auto m : source ) { groups.push_back( Memory{ m.first, m.second } ); } return *this; }
+        { groups.clear( ); for ( auto m : source ) { groups.push_back( T{ m.first, m.second } ); } return *this; }
 
     template<typename T> bool RegexMatch<T>::operator!( ) const
         { return !hasMatch( ); }

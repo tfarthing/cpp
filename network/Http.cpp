@@ -4,6 +4,8 @@
 #include <set>
 #include <map>
 
+#include <boost/network/protocol.hpp>
+
 #include "../../cpp/data/DataBuffer.h"
 #include "../../cpp/time/Timer.h"
 #include "../../cpp/process/Exception.h"
@@ -12,9 +14,8 @@
 #include "../../cpp/platform/windows/WindowsException.h"
 #include "../../cpp/text/Utf16.h"
 #include "../../cpp/util/Log.h"
+#include "../../cpp/network/Uri.h"
 #include "../../cpp/network/Http.h"
-
-#include <Wininet.h>
 
 
 
@@ -25,34 +26,12 @@ namespace cpp
     const char * METHOD_POST = "POST";
 
 
-    Http::Url::Url( const Memory & url )
-    {
-
-    }
-
-
-    struct URL
-    {
-											URL( );
-											URL( String url );
-
-        String								hostport( ) const;
-
-        cpp::String							source;
-        uint32_t							scheme;
-        uint32_t							port;
-        std::wstring						host;
-        std::wstring						path;
-        std::wstring						extra;
-    };
-
-
 
     struct Http::Request::Detail
 		: public Input::Source
     {
     public:
-											Detail( HINTERNET connection, const URL & url, String method, String headers, Duration timeout );
+											Detail( HINTERNET connection, const Uri & url, String method, String headers, Duration timeout );
 											~Detail( );
 
         void								notify( DWORD err );
@@ -80,7 +59,7 @@ namespace cpp
 
     private:
         HINTERNET							m_connectionHandle;
-        URL									m_url;
+		Uri									m_url;
         String								m_method;
         std::wstring						m_headers;
         Duration							m_timeout;
@@ -543,7 +522,7 @@ namespace cpp
 
 
 
-    struct Http::Detail
+    struct HttpClient::Detail
     {
 											Detail( );
 											~Detail( );
@@ -577,6 +556,7 @@ namespace cpp
         void								disconnect( );
         void								close( );
 
+		network::http_client				m_client;
         HINTERNET							m_inet;
         std::map<String, HINTERNET>			m_connections;
         mutable cpp::Mutex					m_mutex;

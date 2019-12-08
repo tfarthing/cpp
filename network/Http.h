@@ -5,11 +5,7 @@
 
     (1) Supports GET: String data = Http::get( url ).readAll()
     (2) Supports POST: String data = Http::post( url, headers, output ).readAll()
-
-
 */
-
-#if __has_include(<boost/network/protocol.hpp>)
 
 #include <memory>
 #include <functional>
@@ -43,6 +39,7 @@ namespace cpp
                                                 const Memory & body,
                                                 Duration connectTimeout = Duration::ofSeconds( 3 ) );
 
+		/*
         static Input                        post(
                                                 const Memory & url,
                                                 const Memory & headers,
@@ -54,6 +51,7 @@ namespace cpp
                                                 const Memory & headers,
                                                 std::vector<Input> parts,
                                                 Duration connectTimeout = Duration::ofSeconds( 3 ) );
+		*/
 
         static Client &                     client( );
     };
@@ -79,7 +77,7 @@ namespace cpp
                                                 const Memory & headers,
                                                 const Memory & body,
                                                 Duration connectTimeout = Duration::ofSeconds( 3 ) );
-
+		/*
         Input                               post(
                                                 const Memory & url,
                                                 const Memory & headers,
@@ -91,11 +89,11 @@ namespace cpp
                                                 const Memory & headers,
                                                 std::vector<Input> parts,
                                                 Duration connectTimeout = Duration::ofSeconds( 3 ) );
-
+		*/
         void                                init( ); // explicitly initialize http context, otherwise performed on-demand
 
     private:
-        struct Detail;
+		class Detail;
         std::shared_ptr<Detail>				m_detail;
     };
 
@@ -106,17 +104,17 @@ namespace cpp
 	{
 	public:
 											Exception( 
-												String message, 
+												const Memory & message,
 												int statusCode, 
-												String url, 
-												String headers );
+												const Memory & url,
+												const Memory & headers );
 
 		int									getStatusCode( ) const;
 		String								url( ) const;
 		String								headers( ) const;
 
 	private:
-		static String						makeMessage( String msg, int statusCode, String url );
+		static String						makeMessage( const Memory & msg, int statusCode, const Memory & url );
 
 	private:
 		int									m_statusCode;
@@ -126,35 +124,33 @@ namespace cpp
 
 
 
-	Http::Exception::Exception( String message, int statusCode, String url, String headers )
+	inline Http::Exception::Exception( const Memory & message, int statusCode, const Memory & url, const Memory & headers )
 		: cpp::Exception( makeMessage( message, statusCode, url ) ), m_statusCode( statusCode ), m_url( url ), m_headers( headers ) 
 	{ 
 	}
 
 
-	int Http::Exception::getStatusCode( ) const
+	inline int Http::Exception::getStatusCode( ) const
 	{
 		return m_statusCode;
 	}
 
 
-	String Http::Exception::url( ) const
+	inline String Http::Exception::url( ) const
 	{
 		return m_url;
 	}
 
 
-	String Http::Exception::headers( ) const
+	inline String Http::Exception::headers( ) const
 	{
 		return m_headers;
 	}
 
 
-	String Http::Exception::makeMessage( String msg, int statusCode, String url )
+	inline String Http::Exception::makeMessage( const Memory & msg, int statusCode, const Memory & url )
 	{
 		return cpp::String::format( "% : % (%)", url, msg, statusCode );
 	}
 
 }
-
-#endif

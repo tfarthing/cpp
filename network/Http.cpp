@@ -4,8 +4,6 @@
 #include <set>
 #include <map>
 
-#include <boost/network/protocol.hpp>
-
 #include "../../cpp/data/DataBuffer.h"
 #include "../../cpp/time/Timer.h"
 #include "../../cpp/process/Exception.h"
@@ -17,6 +15,8 @@
 #include "../../cpp/network/Uri.h"
 #include "../../cpp/network/Http.h"
 
+#include <Wininet.h>
+
 
 
 namespace cpp
@@ -27,12 +27,65 @@ namespace cpp
 
 
 
-    struct Http::Request::Detail
+	class Http::Client::Detail
+	{
+	public:
+		Detail( );
+		~Detail( );
+
+		class Request;
+		typedef std::shared_ptr<Request> RequestPtr;
+
+		static void CALLBACK				callback(
+												HINTERNET hInternet,
+												DWORD_PTR dwContext,
+												DWORD dwInternetStatus,
+												LPVOID lpvStatusInformation,
+												DWORD dwStatusInformationLength );
+
+		void								open( String userAgent );
+		HINTERNET							connect( const Uri & url );
+
+		RequestPtr							startRequest(
+												const Uri & url,
+												String method,
+												String headers,
+												Duration timeout );
+
+		RequestPtr							get(
+												String url,
+												String headers,
+												Duration timeout );
+		RequestPtr							post(
+												String url,
+												String headers,
+												Duration timeout );
+
+		String::Array						connections( ) const;
+		void								disconnect( String hostname );
+		void								disconnect( );
+		void								close( );
+
+	private:
+		HINTERNET							m_inet;
+		std::map<String, HINTERNET>			m_connections;
+		mutable cpp::Mutex					m_mutex;
+	};
+
+
+	class Http::Client::Detail::Request
 		: public Input::Source
     {
     public:
-											Detail( HINTERNET connection, const Uri & url, String method, String headers, Duration timeout );
-											~Detail( );
+											Request( 
+												HINTERNET connection, 
+												const Uri & url, 
+												String method, 
+												String headers, 
+												Duration timeout );
+											~Request( );
+
+		typedef std::shared_ptr<Request>	ptr_t;
 
         void								notify( DWORD err );
         void								notifyRecv( );
@@ -40,11 +93,9 @@ namespace cpp
         void								doRecv( );
         void								doSend( );
         void								doClose( );
-        bool								isOpen( ) const;
         Memory								read( Memory dst, Duration timeout );
         Memory								write( const Memory & src );
         void								flush( );
-        void								close( );
         static int							toStatusCode( DWORD err );
         void								setError( DWORD err );
         void								check( bool isSuccess );
@@ -80,7 +131,12 @@ namespace cpp
     };
 
 
-    Http::Request::Detail::Detail( HINTERNET connection, const URL & url, String method, String headers, Duration timeout ) :
+	Http::Client::Detail::Request::Request( 
+			HINTERNET connection, 
+			const Uri & url, 
+			String method, 
+			String headers, 
+			Duration timeout ) :
         m_connectionHandle( connection ),
         m_url( url ),
         m_method( method ),
@@ -105,13 +161,13 @@ namespace cpp
     }
 
 
-    Http::Request::Detail::~Detail( )
+	Http::Client::Detail::Request::~Request( )
     {
         close( );
     }
 
 
-    void Http::Request::Detail::notify( DWORD err )
+    void Http::Client::Detail::Request::notify( DWORD err )
     {
         auto lock = m_mutex.lock( );
         m_isPending = false;
@@ -136,7 +192,7 @@ namespace cpp
     }
 
 
-    void Http::Request::Detail::notifyRecv( )
+    void Http::Client::Detail::Request::notifyRecv( )
     {
         m_isRecving = false;
         if ( m_recvBytes )
@@ -151,7 +207,7 @@ namespace cpp
     }
 
 
-    void Http::Request::Detail::notifySend( )
+    void Http::Client::Detail::Request::notifySend( )
     {
         m_isSending = false;
         m_sentBytes += m_sendBytes;
@@ -164,7 +220,7 @@ namespace cpp
     }
 
 
-    void Http::Request::Detail::doRecv( )
+    void Http::Client::Detail::Request::doRecv( )
     {
         Memory dst = m_recvBuffer.putable( );
         if ( !dst || !m_handle )
@@ -188,7 +244,7 @@ namespace cpp
     }
 
 
-    void Http::Request::Detail::doSend( )
+    void Http::Client::Detail::Request::doSend( )
     {
         if ( m_sendBuffers.empty( ) || !m_handle )
         {
@@ -213,21 +269,21 @@ namespace cpp
     }
 
 
-    void Http::Request::Detail::doClose( )
+    void Http::Client::Detail::Request::doClose( )
     {
         InternetCloseHandle( m_handle );
         m_handle = nullptr;
     }
 
 
-    bool Http::Request::Detail::isOpen( ) const
+    bool Http::Client::Detail::Request::isOpen( ) const
     {
         auto lock = m_mutex.lock( );
         return m_handle != nullptr || m_recvBuffer.getable( ).isEmpty( ) == false;
     }
 
 
-    Memory Http::Request::Detail::read( Memory dst, Duration timeout )
+    Memory Http::Client::Detail::Request::read( Memory dst, Duration timeout )
     {
         auto lock = m_mutex.lock( );
 
@@ -260,7 +316,34 @@ namespace cpp
     }
 
 
-    Memory Http::Request::Detail::write( const Memory & src )
+	Memory Http::Client::Detail::Request::readsome( Memory dst, std::error_code & errorCode )
+	{
+		auto lock = m_mutex.lock( );
+		while ( m_handle || m_recvBuffer.getable( ) )
+		{
+			//  wait if the read should block
+			if ( m_recvBuffer.getable( ).isEmpty( ) )
+			{
+				if ( !m_isRecving )
+				{
+					doRecv( ); 
+					continue;
+				}
+
+				lock.wait( );
+				continue;
+			}
+
+			size_t len = std::min( dst.length( ), m_recvBuffer.getable( ).length( ) );
+			return Memory::copy( dst, m_recvBuffer.get( len ) );
+		}
+
+		check( );
+		return nullptr;
+	}
+
+
+    Memory Http::Client::Detail::Request::write( const Memory & src )
     {
         auto lock = m_mutex.lock( );
 
@@ -275,7 +358,7 @@ namespace cpp
     }
 
 
-    void Http::Request::Detail::flush( )
+    void Http::Client::Detail::Request::flush( )
     {
         auto lock = m_mutex.lock( );
         while ( m_handle != nullptr && !m_sendBuffers.empty( ) )
@@ -285,7 +368,7 @@ namespace cpp
     }
 
 
-    void Http::Request::Detail::close( )
+    void Http::Client::Detail::Request::close( )
     {
         auto lock = m_mutex.lock( false );
         if ( m_handle )
@@ -300,7 +383,7 @@ namespace cpp
     }
 
 
-    int Http::Request::Detail::toStatusCode( DWORD err )
+    int Http::Client::Detail::Request::toStatusCode( DWORD err )
     {
         switch ( err )
         {
@@ -310,13 +393,17 @@ namespace cpp
     }
 
 
-    void Http::Request::Detail::setError( DWORD err )
+    void Http::Client::Detail::Request::setError( DWORD err )
     {
-        m_error = std::make_shared<Exception>( windows::Exception::getErrorMessage( err ), toStatusCode( err ), m_url.source, toUtf8( m_headers ) );
+		m_error = std::make_shared<Http::Exception>( 
+			windows::Exception::getErrorMessage( err ), 
+			toStatusCode( err ), 
+			m_url.toString( false ), 
+			toUtf8( m_headers ) );
     }
 
 
-    void Http::Request::Detail::check( bool isSuccess )
+    void Http::Client::Detail::Request::check( bool isSuccess )
     {
         if ( !isSuccess )
         {
@@ -325,7 +412,7 @@ namespace cpp
     }
 
 
-    void Http::Request::Detail::check( )
+    void Http::Client::Detail::Request::check( )
     {
         if ( m_error )
         {
@@ -334,20 +421,21 @@ namespace cpp
     }
 
 
-    void Http::Request::Detail::startRequest( cpp::Duration timeout )
+    void Http::Client::Detail::Request::startRequest( cpp::Duration timeout )
     {
         cpp::Timer timer;
-
-        std::wstring objectName = m_url.path + m_url.extra;
-        DWORD flags = INTERNET_FLAG_PRAGMA_NOCACHE | INTERNET_FLAG_RELOAD;
-        if ( m_url.scheme == INTERNET_SCHEME_HTTPS )
+		std::wstring objectName = cpp::toUtf16( m_url.pathAndExtra( ) );
+        
+		DWORD flags = INTERNET_FLAG_PRAGMA_NOCACHE | INTERNET_FLAG_RELOAD;
+		bool isHttps = ( m_url.scheme.toLower( ) == "https" );
+        if ( isHttps )
         {
             flags |= INTERNET_FLAG_SECURE | INTERNET_FLAG_IGNORE_CERT_CN_INVALID | INTERNET_FLAG_IGNORE_CERT_DATE_INVALID;
         }
 
         m_handle = HttpOpenRequest(
-            m_connectionHandle,                                     // InternetConnect handle
-            toUtf16( m_method ).data( ),                                        // Method
+            m_connectionHandle,											// InternetConnect handle
+            toUtf16( m_method ).data( ),                                // Method
             objectName.c_str( ),                                        // Object name
             HTTP_VERSION,                                               // Version
             L"",                                                        // Referrer
@@ -356,7 +444,7 @@ namespace cpp
             (DWORD_PTR)this );
         check( m_handle != nullptr );
 
-        if ( m_url.scheme == INTERNET_SCHEME_HTTPS )
+        if ( isHttps )
         {
             DWORD dwFlags = 0;
             DWORD dwBuffLen = sizeof( dwFlags );
@@ -395,7 +483,7 @@ namespace cpp
     }
 
 
-    void Http::Request::Detail::endRequest( cpp::Duration timeout )
+    void Http::Client::Detail::Request::endRequest( cpp::Duration timeout )
     {
         try
         {
@@ -438,7 +526,7 @@ namespace cpp
                 m_statusCode = (int)Integer::parse( statusResult[2] );
                 if ( m_statusCode < 200 || m_statusCode >= 300 )
                 {
-                    throw Exception{ statusResult[3], m_statusCode, m_url.source, hdr };
+                    throw Http::Exception{ statusResult[3], m_statusCode, m_url.toString( ), hdr };
                 }
             }
 
@@ -453,53 +541,9 @@ namespace cpp
     }
 
 
-    int Http::Request::Detail::statusCode( ) const
+    int Http::Client::Detail::Request::statusCode( ) const
     {
         return m_statusCode;
-    }
-
-
-
-    Http::Request::Request( std::shared_ptr<Detail> && detail )
-        : m_detail( std::move( detail ) )
-    {
-
-    }
-
-    Http::Request & Http::Request::writeRequest( String input )
-    {
-        m_detail->write( input );
-        return *this;
-    }
-
-
-    Http::Request & Http::Request::writeRequest( Input input )
-    {
-        cpp::String buffer( 1024, '\0' );
-        while ( input )
-        {
-            m_detail->write( input.read( buffer ) );
-        }
-        return *this;
-    }
-
-
-    Input Http::Request::getReply( cpp::Duration timeout )
-    {
-        m_detail->endRequest( timeout );
-		return Input{ m_detail };
-    }
-
-
-    void Http::Request::close( cpp::Duration timeout )
-    {
-        m_detail->endRequest( timeout );
-    }
-
-
-    int Http::Request::getStatusCode( ) const
-    {
-        return m_detail->statusCode();
     }
 
 
@@ -519,66 +563,25 @@ namespace cpp
     private:
         std::function<void( DWORD status )> m_fn;
     };
+	
 
-
-
-    struct HttpClient::Detail
-    {
-											Detail( );
-											~Detail( );
-
-        static void CALLBACK				callback( 
-												HINTERNET hInternet, 
-												DWORD_PTR dwContext, 
-												DWORD dwInternetStatus, 
-												LPVOID lpvStatusInformation, 
-												DWORD dwStatusInformationLength );
-
-        void								open( String userAgent );
-        HINTERNET							connect( const URL & url );
-        Request								startRequest( 
-												const URL & url, 
-												String method, 
-												String headers, 
-												Duration timeout );
-
-        Request								get( 
-												String url, 
-												String headers, 
-												Duration timeout );
-        Request								post( 
-												String url, 
-												String headers, 
-												Duration timeout );
-
-        String::Array						connections( ) const;
-        void								disconnect( String hostname );
-        void								disconnect( );
-        void								close( );
-
-		network::http_client				m_client;
-        HINTERNET							m_inet;
-        std::map<String, HINTERNET>			m_connections;
-        mutable cpp::Mutex					m_mutex;
-    };
-
-
-	Http::Detail::Detail( )
+	Http::Client::Detail::Detail( )
 		: m_inet( nullptr ) 
 	{ 
+		open( "cpp" );
 	}
 
 
-	Http::Detail::~Detail( )
+	Http::Client::Detail::~Detail( )
 	{
 		close( );
 	}
 
 
-    void CALLBACK Http::Detail::callback( HINTERNET hInternet, DWORD_PTR dwContext, DWORD dwInternetStatus, LPVOID lpvStatusInformation, DWORD dwStatusInformationLength )
+    void CALLBACK Http::Client::Detail::callback( HINTERNET hInternet, DWORD_PTR dwContext, DWORD dwInternetStatus, LPVOID lpvStatusInformation, DWORD dwStatusInformationLength )
     {
         HINTERNET connection = nullptr;
-        Request::Detail * request = nullptr;
+        Request * request = nullptr;
 
         try
         {
@@ -648,7 +651,7 @@ namespace cpp
     }
 
 
-    void Http::Detail::open( String userAgent )
+    void Http::Client::Detail::open( String userAgent )
     {
         if ( m_inet == nullptr )
         {
@@ -664,18 +667,18 @@ namespace cpp
         }
     }
 
-    HINTERNET Http::Detail::connect( const URL & url )
+    HINTERNET Http::Client::Detail::connect( const Uri & url )
     {
         auto lock = m_mutex.lock( );
 
-        String connectionId = url.id( );
+        String connectionId = url.hostAndPort( );
         HINTERNET connection = m_connections[connectionId];
         if ( connection == nullptr )
         {
-            connection = InternetConnect(
-                m_inet,
-                url.m_host.c_str( ),
-                url.m_port,
+			connection = InternetConnect(
+				m_inet,
+				toUtf16( url.host ).data( ),
+                url.port,
                 L"",
                 L"",
                 INTERNET_SERVICE_HTTP,
@@ -689,23 +692,23 @@ namespace cpp
         return connection;
     }
 
-    Http::Request Http::Detail::startRequest( const URL & url, String method, String headers, Duration timeout )
+	Http::Client::Detail::RequestPtr Http::Client::Detail::startRequest( const Uri & url, String method, String headers, Duration timeout )
     {
         HINTERNET connection = connect( url );
-        return Request{ std::make_shared<Request::Detail>( connection, url, method, headers, timeout ) };
+        return std::make_shared<Request>( connection, url, method, headers, timeout );
     }
  
-    Http::Request Http::Detail::get( String url, String headers, Duration timeout )
+	Http::Client::Detail::RequestPtr Http::Client::Detail::get( String url, String headers, Duration timeout )
     {
-        return startRequest( URL{ url }, METHOD_GET, headers, timeout );
+        return startRequest( Uri{ url }, METHOD_GET, headers, timeout );
     }
 
-    Http::Request Http::Detail::post( String url, String headers, Duration timeout )
+	Http::Client::Detail::RequestPtr Http::Client::Detail::post( String url, String headers, Duration timeout )
     {
-        return startRequest( URL{ url }, METHOD_POST, headers, timeout );
+        return startRequest( Uri{ url }, METHOD_POST, headers, timeout );
     }
 
-    String::Array Http::Detail::connections( ) const
+    String::Array Http::Client::Detail::connections( ) const
     {
         auto lock = m_mutex.lock( );
 
@@ -715,7 +718,7 @@ namespace cpp
         return results;
     }
 
-    void Http::Detail::disconnect( String hostname )
+    void Http::Client::Detail::disconnect( String hostname )
     {
         auto lock = m_mutex.lock( );
 
@@ -727,7 +730,7 @@ namespace cpp
         }
     }
 
-    void Http::Detail::disconnect( )
+    void Http::Client::Detail::disconnect( )
     {
         auto lock = m_mutex.lock( );
 
@@ -736,7 +739,7 @@ namespace cpp
         m_connections.clear( );
     }
 
-    void Http::Detail::close( )
+    void Http::Client::Detail::close( )
     {
         disconnect( );
         if ( m_inet )
@@ -746,78 +749,94 @@ namespace cpp
             m_inet = nullptr; 
         }
     }
+	
 
 
+	HttpClient::HttpClient( )
+		: m_detail( nullptr )
+	{
+
+	}
 
 
-    Http::Http( )
-        : m_detail( std::make_shared<Detail>() ) { }
-
-    Http::Http( String userAgent )
-        : m_detail( std::make_shared<Detail>( ) ) { open(userAgent); }
-
-    void Http::open( String userAgent )
-        { m_detail->open( userAgent ); }
-
-    void Http::close( )
-        { m_detail->close( ); }
-
-    String::Array Http::connections( ) const
-        { return m_detail->connections( ); }
-
-    void Http::disconnect( String hostname )
-        { m_detail->disconnect( hostname ); }
-
-    void Http::disconnectAll( )
-        { m_detail->disconnect( ); }
-
-    Http::Request Http::get( String url, String headers, Duration timeout )
-        { return m_detail->get( url, headers, timeout ); }
-
-    Http::Request Http::post( String url, String headers, Duration timeout )
-        { return m_detail->post( url, headers, timeout ); }
+	String::Array HttpClient::connections( ) const
+	{
+		return m_detail
+			? m_detail->connections( )
+			: String::Array{};
+	}
 
 
-
-    
-
-    URL::URL( )
-        : scheme( 0 ), port( 0 ) 
-    { 
-    }
-
-
-    URL::URL( String url ) :
-        source( url ),
-        scheme( 0 ),
-        port( 0 ),
-        host( 1024, 0 ),
-        path( 1024, 0 ),
-        extra( 1024, 0 )
-    {
-        URL_COMPONENTS urlComponents = { 0 };
-        urlComponents.dwStructSize = sizeof( URL_COMPONENTS );
-        urlComponents.lpszHostName = (LPWSTR)host.data( );
-        urlComponents.dwHostNameLength = (DWORD)host.length( );
-        urlComponents.lpszUrlPath = (LPWSTR)path.data( );
-        urlComponents.dwUrlPathLength = (DWORD)path.length( );
-        urlComponents.lpszExtraInfo = (LPWSTR)extra.data( );
-        urlComponents.dwExtraInfoLength = (DWORD)extra.length( );
-
-        Utf16::Text wurl = toUtf16( url );
-        windows::check( InternetCrackUrl( wurl, (DWORD)wurl.size( ), ICU_DECODE | ICU_ESCAPE, &urlComponents ) != FALSE );
-        host.resize( urlComponents.dwHostNameLength );
-        path.resize( urlComponents.dwUrlPathLength );
-        extra.resize( urlComponents.dwExtraInfoLength );
-        scheme = urlComponents.nScheme;
-        port = urlComponents.nPort;
-    }
+	void HttpClient::disconnect( String hostname )
+	{
+		if ( m_detail )
+		{
+			m_detail->disconnect( hostname );
+		}
+	}
 
 
-    String URL::hostport( ) const
-    {
-        return String::format( "%:%", toUtf8( host ), port );
-    }
+	void HttpClient::disconnectAll( )
+	{
+		if ( m_detail )
+		{
+			m_detail->disconnect( );
+		}
+	}
+
+
+	Input HttpClient::get(
+		const Memory & url,
+		const Memory & headers,
+		Duration connectTimeout )
+	{
+		init( );
+		return Input{ m_detail->get( url, headers, connectTimeout ) };
+	}
+
+
+	Input HttpClient::post(
+		const Memory & url,
+		const Memory & headers,
+		const Memory & body,
+		Duration connectTimeout )
+	{
+		init( );
+		auto request = m_detail->post( url, headers, connectTimeout );
+		request->write( body );
+		return Input{ request };
+	}
+
+	/*
+	Input HttpClient::post(
+		const Memory & url,
+		const Memory & headers,
+		Input body,
+		Duration connectTimeout )
+	{
+		init( );
+		return Input{ m_detail->post( url, headers, body, connectTimeout ) };
+	}
+
+
+	Input HttpClient::post(
+		const Memory & url,
+		const Memory & headers,
+		std::vector<Input> parts,
+		Duration connectTimeout )
+	{
+		init( );
+		return Input{ m_detail->post( url, headers, parts, connectTimeout ) };
+	}
+	*/
+
+	void HttpClient::init( )
+	{
+		if ( !m_detail )
+		{
+			m_detail = std::make_shared<Detail>( );
+		}
+	}
 
 
 
@@ -826,7 +845,7 @@ namespace cpp
         const Memory & headers,
         Duration connectTimeout )
     {
-    
+		return client( ).get( url, headers, connectTimeout );
     }
     
 
@@ -836,17 +855,17 @@ namespace cpp
         const Memory & body,
         Duration connectTimeout )
     {
+		return client( ).get( url, headers, connectTimeout );
+	}
 
-    }
-
-
+	/*
     Input Http::post(
         const Memory & url,
         const Memory & headers,
         Input body,
         Duration connectTimeout )
     {
-
+		return client( ).post( url, headers, body, connectTimeout );
     }
 
 
@@ -856,12 +875,14 @@ namespace cpp
         std::vector<Input> parts,
         Duration connectTimeout )
     {
-
+		return client( ).post( url, headers, parts, connectTimeout );
     }
+	*/
+
 
     Http::Client & Http::client( )
     {
-        return Program::httpClient( );
+        return Program::http( );
     }
 
 
@@ -869,16 +890,16 @@ namespace cpp
 
 #else
 
-#include <cpp/meta/Unittest.h>
-#include <cpp/io/network/Http.h>
-#include <cpp/io/reader/LineReader.h>
+#include <cpp/meta/Test.h>
+#include <cpp/network/Http.h>
+#include <cpp/io/LineReader.h>
 #include <cpp/util/Log.h>
 
-SUITE( Http )
+TEST_CASE( "Http" )
 {
     using namespace cpp;
 
-    TEST( get )
+	SECTION( "get" )
     {
         int millis = 10;
         while ( true )
@@ -887,12 +908,12 @@ SUITE( Http )
             {
                 auto timeout = Duration::ofMillis( millis );
 
-                Http http{ "unittest" };
+                Http::Client http;
                 auto request = http.get( "http://thotrot.com/", "", timeout );
-                auto result = request.getReply( ).getAll( );
+                auto result = request.readAll( );
                 http.disconnectAll( );
 
-                CHECK( !result.empty( ) );
+                CHECK( result.notEmpty( ) );
                 break;
             }
             catch ( cpp::TimeoutException & e )
@@ -902,12 +923,12 @@ SUITE( Http )
             }
             catch ( Exception & e )
             {
-                test::log( e.what( ) );
+                log( LogLevel::Error, e.what( ) );
                 CHECK( false );
                 break;
             }
         }
-        test::log( String::format( "HTTP request succeeded with timeout of % millis", millis ) );
+		// test::log( String::format( "HTTP request succeeded with timeout of % millis", millis ) );
     }
 }
 

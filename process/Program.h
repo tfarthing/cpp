@@ -13,8 +13,8 @@
     lifetime of the singleton can be scoped inside of main().
 */
 
-#include <../../cpp/data/DataArray.h>
-#include <../../cpp/data/DataMap.h>
+#include "../../cpp/data/DataArray.h"
+#include "../../cpp/data/DataMap.h"
 
 
 
@@ -42,7 +42,7 @@ namespace cpp
 		static const Memory					arg( Memory key );
 		static const StringMap &			args( );
 
-        static const Memory					env( Memory key );
+        static String						env( Memory key );
 
 		static const FilePath &				modulePath( );
         

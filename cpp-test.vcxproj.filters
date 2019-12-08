@@ -14,5 +14,6 @@
     <ClCompile Include="text\Utf8.cpp" />
     <ClCompile Include="time\Date.cpp" />
     <ClCompile Include="file\File.cpp" />
+    <ClCompile Include="network\Http.cpp" />
   </ItemGroup>
 </Project>

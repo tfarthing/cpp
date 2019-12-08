@@ -141,9 +141,12 @@ namespace cpp
 	}
 
 
-    const Memory Program::env( Memory key )
+    String Program::env( Memory key )
     {
-        return ::getenv( key.data( ) );
+		size_t retval;
+		wchar_t buffer[1024];
+		::_wgetenv_s( &retval, buffer, 1024, toUtf16( key ).c_str( ) );
+		return toUtf8( buffer );
     }
 
 

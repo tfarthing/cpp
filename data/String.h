@@ -25,6 +25,7 @@ namespace cpp
 											String( size_t count, char ch );
 											String( const char * cstring );
 											String( const char * ptr, size_t count );
+											String( const char8_t * cstring );
 											String( const Memory & memory );
 											String( const std::string & copy );
 											String( const String & copy );
@@ -150,6 +151,9 @@ namespace cpp
 	inline String::String( const char * s, size_t count )
 		: data( s, count ) { }
 
+
+	inline String::String( const char8_t * cstring )
+		: data( (const char *)cstring ) { }
 
 	inline String::String( const Memory & memory )
 		: data( memory.begin( ), memory.begin( ) + memory.length( ) ) { }

@@ -1,7 +1,5 @@
 #pragma once
 
-#if __has_include(<boost/network/uri.hpp>)
-
 
 #include "../../cpp/data/String.h"
 #include "../../cpp/data/DataMap.h"
@@ -16,7 +14,10 @@ namespace cpp
                                             Uri( const Memory & scheme, const Memory & username, const Memory & password, const Memory & host, int port, const Memory & path, const MemoryMap & params, const Memory & fragment );
 
         String                              toString( bool encoded = true ) const;
-        String                              hostAndPort( ) const;
+        String                              hostAndPort( bool encoded = false ) const;
+		String								pathAndExtra( bool encoded = false ) const;
+
+		static String						decode( const Memory & value );
 
 		static String						encodeUserInfo( const Memory & value );
 		static String						encodeHost( const Memory & value );
@@ -35,5 +36,3 @@ namespace cpp
     };
 
 }
-
-#endif

@@ -383,12 +383,12 @@ namespace cpp
 
 #include <catch2/catch.hpp>
 
-#include "SyncFile.h"
+#include "File.h"
 
-TEST_CASE( "SyncFile" )
+TEST_CASE( "File" )
 {
     cpp::FilePath filename = "test.txt";
-    auto file = cpp::SyncFile::create( (const char *)"test.txt" );
+    auto file = cpp::File::create( (const char *)"test.txt" );
 
     REQUIRE( cpp::Files::exists( filename ) );
 

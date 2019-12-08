@@ -15,5 +15,6 @@
     <ClCompile Include="time\Date.cpp" />
     <ClCompile Include="file\File.cpp" />
     <ClCompile Include="network\Http.cpp" />
+    <ClCompile Include="network\Uri.cpp" />
   </ItemGroup>
 </Project>

@@ -2,8 +2,8 @@
 
 /*
 
-SyncFile provides standard blocking file operations.
-	* for ( auto cursor : SyncFile::read( "file.txt" ).input( ).lines( ) )
+File provides standard blocking file operations.
+	* for ( auto cursor : File::read( "file.txt" ).input( ).lines( ) )
 */
 
 #include "../../cpp/file/Files.h"

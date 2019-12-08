@@ -1,5 +1,12 @@
 #pragma once
 
+/*
+
+	Uri is an encapsulation of URI parsing & encoding.
+		(1) Fields are stored unencoded
+
+*/
+
 
 #include "../../cpp/data/String.h"
 #include "../../cpp/data/DataMap.h"
@@ -10,12 +17,18 @@ namespace cpp
 
     struct Uri
     {
-                                            Uri( const Memory & url );
-                                            Uri( const Memory & scheme, const Memory & username, const Memory & password, const Memory & host, int port, const Memory & path, const MemoryMap & params, const Memory & fragment );
+                                            Uri( const Memory & uri );
+                                            Uri( const Memory & scheme, const Memory & username, const Memory & host, int port, const Memory & path, const Memory & query, const Memory & fragment );
+											
+		Uri &								operator=( const Memory & uri );
+
+		Uri &								assign( const Memory & uri );
 
         String                              toString( bool encoded = true ) const;
+		String								authority( bool encoded = false ) const;
         String                              hostAndPort( bool encoded = false ) const;
 		String								pathAndExtra( bool encoded = false ) const;
+		MemoryMap							params( ) const;
 
 		static String						decode( const Memory & value );
 
@@ -25,13 +38,14 @@ namespace cpp
 		static String						encodeQuery( const Memory & value );
 		static String						encodeFragment( const Memory & value );
 
+		static String						toQuery( const MemoryMap & params );
+
         String                              scheme;
         String                              username;
-        String                              password;
         String                              host;
         int                                 port;
         String                              path;
-        StringMap                           params;
+        String								query;
         String                              fragment;
     };
 

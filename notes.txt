@@ -1,3 +1,154 @@
+﻿BIT data encoding (binary in text)
+
+* utf-8 text containing key-value pairs, keys are utf-8 encoded and values are stored as binary data.
+
+	(1) key-value pairs
+		* a single key value pair looks like this: 
+				key='value'
+		* A key is assumed to be a utf-8 string, but can be any string of byte values >= 32.  
+			* Unbracketed space (0x32), equal sign (=) or colon (:) will be parsed as key delimiters.
+				john doe@bon.com:554 = 'hello'			// bad, space and colon are key delimiters
+				user[john doe@bon.com:554] = 'hello'	// ok, delimiters in brackets are skipped
+		* key and value are seperated by an equal character and optional padding of space or tab characters
+			* e.g. "key1='value'", "key2 = 'value'", "key3=			'value'"
+		* A value can be stored either as encoded binary or as raw binary.  
+			A raw-binary value is byte-length encoded like this:
+				key=(5)'value'
+			An encoded-binary value is delimited by single-quotes and require encoding of single-quotes (^'), newline (^n), and caret (^^) characters:
+				key='value with escaped ^', ^n, and ^^' 
+		* null/undefined values
+			* A value can be null, which is the same as being undefined.
+			* A value can be set to null like this: key=null
+		* raw-binary value
+			* is byte-length encoded like this: key=(5)'value'
+			* is fast: value does not have to be parsed while decoding or encoding
+			* is size efficient for large values
+		* encoded-binary value
+			* is delimited by single-quotes like this: key='value'
+			* must encode single-quote (^'), newline (^n), and caret (^^).  Caret is used as escape because of uncommon usage (compared to backslash).
+			* is slower: value has to be parsed while decoding and encoding
+			* simple: is easier to manually read and write, particularly for text values
+	
+	(2) multiple values per line
+		* key-value pairs are delimited by white-space characters, and multiple key-value pairs can exist on a single line: 
+				key1='value' key2='value'
+
+	(3) key namespaces
+		* root key - a root key may be used to indicate the absolute parent key for any key-value pair declared after it on the same line.
+				root:: key='value'
+			is the same as:
+				root.key='value'
+			* an empty root may be specified using only the double-colon before any key-value pairs: 
+					::key='value'
+		* record key - a record key may be used to specify a relative parent key (relative to the root key) for any key-value pair declared after it on the same line.
+				record: key='value'
+			is the same as:
+				record.key='value'
+			* an empty record key is specified using only a colon before any key-value paris:
+					: key='value'
+		* root keys and record keys can be combined:
+				root::record1:key='value' record2:key='value'
+			is the same as:
+				root.record1.key='value'
+				root.record2.key='value'
+		* extended root key - root key can be extended to following lines using line indentation (tabs at the beginning of a line):
+				root::record:key1='value'
+				\t	key2='value'			// root is 'root.record'
+				\t	subobject:				// root is 'root.record'
+				\t\t	subkey='value'		// root is 'root.record.subobject'
+			* extended root keys are terminated by unindented lines containing record keys or key-values.
+			* lines using extended root keys may not specify a root key
+
+	(A1) EBNF (not including extended root keys, caret escaped values, or run-length encoding)
+		line			= { [ spacing ], semantic }, [ comment ], '\n'
+		semantic		= key semantic | value list
+		value list		= value semantic, { spacing, value semantic }
+		value semantic  = nullifier | key value
+		key semantic	= root key | record key
+		comment			= ( '#' | "//" ) , { ? non-newline ? }
+		root key		= key, [ spacing ], "::"
+		record key		= key, [ spacing ], ":"
+		nullifier		= "null"
+		key value		= key, [ spacing ], '=', [ spacing ], value spec
+		value spec		= nullifier | 
+						  ( "'", { ? caret escaped byte value ? }, "'" ) | 
+						  ( '(', decimal number, ')', "'", { ? any byte value ? }, "'" ) 
+		key				= key char, { key char }
+		key char		= ? any byte value 0x33-0xff; also terminated by unbracketed colon ':' or equals sign '=' ?
+		spacing			= spacing char, { spacing char }
+		spacing char	= ' ' | '\t'
+	
+	(A2) ^encoding : caret-escaped byte encoding 
+		* caret-escaped binary values are require to encode newline charaters and single-quote characters that may appear in a value.
+		* the following are all valid cart-escaped byte values:
+			^^			= ^
+			^'			= '
+			^n			= \n (newline)
+			^r			= \r (linefeed)
+			^t			= \t (horiz tab)
+			^0			= \0 (null char, zero value)
+			^xHH		= any hex-encoded byte value
+
+
+BIT Object
+
+* Object representation of key/value pairs
+	(1) keys
+		* keys are value identifiers and are also interpretted as hierarchical & as arrays
+			* keys are interpretted as hierarchical if they contain periods
+				* keys may have parent keys and child keys
+			* keys are interpretted as elements of an array when its key ends with a bracketed index: e.g. "array[index]"
+				* any key may be interpreted as an array, but arrays can be empty meaning there are no elements defined for the array.
+			* parts of a key:
+							   arrayName      arrayItemId
+						┌──────────┴────────────┐ ┌┴┐
+				key:    region[west].server.proxy[365]
+						└────────┬────────┘ └───┬────┘
+							   parent          name
+		* child keys
+			* key A is a child of key B if key A begins with B followed by a period.
+				"color.red" is a child of "color"
+		* array item keys
+			* key A is an array item of key B if bey a begins with B followed by: a bracketed index, or a bracketed index and a period
+				"color[red]" is an array item of "color"
+				"color[red].hue" is an array item of "color"
+				"color[red]xxx" is not an array item of "color"
+	
+	(2) operations
+		* clear operation vs null operation
+			* clearing a record sets its key value, all child keys, and all array item keys to null.
+			* nulling a record clears the record and also marks that the record was nulled.
+				* when nulled records are appended to another object, the destination record will be cleared prior to being appended.
+		* append operation
+			* all key values in rhs are added to the lhs
+			* null records in the rhs cause lhs records to be cleared before any values are added
+
+	(3) decoding
+		* decoding rules
+			* record null
+					e.g. "record: null"
+				* when decoded performs the null operation on the record
+			* array item with empty bracketed index
+					e.g. "some.array[]"
+				* when decoded assigns the next numeric decimal index to the array item
+					e.g.
+						employees[]: firstName='John' lastName='Doe'	//employees[0]
+						employees[]: firstName='Anna' lastName='Smith'	//employees[1]
+						employees[]: firstName='Peter' lastName='Jones' //employees[2]
+
+	(4) encoding
+		* denormalized
+				object[32].name='Tom' 
+				object[32].msg='hello world!'
+				object[32].subobject.rating='xxx'
+		* normalized
+				object[32]: 
+					name='Tom' 
+					msg='hello world!' 
+					subobject:
+						rating='xxx'
+		* normalized, single-line
+				object[32]:: name='Tom' msg='hello world!' subobject: rating='xxx'
 
 
 2018-12-28

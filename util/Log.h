@@ -17,7 +17,7 @@ namespace cpp
 {
 
     enum class LogLevel
-        { Alert, Error, Warning, Notice, Info, Debug, None };
+        { None, Alert, Error, Warning, Notice, Info, Debug };
 
 	void log( std::string message );
 	void log( LogLevel level, std::string message );

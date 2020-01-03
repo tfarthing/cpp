@@ -352,7 +352,7 @@ namespace cpp
 
 	String Uri::encodePath( const Memory & value )
 	{
-		const char * permitted = "-._~!$&'()*+,;=:@";
+		const char * permitted = "-._~!$&'()*+,;=:@/";
 		return percentEncode( value, permitted );
 	}
 
@@ -426,9 +426,31 @@ TEST_CASE( "Uri" )
 	CHECK( uri.path == "/c=GB" );
 	CHECK( uri.query == "objectClass?one" );
 
+
 	uri = "mailto:John.Doe@example.com";
+	CHECK( uri.path == "John.Doe@example.com" );
+
+
 	uri = "news:comp.infosystems.www.servers.unix";
+	CHECK( uri.path == "comp.infosystems.www.servers.unix" );
+
+
 	uri = "tel:+1-816-555-1212";
+	CHECK( uri.path == "+1-816-555-1212" );
+	CHECK( uri.toString() == "tel:+1-816-555-1212" );
+
+
+	uri = "telnet://192.0.2.16:80/";
+	CHECK( uri.host == "192.0.2.16" );
+	CHECK( uri.path == "/" );
+
+
+	uri = "urn:oasis:names:specification:docbook:dtd:xml:4.1.2";
+	CHECK( uri.path == "oasis:names:specification:docbook:dtd:xml:4.1.2" );
+
+	uri = "https://www.example.com:123/?key=some%20value";
+	CHECK( uri.query == "key=some value" );
+	CHECK( uri.toString() == "https://www.example.com:123/?key=some%20value" );
 
 
 	// copy

@@ -178,6 +178,10 @@ namespace cpp
                 m_error = std::make_error_code( std::errc::io_error );
                 errorCode = m_error;
             }
+			if ( bytes == 0 )
+			{
+				close( );
+			}
         }
         return buffer.substr( 0, bytes );
     }
@@ -289,13 +293,6 @@ namespace cpp
     }
 
 
-    File::~File( )
-    {
-        if (m_detail )
-            { close( ); }
-    }
-
-
     bool File::isOpen( ) const
     {
         return ( m_detail ) ? m_detail->isOpen( ) : false;
@@ -346,8 +343,8 @@ namespace cpp
 
 	void File::flush( )
 	{
-		assert( m_detail );
-		m_detail->flush( );
+		if ( m_detail )
+			{ m_detail->flush( ); }
 	}
 
 
@@ -360,8 +357,8 @@ namespace cpp
 
     void File::close( )
     {
-        assert( m_detail );
-        m_detail->close( );
+		if ( m_detail )
+			{ m_detail->close( ); }
     }
 
 
@@ -388,11 +385,15 @@ namespace cpp
 TEST_CASE( "File" )
 {
     cpp::FilePath filename = "test.txt";
-    auto file = cpp::File::create( (const char *)"test.txt" );
+    auto file = cpp::File::create( filename );
+	file.write( "Hello World!\n" );
+	file.close( );
 
     REQUIRE( cpp::Files::exists( filename ) );
 
-    file.close( );
+	file = cpp::File::read( filename );
+	CHECK( file.input( ).readAll( ) == "Hello World!\n" );
+
     cpp::Files::remove( filename );
 }
 

@@ -26,6 +26,7 @@
     <ClCompile Include="network\Uri.cpp" />
     <ClCompile Include="text\Utf8.cpp" />
     <ClCompile Include="time\Date.cpp" />
+    <ClCompile Include="util\Bit.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="cpp.vcxproj">

@@ -38,7 +38,6 @@ namespace cpp
                                                 const FilePath & filepath,
                                                 Access access = Access::Read,
                                                 Share share = Share::All );
-                                            ~File( );
 
         bool							    isOpen( ) const;
         size_t							    length( ) const;

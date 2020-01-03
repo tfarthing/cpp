@@ -928,7 +928,7 @@ TEST_CASE( "Http" )
                 break;
             }
         }
-		// test::log( String::format( "HTTP request succeeded with timeout of % millis", millis ) );
+		log( "HTTP request succeeded with timeout of % millis", millis );
     }
 }
 

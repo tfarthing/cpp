@@ -3,7 +3,7 @@
 /*
 
 	ByteOrder is used to detect the byte order for the current 
-	program and also specify byte orderind for encode and decode 
+	program and also specify byte ordering for binaryencode and decode 
 	operations.
 
 */

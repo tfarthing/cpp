@@ -16,5 +16,6 @@
     <ClCompile Include="file\File.cpp" />
     <ClCompile Include="network\Http.cpp" />
     <ClCompile Include="network\Uri.cpp" />
+    <ClCompile Include="util\Bit.cpp" />
   </ItemGroup>
 </Project>

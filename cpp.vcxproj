@@ -44,8 +44,6 @@
     <ClInclude Include="network\Http.h" />
     <ClInclude Include="io\LineReader.h" />
     <ClInclude Include="math\Alignment.h" />
-    <ClInclude Include="math\AES.h" />
-    <ClInclude Include="math\SHA2.h" />
     <ClInclude Include="math\Math.h" />
     <ClInclude Include="math\Rect.h" />
     <ClInclude Include="math\XY.h" />
@@ -94,10 +92,8 @@
     <ClCompile Include="data\ByteOrder.cpp" />
     <ClCompile Include="network\Http.cpp" />
     <ClCompile Include="io\LineReader.cpp" />
-    <ClCompile Include="math\AES.cpp" />
     <ClCompile Include="math\Alignment.cpp" />
     <ClCompile Include="math\Rect.cpp" />
-    <ClCompile Include="math\SHA2.cpp" />
     <ClCompile Include="data\Memory.cpp" />
     <ClCompile Include="meta\Test.cpp" />
     <ClCompile Include="platform\windows\WindowsApp.cpp" />

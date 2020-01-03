@@ -18,13 +18,13 @@ namespace cpp
     {
         switch (level)
         {
-			case LogLevel::Alert:			return "alert";
-			case LogLevel::Error:			return "error";
+			case LogLevel::None:			return "none   ";
+			case LogLevel::Alert:			return "alert  ";
+			case LogLevel::Error:			return "error  ";
 			case LogLevel::Warning:			return "warning";
-			case LogLevel::Notice:			return "notice";
-			case LogLevel::Info:			return "info";
-			case LogLevel::Debug:			return "debug";
-			case LogLevel::None:			return "none";
+			case LogLevel::Notice:			return "notice ";
+			case LogLevel::Info:			return "info   ";
+			case LogLevel::Debug:			return "debug  ";
 			default:						
 				assert( false );
 				return "unknown";
@@ -140,12 +140,12 @@ namespace cpp
 			std::vector<Entry> queue = dequeue( );
 			for ( Entry & entry : queue )
 			{
-				String line = cpp::format( "% % %\r\n",
+				String line = cpp::format( "% %: %\r\n",
 					entry.time.toString( ),
 					encodeLogLevel( entry.level ),
 					entry.message );
 
-				if ( m_fileLevel <= entry.level )
+				if ( m_fileLevel >= entry.level )
 				{
 					if ( entry.time > m_archiveTime )
 					{
@@ -156,13 +156,13 @@ namespace cpp
 					m_file.write( line );
 				}
 				
-				if ( m_consoleLevel <= entry.level )
+				if ( m_consoleLevel >= entry.level )
 					{ puts( line.begin( ) ); }
 
-				if ( m_debugLevel <= entry.level )
+				if ( m_debugLevel >= entry.level )
 					{ OutputDebugString( toUtf16( line ).c_str( ) ); }
 
-				if ( m_handlerLevel <= entry.level )
+				if ( m_handlerLevel >= entry.level )
 					{ m_handler( entry.time, entry.level, entry.message ); }
 			}
         }

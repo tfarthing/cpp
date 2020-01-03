@@ -1,9 +1,10 @@
-#pragma once
+﻿#pragma once
 
 #include <vector>
 #include <set>
 #include <map>
-#include <cpp/data/IndexedSet.h>
+#include "../../cpp/data/String.h"
+#include "../../cpp/data/IndexedSet.h"
 
 /*
 
@@ -11,7 +12,7 @@
     
     (1) fast parsing similar to JSON
     (2) easy readability, emphasis on single-line text data records (e.g. key='value' or key=(5)'value')
-    (3) supports unencoded binary values, or escape-encoded binary values (e.g. key='\escaped-\encoded' or key=(9)'unencoded')
+    (3) supports unencoded binary values, or escape-encoded binary values (e.g. key='^'escaped-encoded^'' or key=(9)'unencoded')
     (4) supports decoding an undelimited stream (since bit is line delimited)
     
 
@@ -32,7 +33,7 @@
                 data : a='a' null b='b' c='c'\n
 
             and to:
-                data :: b='b' c='c'\n
+                data : null b='b' c='c'\n
 
     Example:
         bit::Object object;
@@ -42,18 +43,12 @@
         std::string bitData = object.encode(); 
         // bitData = "server : ip='10.5.5.102' port='10667'\n";
 
-    given object["region[west].server.proxy[0].wan-ip"] = 67.193.64.254;
-        object.key()                    is "region[west].server.proxy[0].wan-ip":
-        object.key().name()             is "wan-ip"
-        object.key().parent()           is "region[west].server.proxy[0]"
-        object.value()                  is "67.193.64.254"
-
-    given object["region[west].server.proxy[0]"];
-        object.key().arrayName()        is "region[west].server.proxy"
-        object.key().arrayItemID()      is "0"
-
-    Difficult Issues:
-        (1) removed/"null" keys are stateful.  When/how is this state cleared? 
+	Parts of a Key:
+						arrayName      arrayItemId
+				┌──────────┴────────────┐ ┌┴┐
+		key:    region[west].server.proxy[365]
+				└────────┬────────┘ └───┬────┘
+						parent          name
 */
 
 namespace cpp
@@ -84,20 +79,22 @@ namespace cpp
 			                                Key & operator=( Key && move ) noexcept;
 
 			Memory                          get( ) const;                           // i.e. path.substr( origin ? origin + 1 : 0 )
-			operator Memory( ) const;
+											operator Memory( ) const;
 
 			Memory                          name( ) const;                          // "server.region" -> "region"
 
-			bool                            hasParent( ) const;                     // i.e. matches ".*\..*"
+			bool                            hasParent( ) const;                     // i.e. contains unbracketed period
 			Key                             parent( ) const;                        // "server.region" -> "server"
 
-			bool                            isArrayItem( ) const;                   // i.e. matches ".+[.+]"
+			bool                            isArrayItem( ) const;                   // i.e. ends with bracketed string
 			Memory                          arrayName( ) const;                     // "server.region[west] -> "server.region"
 			Memory                          arrayItemID( ) const;                   // "server.region[west] -> "west"
 
-			bool                            isChild( Memory key ) const;
+			bool                            isChild( Memory key ) const;			// i.e. key begins with this_key + "."
 			bool                            isChildOrSame( Memory key ) const;
 			Memory                          childName( Memory childKey ) const;     // e.g. <parentKey>.<childName>
+
+			Key								root( ) const;
 
 			std::string                     path;
 			size_t                          origin;
@@ -110,14 +107,17 @@ namespace cpp
 		{
 		public:
 			                                Object( );
-			                                Object( Object && move );
+			                                Object( Object && move ) noexcept;
 			                                Object( const Object & copy );
 
 			typedef Object                  Self;                   // returned reference to itself
 			typedef Object                  View;                   // returned object is a reference to another Object
 			typedef Object                  ClipView;               // returned object is a clipped reference to another Object
 
-			Self &                          reset( );               // resets the object's reference & data
+			Self &							operator=( Object && move ) noexcept;
+			Self &							operator=( const Object & copy );
+
+			Self &                          reset( );               // resets the object's reference
 
 			bool                            isEmpty( ) const;       // this key has no value and has no subkey with a value
 			bool                            notEmpty( ) const;      // this key has a value or a subkey with a value
@@ -127,17 +127,17 @@ namespace cpp
 			Memory                          value( ) const;
 			                                operator Memory( ) const;
 
+			Self &							add( Memory childName, Memory value );
+			Self &							remove( Memory childName );
+
 			Self &                          assign( Memory value );
 			Self &                          operator=( Memory value );
-
-			Self &                          assign( const Object & object );
-			Self &                          operator=( const Object & object );
 
 			Self &                          append( const Object & object );
 			Self &                          operator+=( const Object & object );
 
-			Self &                          clear( );               // removes all values at this key and any subkey
-			Self &                          erase( );               // performs clear( ) and sets this key as "nulled"
+			void							clear( );				// removes all values at this key and any subkey
+			void							erase( );               // performs clear( ) and sets this key as "nulled"
 
 			View                            at( Memory childName );
 			const View                      at( Memory childName ) const;
@@ -153,9 +153,8 @@ namespace cpp
 			Object                          copy( ) const;          // deep copy at key
 
 			class Array;
-			Array                           array( ) const;
+			Array                           asArray( ) const;
 
-			bool                            isView( ) const;        // returns true if this object refers to another's data
 			bool                            isNulled( ) const;      // returns true if this object (or its parent) was erased
 
 			class List;
@@ -172,19 +171,18 @@ namespace cpp
 			String                          encodeRaw( EncodeRow rowEncoding = EncodeRow::Leaf ) const;
 
 		private:
-			                                Object( const Object * copy, Key key );
+			                                Object( const Object & copy, Key key );
 
 			void                            verifyArraysOnAdd( Memory fullKey );
 			void                            verifyArraysOnRemove( Memory fullKey );
 
 			Object                          getChild( Memory rootKey, Memory childKey ) const;
-			Object                          getArrayItem( Memory rootKey, Memory arrayKey ) const;
 
-			typedef String value_t;
-			typedef std::map<String, value_t> map_t;
+			typedef std::string value_t;
+			typedef std::map<std::string, value_t> map_t;
 			typedef map_t::const_iterator iterator_t;
-			typedef std::set<String> set_t;
-			typedef std::map<String, cpp::IndexedSet<String>> arraymap_t;
+			typedef std::set<std::string> set_t;
+			typedef std::map<std::string, cpp::IndexedSet<std::string>> arraymap_t;
 
 			friend class Array;
 			friend class List;
@@ -211,8 +209,7 @@ namespace cpp
 				set_t                       nulled;       // nulled keys
 				arraymap_t                  records;      // ordered records
 			};
-			std::unique_ptr<Detail>         m_detail;
-			Detail *                        m_data;
+			std::shared_ptr<Detail>         m_data;
 			Key                             m_key;
 		};
 
@@ -239,9 +236,10 @@ namespace cpp
 
 		private:
 			friend class Object;
-			                                Array( Object * object );
-			Object *                        m_object;
+			                                Array( Object object );
+			Object							m_object;
 		};
+
 
 
 
@@ -257,7 +255,8 @@ namespace cpp
 			iterator                        begin( ) const;
 			iterator                        end( ) const;
 
-			std::vector<Object>             get( ) const;
+			std::vector<Object>             getAll( ) const;
+			std::vector<std::string>        getKeys( ) const;
 
 		private:
 			enum Type { AllKeys, Value, Child };
@@ -287,7 +286,6 @@ namespace cpp
 			Type type( ) const;
 			Object & object( ) const;
 			Memory key( ) const;
-			Object * objectptr( ) const;
 
 		private:
 			List * m_list;
@@ -415,12 +413,22 @@ namespace cpp
 			return iterator{ (List *)this, m_object.m_data->keys.end( ) };
 		}
 
-		inline std::vector<Object> Object::List::get( ) const
+		inline std::vector<Object> Object::List::getAll( ) const
 		{
 			std::vector<Object> result;
 			for ( auto & object : *this )
 			{
 				result.push_back( object );
+			}
+			return result;
+		}
+
+		inline std::vector<std::string> Object::List::getKeys( ) const
+		{
+			std::vector<std::string> result;
+			for ( auto & object : *this )
+			{
+				result.push_back( object.key( ).get( ) );
 			}
 			return result;
 		}
@@ -443,9 +451,6 @@ namespace cpp
         
         inline Memory Object::List::iterator::key( ) const
             { return object( ).key( ); }
-        
-        inline Object * Object::List::iterator::objectptr( ) const
-            { return ( Object * )&( object( ) ); }
 
         inline Decoder::Exception::Exception( const Decoder & decoder )
 			: cpp::DecodeException( cpp::format( "bit::Decoder::Exception - %", cpp::toString( decoder.error( ) ) ) ), m_line( decoder.line( ) ), m_error( decoder.error( ) ), m_errorPos( decoder.errorPos( ) ) { }

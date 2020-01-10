@@ -93,6 +93,15 @@
 BIT Object
 
 * Object representation of key/value pairs
+	(0) parts of an object
+		* key: all objects are uniquely identified by a key
+		* subkeys: any key is a subkey of an object if the key is prefixed by the object's key + ".".
+			* e.g. object.subkey1, object.subkey2.something, but not objectx.something
+		* child key: any subkey that has a single name extending the object key is considered a child key of the object.
+			* e.g. object.child1, object.child2, but not object.child.something
+		* children: any object identified by a child key of the object
+		* values: any child key that has a non-null value assigned.
+
 	(1) keys
 		* keys are value identifiers and are also interpretted as hierarchical & as arrays
 			* keys are interpretted as hierarchical if they contain periods

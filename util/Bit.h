@@ -90,11 +90,11 @@ namespace cpp
 			Memory                          arrayName( ) const;                     // "server.region[west] -> "server.region"
 			Memory                          arrayItemID( ) const;                   // "server.region[west] -> "west"
 
-			bool                            isChild( Memory key ) const;			// i.e. key begins with this_key + "."
-			bool                            isChildOrSame( Memory key ) const;
-			Memory                          childName( Memory childKey ) const;     // e.g. <parentKey>.<childName>
+			bool                            isRelated( Memory key ) const;			// i.e. key is this_key or begins with this_key + "."
+			bool                            isSubkey( Memory key ) const;			// i.e. key begins with this_key + "."
+			Memory                          getRelativeKey( Memory subkey ) const;  // e.g. <key>.<extra> -> <extra>
 
-			Key								root( ) const;
+			Key								root( ) const;							// hidden parent of a clipped key
 
 			std::string                     path;
 			size_t                          origin;
@@ -155,12 +155,12 @@ namespace cpp
 			class Array;
 			Array                           asArray( ) const;
 
-			bool                            isNulled( ) const;      // returns true if this object (or its parent) was erased
+			bool                            isNulled( bool recursive = false ) const;      // returns true if this object (or its parent) was erased
 
 			class List;
 			const List                      listSubkeys( ) const;
-			const List                      listValues( ) const;
 			const List                      listChildren( ) const;
+			const List                      listValues( ) const;
 
 			enum class EncodeRow
 			{
@@ -187,18 +187,17 @@ namespace cpp
 			friend class Array;
 			friend class List;
 
-			iterator_t                      firstKeyAt( Memory key ) const;
 			iterator_t                      firstSubkeyAt( Memory key ) const;
-			iterator_t                      nextKeyAt( Memory key, iterator_t itr ) const;
-			iterator_t                      findKeyAt( Memory key, iterator_t itr ) const;
-
-			iterator_t                      firstValueAt( Memory key ) const;
-			iterator_t                      nextValueAt( Memory key, iterator_t itr ) const;
-			iterator_t                      findValueAt( Memory key, iterator_t itr ) const;
+			iterator_t                      nextSubkeyAt( Memory key, iterator_t itr ) const;
+			iterator_t                      findSubkeyAt( Memory key, iterator_t itr ) const;
 
 			iterator_t                      firstChildAt( Memory key ) const;
 			iterator_t                      nextChildAt( Memory key, iterator_t itr ) const;
 			iterator_t                      findChildAt( Memory key, iterator_t itr ) const;
+
+			iterator_t                      firstValueAt( Memory key ) const;
+			iterator_t                      nextValueAt( Memory key, iterator_t itr ) const;
+			iterator_t                      findValueAt( Memory key, iterator_t itr ) const;
 
 			bool                            hasKeyWithValueAt( Memory rootKey ) const;
 
@@ -246,7 +245,7 @@ namespace cpp
 		class Object::List
 		{
 		public:
-			static List                     ofKeys( Object object );
+			static List                     ofSubKeys( Object object );
 			static List                     ofValues( Object object );
 			static List                     ofChildren( Object object );
 
@@ -259,7 +258,7 @@ namespace cpp
 			std::vector<std::string>        getKeys( ) const;
 
 		private:
-			enum Type { AllKeys, Value, Child };
+			enum Type { SubKeys, Value, Child };
 			friend class iterator;
 
 			                                List( Type type, Object object );
@@ -393,9 +392,9 @@ namespace cpp
 		inline Object::List::List( Object::List::Type type, Object object )
 			: m_type( type ), m_object( std::move( object ) ) { }
 
-		inline Object::List Object::List::ofKeys( Object object )
+		inline Object::List Object::List::ofSubKeys( Object object )
 		{
-			return List{ Type::AllKeys, std::move( object ) };
+			return List{ Type::SubKeys, std::move( object ) };
 		}
 
 		inline Object::List Object::List::ofValues( Object object )

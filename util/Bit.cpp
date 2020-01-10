@@ -13,154 +13,196 @@ namespace cpp::bit
     const Memory NullValue = "]null[";
 
 
-	size_t findDelimiter( Memory key, size_t pos = 0 )
+
+	struct KeyPath
 	{
-		if ( pos >= key.length( ) )
+											template<class T> KeyPath( const T & key );
+
+											operator const Memory & ( ) const;
+
+		bool								isEmpty( ) const;
+		bool								notEmpty( ) const;
+
+		KeyPath								name( ) const;
+		KeyPath								parent( ) const;
+
+		bool								isArrayItem( ) const;
+		KeyPath								arrayName( ) const;
+		KeyPath								arrayItem( ) const;
+
+		size_t								findDelimiter( size_t pos = 0 ) const;
+		size_t								rfindDelimiter( size_t rpos = Memory::npos ) const;
+		size_t								findParentDelimiter( ) const;
+
+		bool								isRelated( KeyPath other ) const;			// other is same key or a subkey
+		bool								isSubkey( KeyPath other ) const;			// other is a subkey
+		KeyPath								getChildKey( KeyPath other );				// a.b + a.b.c.d.e -> a.b.c
+		KeyPath								getRelativeKey( KeyPath other );			// a.b + a.b.c.d.e -> c.d.e
+
+		Memory								path;
+	};
+
+
+	template<class T> KeyPath::KeyPath( const T & key )
+		: path( key ) { }
+
+
+	inline KeyPath::operator const Memory & ( ) const
+		{ return path; }
+
+	inline bool KeyPath::isEmpty( ) const
+		{ return path.isEmpty( ); }
+
+
+	inline bool KeyPath::notEmpty( ) const
+		{ return path.notEmpty( ); }
+
+
+	inline KeyPath KeyPath::name( ) const
+	{
+		size_t rpos = findParentDelimiter( );
+		return ( rpos != Memory::npos )
+			? path.substr( rpos + 1 )
+			: path;
+	}
+	
+
+	inline KeyPath KeyPath::parent( ) const
+	{
+		size_t rpos = findParentDelimiter( );
+		return ( rpos != Memory::npos )
+			? path.substr( 0, rpos )
+			: Memory::Empty;
+	}
+
+
+	inline bool KeyPath::isArrayItem( ) const
+	{
+		return !arrayName( ).isEmpty( );
+	}
+
+
+	KeyPath KeyPath::arrayName( ) const
+	{
+		size_t rpos = Memory::npos;
+		if ( path )
+		{
+			rpos = path.length( ) - 1;
+			if ( path[rpos] != ']' )
+				{ return Memory::Empty; }
+			rpos = path.findLastOf( "[", rpos - 1 );
+		}
+		return ( rpos != Memory::npos )
+			? path.substr( 0, rpos )
+			: Memory::Empty;
+    }
+
+	KeyPath KeyPath::arrayItem( ) const
+	{
+		size_t rpos = Memory::npos;
+		if ( path )
+		{
+			rpos = path.length( ) - 1;
+			if ( path[rpos] != ']' )
+				{ return Memory::Empty; }
+			rpos = path.findLastOf( "[", rpos );
+		}
+        return ( rpos != Memory::npos )
+            ? path.substr( rpos + 1, path.length( ) - rpos - 2 )
+            : Memory::Empty;
+    }
+
+
+	size_t KeyPath::findDelimiter( size_t pos ) const
+	{
+		if ( pos >= path.length( ) )
 			{ pos = Memory::npos; }
 
-		while ( pos != Memory::npos && key[pos] != '.' )
+		while ( pos != Memory::npos && path[pos] != '.' )
 		{
-			if ( key[pos] == '[' )
-				{ pos = key.findFirstOf( "]", pos + 1 );}
+			if ( path[pos] == '[' )
+				{ pos = path.findFirstOf( "]", pos + 1 );}
 			else
-				{ pos = key.findFirstOf( ".[", pos ); }
+				{ pos = path.findFirstOf( ".[", pos ); }
 		}
 
 		return pos;
 	}
 
-	size_t rfindDelimiter( Memory key, size_t rpos = Memory::npos )
+	size_t KeyPath::rfindDelimiter( size_t rpos ) const
 	{
-		if ( key )
+		if ( path )
 		{
-			rpos = key.length( ) - 1;
-			while ( rpos != Memory::npos && key[rpos] != '.' )
+			rpos = path.length( ) - 1;
+			while ( rpos != Memory::npos && path[rpos] != '.' )
 			{
-				if ( key[rpos] == ']' )
-					{ rpos = key.findLastOf( "[", rpos );}
+				if ( path[rpos] == ']' )
+					{ rpos = path.findLastOf( "[", rpos );}
 				else
-					{ rpos = key.findLastOf( ".]", rpos ); }
+					{ rpos = path.findLastOf( ".]", rpos ); }
 			}
 		}
 		return rpos;
 	}
 
-	size_t findParentDelimiter( Memory key )
+
+	inline size_t KeyPath::findParentDelimiter( ) const
 	{
-		return rfindDelimiter( key );
+		return rfindDelimiter( );
 	}
 
-	//	key name is the last period-delimited node of the key (including bracketed indices)
-    Memory keyName( Memory key )
+
+	bool KeyPath::isRelated( KeyPath other ) const
     {
-		size_t rpos = findParentDelimiter( key );
-		return ( rpos != Memory::npos )
-			? key.substr( rpos + 1 )
-			: key;
-    }
-
-
-    Memory keyParent( Memory key )
-    {
-		size_t rpos = findParentDelimiter( key );
-		return ( rpos != Memory::npos )
-            ? key.substr( 0, rpos )
-            : "";
-    }
-
-
-    Memory keyArrayName( Memory key )
-    {
-		size_t rpos = Memory::npos;
-		if ( key )
-		{
-			rpos = key.length( ) - 1;
-			if ( key[rpos] != ']' )
-				{ return Memory::Empty; }
-			rpos = key.findLastOf( "[", rpos - 1 );
-		}
-		return ( rpos != Memory::npos )
-			? key.substr( 0, rpos )
-			: Memory::Empty;
-    }
-
-
-    Memory keyArrayItemID( Memory key )
-    {
-		size_t rpos = Memory::npos;
-		if ( key )
-		{
-			rpos = key.length( ) - 1;
-			if ( key[rpos] != ']' )
-				{ return Memory::Empty; }
-			rpos = key.findLastOf( "[", rpos );
-		}
-        return ( rpos != Memory::npos )
-            ? key.substr( rpos + 1, key.length( ) - rpos - 2 )
-            : Memory::Empty;
-    }
-
-
-    bool keyIsArrayItem( Memory key )
-    {
-        return keyArrayName( key ).notEmpty( );
-    }
-
-
-    bool keyIsChildOrSame( Memory key, Memory childKey )
-    {
-        size_t keyLen = key.length( );
-        size_t childLen = childKey.length( );
+        size_t keyLen = path.length( );
+        size_t childLen = other.path.length( );
 
         if ( childLen < keyLen )
             { return false; }
-        if ( childLen > keyLen && keyLen > 0 && childKey[keyLen] != '.' )
+        if ( childLen > keyLen && keyLen > 0 && other.path[keyLen] != '.' )
             { return false; }
-        if ( childKey.substr( 0, keyLen ) != key )
+        if ( other.path.substr( 0, keyLen ) != path )
             { return false; }
 
         return true;
     }
 
 
-    bool keyIsChild( Memory key, Memory childKey )
-    {
-        if ( childKey.length( ) == key.length( ) )
+	inline bool KeyPath::isSubkey( KeyPath other ) const
+	{
+		if ( other.path.length( ) == path.length( ) )
 			{ return false; }
-        return keyIsChildOrSame( key, childKey );
-    }
+        return isRelated( other );
+	}
 
 
-    Memory keyChildName( Memory key, Memory childKey )
+	inline KeyPath KeyPath::getChildKey( KeyPath subkey )
+	{
+		assert( isSubkey( subkey ) );
+		size_t prefixLen = path ? path.length( ) + 1 : 0;
+		assert( prefixLen == 0 || subkey.path[path.length( )] == '.' );
+		size_t pos = subkey.findDelimiter( prefixLen );
+
+		return subkey.path.substr( 0, pos );
+	}
+
+
+	//  "1.2", "1.2.3.4.5" -> "3.4.5"
+	KeyPath KeyPath::getRelativeKey( KeyPath subkey )
     {
-        assert( keyIsChildOrSame( key, childKey ) );
+        assert( isRelated( subkey ) );
 
-        size_t keyLen = key.length( );
-        size_t childLen = childKey.length( );
+        size_t keyLen = path.length( );
+        size_t childLen = subkey.path.length( );
 
         if ( !keyLen )
-            { return childKey; }
+            { return subkey; }
 
         return ( childLen != keyLen )
-            ? childKey.substr( keyLen + 1 )
+            ? subkey.path.substr( keyLen + 1 )
             : "";
     }
 
-
-    //  Extract the next subkey from child key at a root key.  Does 
-    //  not verify precondition: childKey is child of rootKey.
-    //  "1.2", "1.2.3.4.5" -> "1.2.3"
-    Memory keyNextSubkey( Memory rootKey, Memory childKey )
-    {
-        assert( childKey.length( ) > rootKey.length( ) );
-        assert( rootKey == childKey.substr( 0, rootKey.length( ) ) );
-
-        size_t prefixLen = rootKey ? rootKey.length( ) + 1 : 0;
-        assert( prefixLen == 0 || childKey[rootKey.length( )] == '.' );
-        size_t pos = findDelimiter( childKey, prefixLen );
-
-        return childKey.substr( 0, pos );
-    }
 
 
     Key::Key( Memory path, size_t originPos )
@@ -220,39 +262,39 @@ namespace cpp::bit
 
 
     bool Key::hasParent( ) const
-        { return keyParent( get( ) ).notEmpty( ); }
+        { return KeyPath{ get( ) }.parent( ).notEmpty( ); }
 
 
     Key Key::parent( ) const
-		{ assert( hasParent( ) ); return Key{ keyParent( path ), origin }; }
+		{ assert( hasParent( ) ); return Key{ KeyPath{ path }.parent( ), origin }; }
 
 
     Memory Key::name( ) const
-        { return keyName( get( ) ); }
+        { return KeyPath{ get( ) }.name( ); }
 
 
     bool Key::isArrayItem( ) const
-        { return keyIsArrayItem( get( ) ); }
+        { return KeyPath{ get( ) }.isArrayItem( ); }
 
 
 	Memory Key::arrayName( ) const
-		{ assert( isArrayItem( ) ); return keyArrayName( get( ) ); }
+		{ assert( isArrayItem( ) ); return KeyPath{ get( ) }.arrayName( ); }
 
 
     Memory Key::arrayItemID( ) const
-        { assert( isArrayItem( ) ); return keyArrayItemID( get( ) ); }
+        { assert( isArrayItem( ) ); return KeyPath{ get( ) }.arrayItem( ); }
 
 
-    bool Key::isChild( Memory childKey ) const
-        { return keyIsChild( get( ), childKey ); }
+    bool Key::isSubkey( Memory other ) const
+		{ return KeyPath{ get( ) }.isSubkey( other ); }
 
 
-    bool Key::isChildOrSame( Memory childKey ) const
-        { return keyIsChildOrSame( get( ), childKey ); }
+    bool Key::isRelated( Memory other ) const
+        { return KeyPath{ get( ) }.isRelated( other ); }
     
 
-    Memory Key::childName( Memory childKey ) const
-        { return keyChildName( get( ), childKey ); };
+    Memory Key::getRelativeKey( Memory subkey ) const
+		{ return KeyPath{ get( ) }.getRelativeKey( subkey ); };
 
 
 	Key Key::root( ) const
@@ -355,13 +397,23 @@ namespace cpp::bit
 
     bool Object::hasChild( ) const
     {
-        return firstSubkeyAt( m_key.get( ) ) != m_data->keys.end( );
+        return firstSubkeyAt( m_key.path ) != m_data->keys.end( );
     }
 
 
-    bool Object::isNulled( ) const
+    bool Object::isNulled( bool recursive ) const
     {
-        return m_data->nulled.count( m_key.get( ) ) != 0;
+		KeyPath key = m_key.path;
+		while ( true )
+		{
+			bool nulled = m_data->nulled.count( key.path ) != 0;
+			if ( nulled )
+				{ return true; }
+			if ( !recursive || key.isEmpty( ) )
+				{ break; }
+			key = key.parent( );
+		}
+		return false;
     }
 
 
@@ -371,16 +423,14 @@ namespace cpp::bit
     {
         while ( fullKey )
         {
-            auto arrayName = keyArrayName( fullKey );
+			Memory arrayName = KeyPath{ fullKey }.arrayName( );
             if ( arrayName )
             {
-                auto recID = keyArrayItemID( fullKey );
+                Memory recID = KeyPath{ fullKey }.arrayItem( );
                 if ( !m_data->records[arrayName].contains( recID ) )
-                {
-                    m_data->records[arrayName].add( recID );
-                }
+					{ m_data->records[arrayName].add( recID ); }
             }
-            fullKey = keyParent( fullKey );
+			fullKey = KeyPath{ fullKey }.parent( );
         }
     }
 
@@ -390,15 +440,13 @@ namespace cpp::bit
     {
         while ( fullKey )
         {
-            auto arrayName = keyArrayName( fullKey );
+			Memory arrayName = KeyPath{ fullKey }.arrayName( );
             if ( arrayName )
             {
                 if ( !hasKeyWithValueAt( fullKey ) )
-                {
-                    m_data->records.erase( arrayName );
-                }
+					{ m_data->records.erase( arrayName ); }
             }
-            fullKey = keyParent( fullKey );
+            fullKey = KeyPath{ fullKey }.parent( );
         }
     }
 
@@ -411,7 +459,7 @@ namespace cpp::bit
 
     Memory Object::value( ) const
     {
-        auto & itr = m_data->keys.find( m_key.get( ) );
+        auto & itr = m_data->keys.find( m_key.path );
         if ( itr != m_data->keys.end( ) && itr->second != NullValue )
             { return itr->second; }
         return nullptr;
@@ -440,11 +488,16 @@ namespace cpp::bit
 
     Object & Object::assign( Memory value )
     {
-        m_data->keys.insert_or_assign( m_key.get( ), value.isNull() ? NullValue : value );
-        if ( value.isNull() )
-            { verifyArraysOnRemove( m_key ); }
+		if ( !value && !isNulled( false ) )
+			{ m_data->keys.erase( m_key.path ); }
+		else
+			{ m_data->keys.insert_or_assign( m_key.path, value.isNull( ) ? NullValue : value ); }
+
+        if ( !value )
+            { verifyArraysOnRemove( m_key.path ); }
         else 
-            { verifyArraysOnAdd( m_key ); }
+            { verifyArraysOnAdd( m_key.path ); }
+
         return *this;
     }
 
@@ -481,15 +534,15 @@ namespace cpp::bit
 	//  clear() means remove entries for (without nullifying)
     void Object::clear( )
     {
-        std::vector<String> childKeys;
+        std::vector<String> subkeys;
         for ( auto & cursor : listSubkeys( ) )
-            { childKeys.push_back( cursor.key( ).get( ) ); }
+            { subkeys.push_back( cursor.key( ).path ); }
 
-        for ( auto & childKey : childKeys )
-            { m_data->keys.erase( childKey ); verifyArraysOnRemove( childKey ); }
+        for ( auto & subkey : subkeys )
+            { m_data->keys.erase( subkey ); verifyArraysOnRemove( subkey ); }
 
-        m_data->keys.erase( m_key.get( ) );
-        verifyArraysOnRemove( m_key );
+        m_data->keys.erase( m_key.path );
+        verifyArraysOnRemove( m_key.path );
     }
 
 
@@ -498,10 +551,9 @@ namespace cpp::bit
     {
 		clear( );
 
-        m_data->nulled.insert( m_key.get( ) );
-
-        m_data->keys.insert_or_assign( m_key.get( ), NullValue );
-        verifyArraysOnRemove( m_key.get( ) );
+        m_data->nulled.insert( m_key.path );
+        m_data->keys.insert_or_assign( m_key.path, NullValue );
+		verifyArraysOnRemove( m_key.path );
     }
 
 
@@ -545,7 +597,7 @@ namespace cpp::bit
 
     const Object::List Object::listSubkeys( ) const
     {
-        return List::ofKeys( *this );
+        return List::ofSubKeys( *this );
     }
 
 
@@ -692,8 +744,8 @@ namespace cpp::bit
             {
                 if ( !result.isEmpty( ) )
                     { result += " "; }
-                result += encodeValue( keyChildName( object.key(), item.key() ), item.value( ), isRaw );
-            }
+				result += encodeValue( object.key( ).getRelativeKey( item.key( ) ), item.value( ), isRaw );
+			}
         }
         return result;
     }
@@ -798,174 +850,109 @@ namespace cpp::bit
 
     Object Object::getChild( Memory rootKey, Memory childKey ) const
     {
-        return Object{ *this, Key{ keyNextSubkey( rootKey, childKey ), m_key.origin } };
+		return Object{ *this, Key{ KeyPath{ rootKey }.getChildKey( childKey ), m_key.origin } };
     }
 
 
-    Object::iterator_t Object::firstKeyAt( Memory key ) const
+    Object::iterator_t Object::firstSubkeyAt( Memory fullkey ) const
     {
-		Key fullKey = Key::append( m_key.root( ), key );
-		key = fullKey;
-
-        auto itr = m_data->keys.lower_bound( key );
-        return findKeyAt( key, itr );
+		auto itr = m_data->keys.lower_bound( fullkey + "." );
+        return findSubkeyAt( fullkey, itr );
     }
 
 
-    Object::iterator_t Object::firstSubkeyAt( Memory key ) const
+    Object::iterator_t Object::nextSubkeyAt( Memory fullkey, iterator_t itr ) const
     {
-		Key fullKey = Key::append( m_key.root( ), key );
-		key = fullKey;
-
-		auto itr = m_data->keys.lower_bound( key + "." );
-        return findKeyAt( key, itr );
-    }
-
-
-    Object::iterator_t Object::nextKeyAt( Memory key, iterator_t itr ) const
-    {
-		Key fullKey = Key::append( m_key.root( ), key );
-		key = fullKey;
-
 		assert( itr != m_data->keys.end( ) );
-        return findKeyAt( key, ++itr );
+        return findSubkeyAt( fullkey, ++itr );
     }
 
 
-    Object::iterator_t Object::findKeyAt( Memory key, iterator_t itr ) const
+    Object::iterator_t Object::findSubkeyAt( Memory fullkey, iterator_t itr ) const
+    {
+		if ( itr != m_data->keys.end( ) )
+		{
+			Memory subkey = itr->first;
+			if ( !KeyPath{ fullkey }.isRelated( subkey ) )
+				{ itr = m_data->keys.end( ); }
+		}
+		return itr;
+    }
+
+
+	Object::iterator_t Object::firstChildAt( Memory fullkey ) const
+	{
+		auto itr = fullkey.isEmpty( )
+			? m_data->keys.begin( )
+			: m_data->keys.lower_bound( fullkey + "." );
+		return findChildAt( fullkey, itr );
+	}
+
+
+	Object::iterator_t Object::nextChildAt( Memory fullkey, iterator_t itr ) const
+	{
+		assert( itr != m_data->keys.end( ) );
+
+		Memory lastChild = KeyPath{ fullkey }.getChildKey( itr->first );
+		itr = m_data->keys.upper_bound( lastChild + '/');
+		return findChildAt( fullkey, itr );
+	}
+
+
+	Object::iterator_t Object::findChildAt( Memory fullkey, iterator_t itr ) const
+	{
+		if ( itr != m_data->keys.end( ) )
+		{
+			Memory subkey = itr->first;
+			if ( !KeyPath{ fullkey }.isRelated( subkey ) )
+				{ itr = m_data->keys.end( ); }
+		}
+		return itr;
+	}
+
+
+    Object::iterator_t Object::firstValueAt( Memory fullkey ) const
+    {
+		return findValueAt( fullkey, firstChildAt( fullkey ) );
+    }
+
+
+    Object::iterator_t Object::nextValueAt( Memory fullkey, iterator_t itr ) const
+    {
+        return findValueAt( fullkey, nextChildAt( fullkey, itr ) );
+    }
+
+
+    Object::iterator_t Object::findValueAt( Memory fullkey, iterator_t itr ) const
     {
 		while ( itr != m_data->keys.end( ) )
         {
             Memory subkey = itr->first;
+			Memory childkey = KeyPath{ fullkey }.getChildKey( subkey );
+			assert( KeyPath{ childkey }.parent( ) == fullkey );
 
-            //  check for no match
-            if ( subkey.length( ) < key.length( ) || subkey.substr( 0, key.length( ) ) != key )
-				{ return m_data->keys.end( ); }
-
-            //  verify this is a value entry (not a child)
-            if ( subkey.length( ) == key.length( ) )
-				{ break; }
-
-            auto ch = subkey[key.length( )];
-            if ( key.isEmpty( ) || ch == '.' || ch == '[' )
-				{ break; }
-
-            itr++;
-        }
-
-        return itr;
-    }
-
-
-    Object::iterator_t Object::firstValueAt( Memory key ) const
-    {
-		Key fullKey = Key::append( m_key.root( ), key );
-		key = fullKey;
-
-		auto itr = key.isEmpty( )
-            ? m_data->keys.begin( )
-            : m_data->keys.lower_bound( key + "." );
-        return findValueAt( key, itr );
-    }
-
-
-    Object::iterator_t Object::nextValueAt( Memory key, iterator_t itr ) const
-    {
-		Key fullKey = Key::append( m_key.root( ), key );
-		key = fullKey;
-
-		assert( itr != m_data->keys.end( ) );
-        return findValueAt( key, ++itr );
-    }
-
-
-    //  values of a key must:
-    //      * have the format "key.name"
-    //      * not have subvalues
-    //      * not be nulled
-    Object::iterator_t Object::findValueAt( Memory key, iterator_t itr ) const
-    {
-		while ( itr != m_data->keys.end( ) )
-        {
-            Memory subkey = itr->first;
-            if ( !keyIsChildOrSame( key, subkey ) )
-                { return m_data->keys.end( ); }
-
-            if ( keyParent( subkey ) == key )
-            {
-                Object child = root( ).at( subkey );
-                if ( child.value() /*&& !child.hasChild( )*/ )
-                    { break; }
-            }
+            Object child = root( ).at( childkey );
+            if ( child.value( ) || child.isNulled( ) )
+                { break; }
 
             // not a value, go to next
-            itr++;
+			itr = nextChildAt( fullkey, itr );
         }
         return itr;
     }
 
 
-    Object::iterator_t Object::firstChildAt( Memory key ) const
+    bool Object::hasKeyWithValueAt( Memory fullkey ) const
     {
-		Key fullKey = Key::append( m_key.root( ), key );
-		key = fullKey;
-
-		auto itr = key.isEmpty( )
-            ? m_data->keys.begin( )
-            : m_data->keys.lower_bound( key + "." );
-        return findChildAt( key, itr );
-    }
-
-
-    Object::iterator_t Object::nextChildAt( Memory key, iterator_t itr ) const
-    {
-        assert( itr != m_data->keys.end( ) );
-
-		Key fullKey = Key::append( m_key.root( ), key );
-		key = fullKey;
-
-		Memory lastChild = keyNextSubkey( key, itr->first );
-        itr = m_data->keys.upper_bound( lastChild + "/" );  // '/' is '.' + 1
-        return findChildAt( key, itr );
-    }
-
-
-    Object::iterator_t Object::findChildAt( Memory key, iterator_t itr ) const
-    {
-		while ( itr != m_data->keys.end( ) )
-        {
-            Memory subkey = itr->first;
-            size_t prefixLen = key ? key.length( ) + 1 : 0;
-
-            if ( !keyIsChildOrSame( key, subkey ) )
-				{ return m_data->keys.end( ); }
-
-            if ( key.length( ) != subkey.length( ) )
-            {
-				subkey = keyNextSubkey( key, subkey ); // ????
-                Object child = root( ).at( keyNextSubkey( m_key, subkey ) );
-                if ( child.hasChild( ) || child.isNulled( ) )
-                {
-                    break;
-                }
-            }
-
-            itr++;
-        }
-        return itr;
-    }
-
-
-    bool Object::hasKeyWithValueAt( Memory rootKey ) const
-    {
-        auto & itr = firstKeyAt( rootKey );
+		if ( value( ) )
+			{ return true; }
+		
+        auto & itr = firstSubkeyAt( fullkey );
         while ( itr != m_data->keys.end( ) )
         {
-            if ( itr->second != value_t{} )
-            {
-                return true;
-            }
-            itr = nextKeyAt( rootKey, itr );
+			if ( at( itr->second ).value( ) )
+				{ return true; }
+            itr = nextSubkeyAt( fullkey, itr );
         }
         return false;
     }
@@ -1062,12 +1049,12 @@ namespace cpp::bit
     {
         switch ( m_type )
         {
-        case Type::AllKeys:
-            return iterator{ (List *)this, m_object.firstSubkeyAt( m_object.m_key ) };
+        case Type::SubKeys:
+            return iterator{ (List *)this, m_object.firstSubkeyAt( m_object.m_key.path ) };
         case Type::Value:
-            return iterator{ (List *)this, m_object.firstValueAt( m_object.m_key ) };
+            return iterator{ (List *)this, m_object.firstValueAt( m_object.m_key.path ) };
         case Type::Child:
-            return iterator{ (List *)this, m_object.firstChildAt( m_object.m_key ) };
+            return iterator{ (List *)this, m_object.firstChildAt( m_object.m_key.path ) };
         default:
             return iterator{ (List *)this, m_object.m_data->keys.end( ) };
         }
@@ -1079,9 +1066,9 @@ namespace cpp::bit
         switch ( type( ) )
         {
         case List::Type::Child:
-			return Object{ object( ), Key{ keyNextSubkey( key.path, m_itr->first ), key.origin } };
+			return Object{ object( ), Key{ KeyPath{ key.path }.getChildKey( m_itr->first ), key.origin } };
 			//return object( ).getChild( object( ).key( ), m_itr->first );
-        case List::Type::AllKeys:
+        case List::Type::SubKeys:
         case List::Type::Value:
         default:
             return Object{ object( ), Key{ m_itr->first, key.origin } };
@@ -1094,9 +1081,9 @@ namespace cpp::bit
 		switch ( type( ) )
         {
 		case List::Type::Child:
-			return Object{ object( ), Key{ keyNextSubkey( key.path, m_itr->first ), key.origin } };
+			return Object{ object( ), Key{ KeyPath{ key.path }.getChildKey( m_itr->first ), key.origin } };
 			//return object( ).getChild( object( ).key( ), m_itr->first );
-		case List::Type::AllKeys:
+		case List::Type::SubKeys:
 		case List::Type::Value:
 		default:
 			return Object{ object( ), Key{ m_itr->first, key.origin } };
@@ -1117,14 +1104,14 @@ namespace cpp::bit
     {
         switch ( type( ) )
         {
-        case List::Type::AllKeys:
-            m_itr = object( ).nextKeyAt( object( ).m_key, m_itr );
+        case List::Type::SubKeys:
+            m_itr = object( ).nextSubkeyAt( object( ).m_key.path, m_itr );
             break;
         case List::Type::Value:
-            m_itr = object( ).nextValueAt( object( ).m_key, m_itr );
+            m_itr = object( ).nextValueAt( object( ).m_key.path, m_itr );
             break;
         case List::Type::Child:
-            m_itr = object( ).nextChildAt( object( ).m_key, m_itr );
+            m_itr = object( ).nextChildAt( object( ).m_key.path, m_itr );
             break;
         default:
             m_itr = object( ).m_data->keys.end( );
@@ -1862,17 +1849,17 @@ TEST_CASE( "Bit" )
 
 	keys = object["root"].listSubkeys( ).getKeys( );
 		CHECK( keys.size( ) == 21 );
-	keys = object["root"].listValues( ).getKeys( );
-		CHECK( keys.size( ) == 0 );
 	keys = object["root"].listChildren( ).getKeys( );
 		CHECK( keys.size( ) == 10 );
+	keys = object["root"].listValues( ).getKeys( );
+		CHECK( keys.size( ) == 0 );
 
 	keys = object["root.parent1"].listSubkeys( ).getKeys( );
 		CHECK( keys.size( ) == 2 );
+	keys = object["root.parent1"].listChildren( ).getKeys( ); 
+		CHECK( keys.size( ) == 2 );
 	keys = object["root.parent1"].listValues( ).getKeys( ); 
 		CHECK( keys.size( ) == 2 );
-	keys = object["root.parent1"].listChildren( ).getKeys( ); 
-		CHECK( keys.size( ) == 0 );
 
 	keys = object["root.parent2"].listSubkeys( ).getKeys( );
 		CHECK( keys.size( ) == 6 );
@@ -1912,13 +1899,13 @@ TEST_CASE( "Bit" )
 	object["first[id1].second[id2].key"] = "something";
 	object["first[id1].key"] = "something";
 
-	CHECK( object["first"].asArray( ).atIndex( 0 ).listChildren().getAll().size() == 1 );
+	CHECK( object["first"].asArray( ).atIndex( 0 ).listChildren().getAll().size() == 2 );
 	CHECK( object["first"].asArray( ).atIndex( 0 ).listValues( ).getAll( ).size( ) == 1 );
 
-	CHECK( object["first[id1].second"].asArray( ).atIndex( 0 ).listChildren( ).getAll( ).size( ) == 1 );
+	CHECK( object["first[id1].second"].asArray( ).atIndex( 0 ).listChildren( ).getAll( ).size( ) == 2 );
 	CHECK( object["first[id1].second"].asArray( ).atIndex( 0 ).listValues( ).getAll( ).size( ) == 1 );
 
-	CHECK( object["first[id1].second[id2].third"].asArray( ).atIndex( 0 ).listChildren( ).getAll( ).size( ) == 0 );
+	CHECK( object["first[id1].second[id2].third"].asArray( ).atIndex( 0 ).listChildren( ).getAll( ).size( ) == 1 );
 	CHECK( object["first[id1].second[id2].third"].asArray( ).atIndex( 0 ).listValues( ).getAll( ).size( ) == 1 );
 
 	CHECK( object["first"].asArray( ).size( ) == 1 );

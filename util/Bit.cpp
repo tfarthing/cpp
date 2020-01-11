@@ -310,25 +310,17 @@ namespace cpp::bit
 
     Object decode( DataBuffer & buffer )
     {
-        Object result;
+        Object data;
 
         Decoder decoder;
         while ( buffer.getable( ) )
         {
-            Decoder::Error error = decoder.decode( buffer );
-            if ( error != Decoder::Error::Null )
-                { throw Decoder::Exception{ decoder }; }
-            result += std::move( decoder.data( ) );
+            Decoder::Result result = decoder.decode( buffer );
+            if ( !result )
+                { throw Decoder::Exception{ result.line, result.status, result.errorPos }; }
+			data += result.data;
         }
-        return result;
-    }
-
-
-    Object decodeLine( DataBuffer & buffer )
-    {
-        Decoder decoder;
-        decoder.decode( buffer );
-        return std::move( decoder.data( ) );
+        return data;
     }
 
 
@@ -1060,6 +1052,7 @@ namespace cpp::bit
         }
     }
 
+
     Object Object::List::iterator::operator*( )
     {
 		Key key = object( ).key( );
@@ -1074,6 +1067,7 @@ namespace cpp::bit
             return Object{ object( ), Key{ m_itr->first, key.origin } };
         }
     }
+
 
     const Object Object::List::iterator::operator*( ) const
     {
@@ -1090,15 +1084,18 @@ namespace cpp::bit
 		}
     }
 
+
     bool Object::List::iterator::operator==( iterator & iter ) const
     {
         return m_itr == iter.m_itr;
     }
 
+
     bool Object::List::iterator::operator!=( iterator & iter ) const
     {
         return m_itr != iter.m_itr;
     }
+
 
     Object::List::iterator & Object::List::iterator::operator++( )
     {
@@ -1121,14 +1118,77 @@ namespace cpp::bit
         return *this;
     }
 
-    void Decoder::reset( )
+
+	struct Decoder::Detail 
+	{
+		void copyResult( );
+		Result decode( DataBuffer & buffer );
+
+		bool step( DataBuffer & buffer );
+		void onBOL( uint8_t byte, DataBuffer & buffer );
+		void onPreToken( uint8_t byte, DataBuffer & buffer );
+		void onToken( uint8_t byte, DataBuffer & buffer );
+		void onPostToken( uint8_t byte, DataBuffer & buffer );
+		void onPreValue( uint8_t byte, DataBuffer & buffer );
+		void onNullValue( uint8_t byte, DataBuffer & buffer );
+		void onValueSpec( uint8_t byte, DataBuffer & buffer );
+		void onFastValue( DataBuffer & buffer );
+		void onValue( uint8_t byte, DataBuffer & buffer );
+		void onPostValue( uint8_t byte, DataBuffer & buffer );
+		void onComment( uint8_t byte, DataBuffer & buffer );
+		void onError( uint8_t byte, DataBuffer & buffer );
+
+		void reset( );
+		void completeLineBuffer( DataBuffer & buffer );
+		void maybeCopyBuffer( DataBuffer & buffer );
+		void copyBuffer( DataBuffer & buffer );
+		Memory line( DataBuffer & buffer );
+
+		size_t pos( );
+		uint8_t getch( DataBuffer & buffer );
+		Memory token( DataBuffer & buffer );
+		Memory record( DataBuffer & buffer );
+		Memory key( DataBuffer & buffer );
+		Memory valueSpec( DataBuffer & buffer );
+		Memory value( DataBuffer & buffer );
+		Memory comment( DataBuffer & buffer );
+
+		enum class State
+		{
+			BOL, PreToken, Token, PostToken, PreValue, NullValue, ValueSpec, Value, PostValue, Comment, Error, EOL
+		};
+
+		State m_state = State::BOL;
+		size_t m_pos = 0;
+		size_t m_tokenBegin = Memory::npos;
+		size_t m_tokenEnd = Memory::npos;
+		size_t m_commentPos = Memory::npos;
+		size_t m_errorPos = Memory::npos;
+		Status m_error = Status::Ok;
+		bool m_escaped = false;
+		String m_line;
+		String m_value;
+		size_t m_valueBegin = Memory::npos;
+		size_t m_valueEnd = Memory::npos;
+		size_t m_valueSpecBegin = Memory::npos;
+		size_t m_valueSpecEnd = Memory::npos;
+		size_t m_keyBegin = Memory::npos;
+		size_t m_keyEnd = Memory::npos;
+		size_t m_recordBegin = Memory::npos;
+		size_t m_recordEnd = Memory::npos;
+		bool m_hasResult = false;
+		Result m_result;
+	};
+
+
+    void Decoder::Detail::reset( )
     {
         m_state = State::BOL;
         m_pos = 0;
         m_tokenBegin = Memory::npos;
         m_commentPos = Memory::npos;
         m_errorPos = Memory::npos;
-        m_error = Error::Null;
+        m_error = Status::Ok;
         m_escaped = false;
         m_line.clear( );
         m_value.clear( );
@@ -1141,48 +1201,14 @@ namespace cpp::bit
         m_recordBegin = Memory::npos;
         m_recordEnd = Memory::npos;
         m_hasResult = false;
-        m_result.reset( );
+		m_result = Result{};
     }
 
-    bool Decoder::hasResult( ) const
-    {
-        return m_hasResult;
-    }
 
-    Object & Decoder::data( )
+	//  once done decoding a line, either copy the line if an error occurred or just advance the read buffer
+    void Decoder::Detail::completeLineBuffer( DataBuffer & buffer )
     {
-        return m_result;
-    }
-
-    Memory Decoder::line( ) const
-    {
-        return m_line;
-    }
-
-    Memory Decoder::comment( )
-    {
-        return "";// m_comment;
-    }
-
-    bool Decoder::hasError( ) const
-    {
-        return m_error != Error::Null;
-    }
-
-    Decoder::Error Decoder::error( ) const
-    {
-        return m_error;
-    }
-
-    size_t Decoder::errorPos( ) const
-    {
-        return m_errorPos;
-    }
-
-    //  once done decoding a line, either copy the line if an error occurred or just advance the read buffer
-    void Decoder::completeLineBuffer( DataBuffer & buffer )
-    {
-        if ( hasError( ) )
+        if ( m_error != Status::Ok )
         {
             copyBuffer( buffer );
         }
@@ -1193,14 +1219,16 @@ namespace cpp::bit
         }
     }
 
-    void Decoder::maybeCopyBuffer( DataBuffer & buffer )
+
+    void Decoder::Detail::maybeCopyBuffer( DataBuffer & buffer )
     {
         //  If part of the line has already been copied, copy the current buffer to make the line data contiguous.
         if ( m_line.length( ) )
             { copyBuffer( buffer ); }
     }
 
-    void Decoder::copyBuffer( DataBuffer & buffer )
+
+    void Decoder::Detail::copyBuffer( DataBuffer & buffer )
     {
         if ( m_pos > 0 )
         {
@@ -1209,21 +1237,24 @@ namespace cpp::bit
         }
     }
 
-    size_t Decoder::pos( )
+
+    size_t Decoder::Detail::pos( )
     {
         return m_pos + m_line.length( );
     }
 
-    uint8_t Decoder::getch( DataBuffer & buffer )
+
+    uint8_t Decoder::Detail::getch( DataBuffer & buffer )
     {
         return buffer.getable( ).at( m_pos );
     }
+
 
     //  This allows the decoded line to be backed by the temporary buffer 
     //  if possible so that data does not have to be copied.  Otherwise the buffer
     //  is copied so that the line can be represented contiguously between multiple
     //  buffer reads.
-    Memory Decoder::line( DataBuffer & buffer )
+    Memory Decoder::Detail::line( DataBuffer & buffer )
     {
         maybeCopyBuffer( buffer );
         return m_line.length() 
@@ -1231,7 +1262,8 @@ namespace cpp::bit
             : buffer.getable().substr(0, m_pos);
     }            
     
-    Memory Decoder::token( DataBuffer & buffer )
+
+    Memory Decoder::Detail::token( DataBuffer & buffer )
     {
         if ( m_tokenBegin == Memory::npos )
             { return nullptr; }
@@ -1242,44 +1274,56 @@ namespace cpp::bit
             : buffer.getable( ).substr( m_tokenBegin, m_pos - m_tokenBegin );;
     }
 
-    Memory Decoder::record( DataBuffer & buffer )
+
+    Memory Decoder::Detail::record( DataBuffer & buffer )
     {
         return ( m_recordBegin != Memory::npos && m_recordEnd != Memory::npos )
             ? line( buffer ).substr( m_recordBegin, m_recordEnd - m_recordBegin )
             : nullptr;
     }
 
-    Memory Decoder::key( DataBuffer & buffer )
+
+    Memory Decoder::Detail::key( DataBuffer & buffer )
     {
         return ( m_keyBegin != Memory::npos && m_keyEnd != Memory::npos )
             ? line( buffer ).substr( m_keyBegin, m_keyEnd - m_keyBegin )
             : nullptr;
     }
 
-    Memory Decoder::valueSpec( DataBuffer & buffer )
+    Memory Decoder::Detail::valueSpec( DataBuffer & buffer )
     {
         return ( m_valueSpecBegin != Memory::npos && m_valueSpecEnd != Memory::npos )
             ? line( buffer ).substr( m_valueSpecBegin, m_valueSpecEnd - m_valueSpecBegin )
             : nullptr;
     }
 
-    Memory Decoder::value( DataBuffer & buffer )
+
+    Memory Decoder::Detail::value( DataBuffer & buffer )
     {
         return ( m_valueBegin != Memory::npos && m_valueEnd != Memory::npos )
             ? line( buffer ).substr( m_valueBegin, m_valueEnd - m_valueBegin )
             : m_value;
     }
 
-    Memory Decoder::comment( DataBuffer & buffer )
+
+    Memory Decoder::Detail::comment( DataBuffer & buffer )
     {
         return ( m_commentPos != Memory::npos )
             ? line( buffer ).substr( m_commentPos )
             : nullptr;
     }
+       
+	void Decoder::Detail::copyResult( )
+	{
+		m_result.line = m_line;
+		m_result.errorPos = m_errorPos;
+		m_result.status = m_error;
+		m_result.comment = "";
+	}
 
-    Decoder::Error Decoder::decode( DataBuffer & buffer )
+    Decoder::Result Decoder::Detail::decode( DataBuffer & buffer )
     {
-        m_error = Error::Null;
+		m_error = Status::Ok;
 
         // check if current state indicated a result after the last call (if any), and
         // if so reset the state for continued parsing.
@@ -1287,12 +1331,12 @@ namespace cpp::bit
         {
             if ( m_state == State::EOL )
             { 
-                reset( );
+				reset( );
             }
             else
             {
-                m_hasResult = false;
-                m_result.reset( );
+				m_hasResult = false;
+				m_result = Result{};
             }
         }
 
@@ -1302,19 +1346,23 @@ namespace cpp::bit
             { 
 				m_hasResult = true;
 				completeLineBuffer( buffer );
-                return m_error; 
+
+				copyResult( );
+                return m_result;
             }
         }
 
         //  If the end-of-buffer reached before end of record found,
         //  copy decoder state out of the buffer before it is discarded.
-        m_error = Error::IncompleteData;
-        copyBuffer( buffer );
+        m_error = Status::IncompleteData;
+		copyBuffer( buffer );
         
-        return m_error;
+		copyResult( );
+        return m_result;
     }
        
-    bool Decoder::step( DataBuffer & buffer )
+
+    bool Decoder::Detail::step( DataBuffer & buffer )
     {
         uint8_t byte = buffer.getable( ).at( m_pos );
 
@@ -1357,19 +1405,21 @@ namespace cpp::bit
             break;
         default:
             m_errorPos = pos( );
-            m_error = Error::ExpectedKey;
+            m_error = Status::ExpectedKey;
             m_state = State::Error;
             break;
         }
         return m_state == State::EOL;
     }
 
-    void Decoder::onBOL( uint8_t byte, DataBuffer & buffer )
+
+    void Decoder::Detail::onBOL( uint8_t byte, DataBuffer & buffer )
     {
         return onPreToken( byte, buffer );
     }
 
-    void Decoder::onPreToken( uint8_t byte, DataBuffer & buffer )
+
+    void Decoder::Detail::onPreToken( uint8_t byte, DataBuffer & buffer )
     {
         switch ( byte )
         {
@@ -1399,7 +1449,8 @@ namespace cpp::bit
         m_pos++;
     }
 
-    void Decoder::onToken( uint8_t byte, DataBuffer & buffer )
+
+    void Decoder::Detail::onToken( uint8_t byte, DataBuffer & buffer )
     {
         switch ( byte )
         {
@@ -1412,7 +1463,7 @@ namespace cpp::bit
             m_tokenEnd = pos( );
             if ( token( buffer ) == "null" )
             {
-                m_result.at( record( buffer ) ).erase( );
+                m_result.data.at( record( buffer ) ).erase( );
                 m_state = State::PreToken;
             }
             else
@@ -1426,7 +1477,8 @@ namespace cpp::bit
         }
     }
 
-    void Decoder::onPostToken( uint8_t byte, DataBuffer & buffer )
+
+    void Decoder::Detail::onPostToken( uint8_t byte, DataBuffer & buffer )
     {
         switch ( byte )
         {
@@ -1447,7 +1499,7 @@ namespace cpp::bit
             if ( buffer.getable( ).at( m_pos + 1 ) == ':' )
             {
                 m_pos++;
-                m_result.at( record( buffer ) ).erase( );
+                m_result.data.at( record( buffer ) ).erase( );
             }
 
             m_tokenBegin = m_tokenEnd = Memory::npos;
@@ -1467,7 +1519,8 @@ namespace cpp::bit
         m_pos++;
     }
 
-    void Decoder::onPreValue( uint8_t byte, DataBuffer & buffer )
+
+    void Decoder::Detail::onPreValue( uint8_t byte, DataBuffer & buffer )
     {
         switch ( byte )
         {
@@ -1478,7 +1531,7 @@ namespace cpp::bit
             if ( valueSpec( buffer ) )
             {
                 m_errorPos = pos( );
-                m_error = Error::ExpectedValue;
+                m_error = Status::ExpectedValue;
                 m_state = State::Error;
             }
             else
@@ -1506,7 +1559,7 @@ namespace cpp::bit
             break;
         default:
             m_errorPos = pos( );
-            m_error = Error::ExpectedValueOrValueSpec;
+            m_error = Status::ExpectedValueOrValueSpec;
             m_state = ( byte == '\n' )
                 ? State::EOL
                 : State::Error;
@@ -1515,7 +1568,8 @@ namespace cpp::bit
         m_pos++;
     }
 
-    void Decoder::onNullValue( uint8_t byte, DataBuffer & buffer )
+
+    void Decoder::Detail::onNullValue( uint8_t byte, DataBuffer & buffer )
     {
         switch ( byte )
         {
@@ -1525,7 +1579,7 @@ namespace cpp::bit
         case '#':
             if ( token( buffer ) == "null" )
             {
-                m_result.at( Key::append( record( buffer ), key( buffer ) ) ) = nullptr;
+                m_result.data.at( Key::append( record( buffer ), key( buffer ) ) ) = nullptr;
                 
                 if ( byte == '#' )
                     { m_commentPos = pos( ) + 1; m_state = State::Comment; }
@@ -1537,7 +1591,7 @@ namespace cpp::bit
             else
             {
                 m_errorPos = m_tokenBegin;
-                m_error = Error::ExpectedAssignment;
+                m_error = Status::ExpectedAssignment;
                 m_state = ( byte == '\n' )
                     ? State::EOL
                     : State::Error;
@@ -1547,7 +1601,7 @@ namespace cpp::bit
             if ( Memory tok = token( buffer ); Memory{ "null" }.at(tok.length()) != byte )
             {
                 m_errorPos = m_tokenBegin;
-                m_error = Error::ExpectedAssignment;
+                m_error = Status::ExpectedAssignment;
                 m_state = ( byte == '\n' )
                     ? State::EOL
                     : State::Error;
@@ -1557,14 +1611,15 @@ namespace cpp::bit
         m_pos++;
     }
     
-    void Decoder::onValueSpec( uint8_t byte, DataBuffer & buffer )
+
+    void Decoder::Detail::onValueSpec( uint8_t byte, DataBuffer & buffer )
     {
         switch ( byte )
         {
         case '\n':
         case '#':
             m_errorPos = pos( );
-            m_error = Error::ExpectedValueSpec;
+            m_error = Status::ExpectedValueSpec;
             m_state = ( byte == '\n' )
                 ? State::EOL
                 : State::Error;
@@ -1579,7 +1634,7 @@ namespace cpp::bit
             if ( !isdigit( byte ) )
             {
                 m_errorPos = pos( );
-                m_error = Error::InvalidValueSpec;
+                m_error = Status::InvalidValueSpec;
                 m_state = State::Error;
             }
             break;
@@ -1587,7 +1642,8 @@ namespace cpp::bit
         m_pos++;
     }
 
-    void Decoder::onFastValue( DataBuffer & buffer )
+
+    void Decoder::Detail::onFastValue( DataBuffer & buffer )
     {
         assert( m_valueBegin != Memory::npos );
         assert( m_valueEnd != Memory::npos );
@@ -1604,12 +1660,12 @@ namespace cpp::bit
         if ( buffer.getable( ).at( m_pos ) != '\'' )
         {
             m_errorPos = pos( );
-            m_error = Error::ExpectedValueDelimiter;
+            m_error = Status::ExpectedValueDelimiter;
             m_state = State::Error;
         }
         else
         {
-            m_result.at( Key::append( record( buffer ), key( buffer ) ) ) = value( buffer );
+            m_result.data.at( Key::append( record( buffer ), key( buffer ) ) ) = value( buffer );
 
             m_state = State::PostValue;
 
@@ -1617,7 +1673,8 @@ namespace cpp::bit
         }
     }
 
-    void Decoder::onValue( uint8_t byte, DataBuffer & buffer )
+
+    void Decoder::Detail::onValue( uint8_t byte, DataBuffer & buffer )
     {
         if ( m_valueBegin != Memory::npos && m_valueEnd != Memory::npos )
         {
@@ -1628,7 +1685,7 @@ namespace cpp::bit
         {
         case '\n':
             m_errorPos = pos( );
-            m_error = Error::ExpectedValueDelimiter;
+            m_error = Status::ExpectedValueDelimiter;
             m_state = State::EOL;
             break;
         case '\'':
@@ -1639,7 +1696,7 @@ namespace cpp::bit
             else
             {
                 m_valueEnd = pos( );
-                m_result.at( Key::append( record( buffer ), key( buffer ) ) ) = value( buffer );
+                m_result.data.at( Key::append( record( buffer ), key( buffer ) ) ) = value( buffer );
 
                 m_value.clear( );
                 m_valueBegin = m_valueEnd = Memory::npos;
@@ -1686,7 +1743,8 @@ namespace cpp::bit
         m_pos++;
     }
 
-    void Decoder::onPostValue( uint8_t byte, DataBuffer & buffer )
+
+    void Decoder::Detail::onPostValue( uint8_t byte, DataBuffer & buffer )
     {
         switch ( byte )
         {
@@ -1702,14 +1760,15 @@ namespace cpp::bit
             break;
         default:
             m_errorPos = pos( );
-            m_error = Error::ExpectedTokenDelimiter;
+            m_error = Status::ExpectedTokenDelimiter;
             m_state = State::Error;
             break;
         }
         m_pos++;
     }
 
-    void Decoder::onComment( uint8_t byte, DataBuffer & buffer )
+
+    void Decoder::Detail::onComment( uint8_t byte, DataBuffer & buffer )
     {
         switch ( byte )
         {
@@ -1722,7 +1781,8 @@ namespace cpp::bit
         }
     }
 
-    void Decoder::onError( uint8_t byte, DataBuffer & buffer )
+
+    void Decoder::Detail::onError( uint8_t byte, DataBuffer & buffer )
     {
         switch ( byte )
         {
@@ -1734,35 +1794,46 @@ namespace cpp::bit
             break;
         }
     }
+
+
+	Decoder::Decoder( )
+		: m_detail( std::make_shared<Detail>( ) ) 
+	{
+	}
+
+	Decoder::Result Decoder::decode( DataBuffer & buffer )
+	{
+		return m_detail->decode( buffer );
+	}
 
 }
 
 namespace cpp
 {
 
-    String toString( bit::Decoder::Error error )
+    String toString( bit::Decoder::Status error )
     {
         switch ( error )
         {
-        case bit::Decoder::Error::Null:
-            return "Null";
-        case bit::Decoder::Error::IncompleteData:
+        case bit::Decoder::Status::Ok:
+            return "Ok";
+        case bit::Decoder::Status::IncompleteData:
             return "IncompleteData";
-        case bit::Decoder::Error::ExpectedKey:
+        case bit::Decoder::Status::ExpectedKey:
             return "ExpectedKey";
-        case bit::Decoder::Error::ExpectedAssignment:
+        case bit::Decoder::Status::ExpectedAssignment:
             return "ExpectedAssignment";
-        case bit::Decoder::Error::ExpectedValue:
+        case bit::Decoder::Status::ExpectedValue:
             return "ExpectedValue";
-        case bit::Decoder::Error::ExpectedValueOrValueSpec:
+        case bit::Decoder::Status::ExpectedValueOrValueSpec:
             return "ExpectedValueOrValueSpec";
-        case bit::Decoder::Error::ExpectedValueSpec:
+        case bit::Decoder::Status::ExpectedValueSpec:
             return "ExpectedValueSpec";
-        case bit::Decoder::Error::InvalidValueSpec:
+        case bit::Decoder::Status::InvalidValueSpec:
             return "InvalidValueSpec";
-        case bit::Decoder::Error::ExpectedValueDelimiter:
+        case bit::Decoder::Status::ExpectedValueDelimiter:
             return "ExpectedValueDelimiter";
-        case bit::Decoder::Error::ExpectedTokenDelimiter:
+        case bit::Decoder::Status::ExpectedTokenDelimiter:
             return "ExpectedTokenDelimiter";
         default:
             return "Unknown";

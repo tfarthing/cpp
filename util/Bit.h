@@ -63,7 +63,6 @@ namespace cpp
 
 		Object                              decode( Memory text );
 		Object                              decode( DataBuffer & buffer );
-		Object                              decodeLine( DataBuffer & buffer );
 
 
 		//template<class key_t>
@@ -296,79 +295,31 @@ namespace cpp
 		{
 		public:
 			class Exception;
-			enum class Error
+			enum class Status
 			{
-				Null, IncompleteData, ExpectedKey, ExpectedAssignment, ExpectedValue, ExpectedValueOrValueSpec, ExpectedValueSpec, InvalidValueSpec, ExpectedValueDelimiter, ExpectedTokenDelimiter
+				Ok, IncompleteData, ExpectedKey, ExpectedAssignment, 
+				ExpectedValue, ExpectedValueOrValueSpec, ExpectedValueSpec, 
+				InvalidValueSpec, ExpectedValueDelimiter, ExpectedTokenDelimiter
 			};
 
-			Error decode( DataBuffer & buffer );
-
-			bool hasResult( ) const;
-			Object & data( );
-
-			Memory line( ) const;
-			Memory comment( );
-
-			bool hasError( ) const;
-			Error error( ) const;
-			size_t errorPos( ) const;
-
-		private:
-			bool step( DataBuffer & buffer );
-			void onBOL( uint8_t byte, DataBuffer & buffer );
-			void onPreToken( uint8_t byte, DataBuffer & buffer );
-			void onToken( uint8_t byte, DataBuffer & buffer );
-			void onPostToken( uint8_t byte, DataBuffer & buffer );
-			void onPreValue( uint8_t byte, DataBuffer & buffer );
-			void onNullValue( uint8_t byte, DataBuffer & buffer );
-			void onValueSpec( uint8_t byte, DataBuffer & buffer );
-			void onFastValue( DataBuffer & buffer );
-			void onValue( uint8_t byte, DataBuffer & buffer );
-			void onPostValue( uint8_t byte, DataBuffer & buffer );
-			void onComment( uint8_t byte, DataBuffer & buffer );
-			void onError( uint8_t byte, DataBuffer & buffer );
-
-			void reset( );
-			void completeLineBuffer( DataBuffer & buffer );
-			void maybeCopyBuffer( DataBuffer & buffer );
-			void copyBuffer( DataBuffer & buffer );
-			Memory line( DataBuffer & buffer );
-
-			size_t pos( );
-			uint8_t getch( DataBuffer & buffer );
-			Memory token( DataBuffer & buffer );
-			Memory record( DataBuffer & buffer );
-			Memory key( DataBuffer & buffer );
-			Memory valueSpec( DataBuffer & buffer );
-			Memory value( DataBuffer & buffer );
-			Memory comment( DataBuffer & buffer );
-
-		private:
-			enum class State
+			struct Result
 			{
-				BOL, PreToken, Token, PostToken, PreValue, NullValue, ValueSpec, Value, PostValue, Comment, Error, EOL
+				Object data;
+				Memory comment;
+				Memory line;
+				Status status;
+				size_t errorPos;
+
+				operator bool( ) const
+					{ return status == Status::Ok; }
 			};
 
-			State m_state = State::BOL;
-			size_t m_pos = 0;
-			size_t m_tokenBegin = Memory::npos;
-			size_t m_tokenEnd = Memory::npos;
-			size_t m_commentPos = Memory::npos;
-			size_t m_errorPos = Memory::npos;
-			Error m_error = Error::Null;
-			bool m_escaped = false;
-			String m_line;
-			String m_value;
-			size_t m_valueBegin = Memory::npos;
-			size_t m_valueEnd = Memory::npos;
-			size_t m_valueSpecBegin = Memory::npos;
-			size_t m_valueSpecEnd = Memory::npos;
-			size_t m_keyBegin = Memory::npos;
-			size_t m_keyEnd = Memory::npos;
-			size_t m_recordBegin = Memory::npos;
-			size_t m_recordEnd = Memory::npos;
-			bool m_hasResult = false;
-			Object m_result;
+			Decoder( );
+			Result decode( DataBuffer & buffer );
+
+		private:
+			struct Detail;
+			std::shared_ptr<Detail> m_detail;
 		};
 
 
@@ -376,15 +327,15 @@ namespace cpp
 			: public cpp::DecodeException
 		{
 		public:
-			Exception( const Decoder & decoder );
+			Exception( String line, Status error, size_t pos );
 
 			String line( );
-			Error error( );
+			Status error( );
 			size_t errorPos( );
 
 		private:
 			String m_line;
-			Decoder::Error m_error;
+			Decoder::Status m_error;
 			size_t m_errorPos;
 		};
 
@@ -434,7 +385,7 @@ namespace cpp
 
 	}
 
-	String toString( bit::Decoder::Error error );
+	String toString( bit::Decoder::Status status );
 
 	namespace bit
 	{
@@ -451,13 +402,13 @@ namespace cpp
         inline Memory Object::List::iterator::key( ) const
             { return object( ).key( ); }
 
-        inline Decoder::Exception::Exception( const Decoder & decoder )
-			: cpp::DecodeException( cpp::format( "bit::Decoder::Exception - %", cpp::toString( decoder.error( ) ) ) ), m_line( decoder.line( ) ), m_error( decoder.error( ) ), m_errorPos( decoder.errorPos( ) ) { }
+        inline Decoder::Exception::Exception( String line, Status error, size_t pos )
+			: cpp::DecodeException( cpp::format( "bit::Decoder::Exception - %", cpp::toString( error ) ) ), m_line( line ), m_error( error ), m_errorPos( pos ) { }
 
         inline String Decoder::Exception::line( )
             { return m_line; }
 
-        inline Decoder::Error Decoder::Exception::error( )
+        inline Decoder::Status Decoder::Exception::error( )
             { return m_error; }
 
         inline size_t Decoder::Exception::errorPos( )

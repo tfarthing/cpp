@@ -7,6 +7,7 @@
 
 namespace cpp
 {
+
     template<typename T>
     struct RegexMatch
     {

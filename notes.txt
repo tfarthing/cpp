@@ -118,12 +118,15 @@ BIT Object
 			* key A is a child of key B if key A begins with B followed by a period.
 				"color.red" is a child of "color"
 		* array item keys
-			* key A is an array item of key B if bey a begins with B followed by: a bracketed index, or a bracketed index and a period
+			* key A is an array item of key B if key A begins with B followed by a bracketed index, or a bracketed index followed by a period
 				"color[red]" is an array item of "color"
 				"color[red].hue" is an array item of "color"
 				"color[red]xxx" is not an array item of "color"
 	
 	(2) operations
+		* assigning a value
+		* assigning a null
+		* remove operation
 		* clear operation vs null operation
 			* clearing a record sets its key value, all child keys, and all array item keys to null.
 			* nulling a record clears the record and also marks that the record was nulled.
@@ -131,10 +134,11 @@ BIT Object
 		* append operation
 			* all key values in rhs are added to the lhs
 			* null records in the rhs cause lhs records to be cleared before any values are added
+			* nullity in rhs is not persisted in lhs
 
 	(3) decoding
 		* decoding rules
-			* record null
+			* nullifying a record
 					e.g. "record: null"
 				* when decoded performs the null operation on the record
 			* array item with empty bracketed index

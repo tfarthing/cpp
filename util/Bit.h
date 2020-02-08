@@ -13,10 +13,9 @@
     (1) fast parsing similar to JSON
     (2) easy readability, emphasis on single-line text data records (e.g. key='value' or key=(5)'value')
     (3) supports unencoded binary values, or escape-encoded binary values (e.g. key='^'escaped-encoded^'' or key=(9)'unencoded')
-    (4) supports decoding an undelimited stream (since bit is line delimited)
-    
+    (4) newline delimited records    
 
-    bit objects are containers for key value pairs and the interface for encoding and decoding bit text:
+    bit objects are containers for key/value pairs and the interface for encoding and decoding bit text:
 
     (5) supports hierarchical organization of keys, with nodes delimited by '.' ( e.g. parent.child='value' )
     (6) supports using associative arrays ( e.g. array[index].attr='value' )
@@ -93,7 +92,7 @@ namespace cpp
 			bool                            isSubkey( Memory key ) const;			// i.e. key begins with this_key + "."
 			Memory                          getRelativeKey( Memory subkey ) const;  // e.g. <key>.<extra> -> <extra>
 
-			Key								root( ) const;							// hidden parent of a clipped key
+			Key								unclipped( ) const;						// hidden parent of a clipped key
 
 			std::string                     path;
 			size_t                          origin;

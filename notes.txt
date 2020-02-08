@@ -1,6 +1,6 @@
 ﻿BIT data encoding (binary in text)
 
-* utf-8 text containing key-value pairs, keys are utf-8 encoded and values are stored as binary data.
+* utf-8 text containing key-value pairs, keys are utf-8 encoded and values are binary data.
 
 	(1) key-value pairs
 		* a single key value pair looks like this: 

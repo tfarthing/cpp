@@ -107,7 +107,7 @@ namespace cpp
         remove( key );
 
         if ( index > size( ) )
-            { throw cpp::OutOfBoundsException( cpp::String::format( "IndexedSet::addAt() : index='%', size='%'", index, size( ) ) ); }
+            { throw cpp::OutOfBoundsException( cpp::String::format( "IndexedSet::setAt() : index='%', size='%'", index, size( ) ) ); }
 
         m_array[index] = key;
         m_posMap[key] = (uint32_t)index;

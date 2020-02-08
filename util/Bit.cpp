@@ -297,7 +297,7 @@ namespace cpp::bit
 		{ return KeyPath{ get( ) }.getRelativeKey( subkey ); };
 
 
-	Key Key::root( ) const
+	Key Key::unclipped( ) const
 		{ return Memory{ path }.substr( 0, origin ); }
 
 
@@ -1430,9 +1430,12 @@ namespace cpp::bit
 			{
 			case ' ':
 			case '\t':
-				m_leadingTabs++;
+				if ( m_spaceBegin == Memory::npos )
+					{ m_spaceBegin = pos( ); }
 				break;
 			default:
+				if ( m_spaceBegin != Memory::npos )
+					{ m_spaceEnd = pos( ); }
 				m_state = State::PreToken;
 				return;
 			}

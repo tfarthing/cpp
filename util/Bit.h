@@ -10,16 +10,17 @@
 
     bit means "binary in text", a key/value encoding scheme suitable for property files, rolling data files, or protocols:
     
-    (1) fast parsing similar to JSON
-    (2) easy readability, emphasis on single-line text data records (e.g. key='value' or key=(5)'value')
-    (3) supports unencoded binary values, or escape-encoded binary values (e.g. key='^'escaped-encoded^'' or key=(9)'unencoded')
-    (4) newline delimited records    
+	(1) no value typing, values are always binary
+	(2) length encoded values, value decoding or iterating is not required
+    (3) easy readability, emphasis on single-line text data records (e.g. key='value' or key=(5)'value')
+    (4) supports escape-encoded binary values (e.g. key='^'escape-encoded^'' or key=(11)''unencoded'')
+    (5) newline delimited records    
 
     bit objects are containers for key/value pairs and the interface for encoding and decoding bit text:
 
     (5) supports hierarchical organization of keys, with nodes delimited by '.' ( e.g. parent.child='value' )
     (6) supports using associative arrays ( e.g. array[index].attr='value' )
-    (7) supports rolling update/removal operations.  Record removal is stateful.
+    (7) supports rolling update/removal operations.  Record nullification is stateful.
     (8) supports streaming (arbitrary record size).
         
         e.g. these four records:
@@ -64,7 +65,6 @@ namespace cpp
 		Object                              decode( DataBuffer & buffer );
 
 
-		//template<class key_t>
 		struct Key
 		{
 			static Key                      append( const Key & parent, Memory childName );
@@ -92,6 +92,7 @@ namespace cpp
 			bool                            isSubkey( Memory key ) const;			// i.e. key begins with this_key + "."
 			Memory                          getRelativeKey( Memory subkey ) const;  // e.g. <key>.<extra> -> <extra>
 
+			bool							isClipped( ) const;
 			Key								unclipped( ) const;						// hidden parent of a clipped key
 
 			std::string                     path;
@@ -100,7 +101,6 @@ namespace cpp
 
 
 
-		//template<class key_t, class value_t>
 		class Object
 		{
 		public:
@@ -108,18 +108,18 @@ namespace cpp
 			                                Object( Object && move ) noexcept;
 			                                Object( const Object & copy );
 
-			typedef Object                  Self;                   // returned reference to itself
-			typedef Object                  View;                   // returned object is a reference to another Object
-			typedef Object                  ClipView;               // returned object is a clipped reference to another Object
+			typedef Object                  Self;									// returned reference to itself
+			typedef Object                  View;									// returned object is a reference to another Object
+			typedef Object                  ClipView;								// returned object is a clipped reference to another Object
 
 			Self &							operator=( Object && move ) noexcept;
 			Self &							operator=( const Object & copy );
 
-			Self &                          reset( );               // resets the object's reference
+			Self &                          reset( );								// resets the object's reference
 
-			bool                            isEmpty( ) const;       // this key has no value and has no subkey with a value
-			bool                            notEmpty( ) const;      // this key has a value or a subkey with a value
-			bool                            hasChild( ) const;      // this key has at least one child key which is not empty
+			bool                            isEmpty( ) const;						// this key has no value and has no subkey with a value
+			bool                            notEmpty( ) const;						// this key has a value or a subkey with a value
+			bool                            hasChild( ) const;						// this key has at least one child key which is not empty
 
 			const Key &                     key( ) const;
 			Memory                          value( ) const;
@@ -134,8 +134,8 @@ namespace cpp
 			Self &                          append( const Object & object );
 			Self &                          operator+=( const Object & object );
 
-			void							clear( );				// removes all values at this key and any subkey
-			void							erase( );               // performs clear( ) and sets this key as "nulled"
+			void							clear( );								// removes all values at this key and any subkey
+			void							erase( );								// performs clear( ) and sets this key as "nulled"
 
 			View                            at( Memory childName );
 			const View                      at( Memory childName ) const;
@@ -145,28 +145,29 @@ namespace cpp
 			View                            parent( ) const;
 			View                            root( ) const;
 
-			ClipView                        clip( );                // clipped view of object
+			ClipView                        clip( );								// clipped view of object
 			const ClipView                  clip( ) const;
 
-			Object                          copy( ) const;          // deep copy at key
+			Object                          copy( ) const;							// deep copy at key
 
 			class Array;
 			Array                           asArray( ) const;
 
-			bool                            isNulled( bool recursive = false ) const;      // returns true if this object (or its parent) was erased
+			bool                            isNulled(								// returns true if this object (or its parent) was erased
+												bool recursive = false ) const;
 
 			class List;
 			const List                      listSubkeys( ) const;
 			const List                      listChildren( ) const;
 			const List                      listValues( ) const;
 
-			enum class EncodeRow
+			enum class EncodeFormat
 			{
 				Object, Child, Leaf, Value
 			};
 
-			String                          encode( EncodeRow rowEncoding = EncodeRow::Leaf ) const;
-			String                          encodeRaw( EncodeRow rowEncoding = EncodeRow::Leaf ) const;
+			String                          encode( EncodeFormat rowEncoding = EncodeFormat::Leaf ) const;
+			String                          encodeRaw( EncodeFormat rowEncoding = EncodeFormat::Leaf ) const;
 
 		private:
 			                                Object( const Object & copy, Key key );
@@ -220,15 +221,14 @@ namespace cpp
 			size_t                          size( ) const;
 
 			View                            atIndex( size_t index ) const;
-			View                            at( String itemID ) const;
+			View                            at( const Memory & itemID ) const;
 
 			View                            append( );
-			View                            append( String itemID );
 
 			View                            insertAt( size_t index );
-			View                            insertAt( size_t index, String itemID );
+			View                            insertAt( size_t index, const Memory & itemID );
 
-			void                            erase( String itemID );
+			void                            erase( const Memory & itemID );
 			void                            eraseAt( size_t index );
 
 		private:
@@ -236,8 +236,7 @@ namespace cpp
 			                                Array( Object object );
 			Object							m_object;
 		};
-
-
+		
 
 
 		class Object::List
@@ -275,7 +274,7 @@ namespace cpp
 
 			Object operator*( );
 			const Object operator*( ) const;
-			bool operator==( iterator & iter ) const;
+			//bool operator==( iterator & iter ) const;
 			bool operator!=( iterator & iter ) const;
 			iterator & operator++( );
 
@@ -290,6 +289,7 @@ namespace cpp
 		};
 
 
+
 		class Decoder
 		{
 		public:
@@ -298,23 +298,59 @@ namespace cpp
 			{
 				Ok, IncompleteData, ExpectedKey, ExpectedAssignment, 
 				ExpectedValue, ExpectedValueOrValueSpec, ExpectedValueSpec, 
-				InvalidValueSpec, ExpectedValueDelimiter, ExpectedTokenDelimiter
+				InvalidValueSpec, InvalidRecordDelimiter, ExpectedValueDelimiter, ExpectedTokenDelimiter
+			};
+
+			struct ValueRecord
+			{
+				Memory key;
+				Memory value;
+				std::string keyBuffer;
+				std::string valueBuffer;
+
+				ValueRecord( );
+				ValueRecord( ValueRecord && move );
+
+				bool isNullRecord( ) const;
+			};
+
+			enum class ParseState
+			{
+				BOL, PreToken, Token, PostToken, RecordDelimiter, PreValue, ValueSpec, Value, PostValue, Comment, Error, EOL
+			};
+
+			struct ParseSpan
+			{
+				size_t pos;
+				ParseState state;
 			};
 
 			struct Result
 			{
-				Object data;
-				Memory comment;
-				Memory line;
+				size_t row;
+				Memory data;
 				Status status;
-				size_t errorPos;
+				size_t statusPos;
+				std::vector<ParseSpan> parseSpans;
+				std::vector<ValueRecord> values;
 
-				operator bool( ) const
-					{ return status == Status::Ok; }
+				Result( );
+				Result( Result && move );
+				Result & operator=( Result && move );
+
+				operator bool( ) const;
+				Object getObject( ) const;
 			};
 
-			Decoder( );
+			Decoder( bool allowInlineDecoding = true );
+
 			Result decode( DataBuffer & buffer );
+			Result decodeLine( DataBuffer & buffer );
+			Result decodeOne( DataBuffer & buffer );
+
+			size_t lineNumber( ) const;
+			size_t column( ) const;
+			size_t bytesRead( ) const;
 
 		private:
 			struct Detail;
@@ -322,21 +358,63 @@ namespace cpp
 		};
 
 
+
 		class Decoder::Exception
 			: public cpp::DecodeException
 		{
 		public:
-			Exception( String line, Status error, size_t pos );
+			Exception( Result && result );
 
-			String line( );
-			Status error( );
-			size_t errorPos( );
+			const Result & result( ) const;
 
 		private:
-			String m_line;
-			Decoder::Status m_error;
-			size_t m_errorPos;
+			Result m_result;
 		};
+
+
+		extern const char * const NullValue;
+
+
+
+		inline Decoder::Result::Result( )
+		{ 
+		}
+
+		inline Decoder::Result::Result( Result && move )
+			: row( move.row ), data( move.data ), status( move.status ), statusPos( move.statusPos ), values( std::move( move.values ) ), parseSpans( std::move( move.parseSpans ) )
+		{
+		}
+
+
+		inline Decoder::Result & Decoder::Result::operator=( Result && move )
+		{
+			row = move.row;
+			data = move.data;
+			status = move.status;
+			statusPos = move.statusPos;
+			values = std::move( move.values );
+			parseSpans = std::move( move.parseSpans );
+			return *this;
+		}
+
+		inline Decoder::Result::operator bool( ) const
+		{
+			return status == Status::Ok;
+		}
+
+
+		inline Object Decoder::Result::getObject( ) const
+		{
+			Object object;
+			for ( const ValueRecord & record : values )
+			{
+				if ( !record.value && !record.valueBuffer.empty( ) )
+					{ object[record.key].erase( ); }
+				else
+					{ object.add( record.key, record.value ); }
+			}
+			return object;
+		}
 
 
 		inline Object::List::List( Object::List::Type type, Object object )
@@ -385,6 +463,7 @@ namespace cpp
 	}
 
 	String toString( bit::Decoder::Status status );
+	String toString( bit::Decoder::Result result );
 
 	namespace bit
 	{
@@ -401,17 +480,29 @@ namespace cpp
         inline Memory Object::List::iterator::key( ) const
             { return object( ).key( ); }
 
-        inline Decoder::Exception::Exception( String line, Status error, size_t pos )
-			: cpp::DecodeException( cpp::format( "bit::Decoder::Exception - %", cpp::toString( error ) ) ), m_line( line ), m_error( error ), m_errorPos( pos ) { }
+        inline Decoder::Exception::Exception( Result && decodeResult )
+			: cpp::DecodeException( "Error while parsing." ), m_result( std::move( decodeResult ) ) { }
 
-        inline String Decoder::Exception::line( )
-            { return m_line; }
+		inline const Decoder::Result & Decoder::Exception::result( ) const
+			{ return m_result; }
 
-        inline Decoder::Status Decoder::Exception::error( )
-            { return m_error; }
 
-        inline size_t Decoder::Exception::errorPos( )
-            { return m_errorPos; }
+
+		inline Decoder::ValueRecord::ValueRecord( )
+			{ }
+
+
+		inline Decoder::ValueRecord::ValueRecord( ValueRecord && move )
+		{
+			key = move.key;
+			keyBuffer = std::move( move.keyBuffer );
+			value = move.value;
+			valueBuffer = std::move( move.valueBuffer );
+		}
+
+
+		inline bool Decoder::ValueRecord::isNullRecord( ) const
+			{ return value.begin( ) == bit::NullValue; }
 
     }
 

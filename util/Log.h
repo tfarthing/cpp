@@ -99,7 +99,7 @@ namespace cpp
     template<typename... Params> 
     void log( const Memory & fmt, Params... parameters )
     {
-        log( String::format( fmt, parameters... ) );
+        log( std::move( String::format( fmt, parameters... ).data ) );
     }
 
 

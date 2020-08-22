@@ -36,12 +36,6 @@ namespace cpp
 
 
 
-	template<typename T, typename... Params>
-	std::string format( const Memory & fmt, const T & param, Params... parameters );
-	std::string format( const Memory & fmt );
-
-
-
 	class Memory
 	{
 	public:
@@ -114,6 +108,7 @@ namespace cpp
 		std::string							toString( ) const;
 											operator std::string( ) const;
 
+		bool								endsWith( const Memory & sequence ) const;
 		bool								isEscaped( size_t pos ) const;
 		void								poke( size_t pos, char ch );
 
@@ -133,8 +128,8 @@ namespace cpp
 		Memory								format( size_t pos, const Memory & fmt );
 
 		static int							compare( const Memory & lhs, const Memory & rhs );	// memcmp
-		static Memory						copy( Memory & dst, const Memory & src );			// memcpy
-		static Memory						move( Memory & dst, const Memory & src );			// memmove
+		static Memory						copy( Memory dst, const Memory & src );			// memcpy
+		static Memory						move( Memory dst, const Memory & src );			// memmove
 
 		template<class T, typename = std::enable_if_t<std::is_scalar<T>::value>>
 		static Memory						ofValue( const T & value );
@@ -163,22 +158,99 @@ namespace cpp
 
 
 
-	template<typename T, typename... Params>
-	std::string format( const Memory & fmt, const T & param, Params... parameters )
-	{
-		size_t fpos = fmt.find( '%' );
-		return ( fpos == Memory::npos )
-			? fmt
-			: fmt.substr( 0, fpos ) +
-			cpp::toString( param ) +
-			format( fmt.substr( fpos + 1 ), parameters... );
-	}
+	inline std::string toString( bool value )
+        { return value ? "true" : "false"; }
 
 
-	inline std::string format( const Memory & fmt )
-	{
-		return fmt;
-	}
+    inline std::string toString( int64_t value )
+    {
+        char buffer[32];
+        snprintf( buffer, sizeof( buffer ), "%lli", value );
+        return buffer;
+    }
+
+
+    inline std::string toString( uint64_t value )
+    {
+        char buffer[32];
+        snprintf( buffer, sizeof( buffer ), "%llu", value );
+        return buffer;
+    }
+
+
+    inline std::string toString( int32_t value )
+        { return toString( (int64_t)value ); }
+
+
+    inline std::string toString( uint32_t value )
+        { return toString( (uint64_t)value ); }
+
+
+    inline std::string toString( int16_t value )
+        { return toString( (int64_t)value ); }
+
+
+    inline std::string toString( uint16_t value )
+        { return toString( (uint64_t)value ); }
+
+
+    inline std::string toString( int8_t value )
+        { return toString( (int64_t)value ); }
+
+
+    inline std::string toString( uint8_t value )
+        { return toString( (uint64_t)value ); }
+
+
+    template<typename T> std::string toString( const T & value )
+        { return value.toString( ); }
+
+
+    inline std::string toString( const Memory::Array & array )
+    { 
+        std::string result; 
+        for ( auto & element : array )
+        {
+            if ( !result.empty( ) )
+                { result += ", "; }
+            result += element;
+        }
+        return result;
+    }
+
+
+	std::string toString( const String & str );
+	std::string toString( const std::vector<String> & array );
+
+
+    inline std::string toString( double value )
+    {
+        char buffer[32];
+        int len = snprintf( buffer, sizeof( buffer ), "%f", value );
+        while ( len > 0 && buffer[len - 1] == '0' )
+            { buffer[--len] = 0; }
+        return std::string{ buffer };
+    }
+
+
+    inline std::string toString( float value )
+        { return toString( (double)value ); }
+
+
+    inline std::string toString( const char * value )
+        { return std::string{ value }; }
+
+
+    inline std::string toString( const std::string & value )
+        { return value; }
+
+
+    inline std::string toString( Memory & value )
+        { return std::string{ value }; }
+
+
+    inline std::string toString( const Memory & value )
+        { return std::string{ value }; }
 
 
 
@@ -484,98 +556,6 @@ namespace cpp
 
 	inline EncodedBinary Memory::asBinary( ByteOrder byteOrder ) const
 		{ return EncodedBinary{ *this, byteOrder }; }
-
-
-
-	inline std::string toString( bool value )
-        { return value ? "true" : "false"; }
-
-
-    inline std::string toString( int64_t value )
-    {
-        char buffer[32];
-        snprintf( buffer, sizeof( buffer ), "%lli", value );
-        return buffer;
-    }
-
-
-    inline std::string toString( uint64_t value )
-    {
-        char buffer[32];
-        snprintf( buffer, sizeof( buffer ), "%llu", value );
-        return buffer;
-    }
-
-
-    inline std::string toString( int32_t value )
-        { return toString( (int64_t)value ); }
-
-
-    inline std::string toString( uint32_t value )
-        { return toString( (uint64_t)value ); }
-
-
-    inline std::string toString( int16_t value )
-        { return toString( (int64_t)value ); }
-
-
-    inline std::string toString( uint16_t value )
-        { return toString( (uint64_t)value ); }
-
-
-    inline std::string toString( int8_t value )
-        { return toString( (int64_t)value ); }
-
-
-    inline std::string toString( uint8_t value )
-        { return toString( (uint64_t)value ); }
-
-
-    template<typename T> std::string toString( const T & value )
-        { return value.toString( ); }
-
-
-    inline std::string toString( const Memory::Array & array )
-    { 
-        std::string result; 
-        for ( auto & element : array )
-        {
-            if ( !result.empty( ) )
-                { result += ", "; }
-            result += element;
-        }
-        return result;
-    }
-
-
-	std::string toString( const String & str );
-	std::string toString( const std::vector<String> & array );
-
-
-    inline std::string toString( double value )
-    {
-        char buffer[32];
-        int len = snprintf( buffer, sizeof( buffer ), "%f", value );
-        while ( len > 0 && buffer[len - 1] == '0' )
-            { buffer[--len] = 0; }
-        return std::string{ buffer };
-    }
-
-
-    inline std::string toString( float value )
-        { return toString( (double)value ); }
-
-
-    inline std::string toString( const char * value )
-        { return std::string{ value }; }
-
-
-    inline std::string toString( const std::string & value )
-        { return value; }
-
-
-    inline std::string toString( const Memory & value )
-        { return std::string{ value }; }
 
 }
 

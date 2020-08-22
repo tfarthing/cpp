@@ -125,7 +125,7 @@ namespace cpp
 
 
 	inline Http::Exception::Exception( const Memory & message, int statusCode, const Memory & url, const Memory & headers )
-		: cpp::Exception( makeMessage( message, statusCode, url ) ), m_statusCode( statusCode ), m_url( url ), m_headers( headers ) 
+		: cpp::Exception( makeMessage( message, statusCode, url ).data ), m_statusCode( statusCode ), m_url( url ), m_headers( headers ) 
 	{ 
 	}
 

@@ -89,7 +89,7 @@ namespace cpp
     {
         for ( auto & item : init )
         {
-            data.emplace_hint( data.end( ), std::map<K, V>::value_type{ item.first, item.second } );
+            data.emplace_hint( data.end( ), item.first, item.second );
         }
     }
 
@@ -99,7 +99,7 @@ namespace cpp
     {
         for ( auto & itr : move.data )
         {
-            data.emplace_hint( data.end( ), std::map<K, V>::value_type{ std::move(itr.first), std::move(itr.second) } );
+            data.emplace_hint( data.end( ), std::move(itr.first), std::move(itr.second) );
         }
     }
 
@@ -109,7 +109,7 @@ namespace cpp
     {
         for ( auto & itr : copy.data )
         {
-            data.emplace_hint( data.end( ), std::map<K, V>::value_type{ itr.first, itr.second } );
+            data.emplace_hint( data.end( ), itr.first, itr.second );
         }
     }
 
@@ -119,7 +119,7 @@ namespace cpp
     {
         for ( auto & itr : move )
         {
-            data.emplace_hint( data.end( ), std::map<K, V>::value_type{ std::move( itr.first ), std::move( itr.second ) } );
+            data.emplace_hint( data.end( ), std::move( itr.first ), itr.second );
         }
     }
 
@@ -129,7 +129,7 @@ namespace cpp
     {
         for ( auto & itr : copy )
         {
-            data.emplace_hint( data.end( ), std::map<K, V>::value_type{ itr.first, itr.second } );
+            data.emplace_hint( data.end( ), itr.first, itr.second );
         }
     }
 
@@ -145,7 +145,7 @@ namespace cpp
     template<class K, class V>
     DataMap<K, V> & DataMap<K, V>::operator=( const DataMap & copy )
     {
-        data = move.data;
+        data = copy.data;
         return *this;
     }
 
@@ -157,7 +157,7 @@ namespace cpp
         data.clear( );
         for ( auto & itr : move.data )
         {
-            data.emplace_hint( data.end( ), std::map<K, V>::value_type{ std::move( itr.first ), std::move( itr.second ) } );
+            data.emplace_hint( data.end( ), std::move( itr.first ), itr.second );
         }
         return *this;
     }
@@ -170,7 +170,7 @@ namespace cpp
         data.clear( );
         for ( auto & itr : copy.data )
         {
-            data.emplace_hint( data.end( ), std::map<K, V>::value_type{ itr.first, itr.second } );
+            data.emplace_hint( data.end( ), itr.first, itr.second );
         }
         return *this;
     }
@@ -183,7 +183,7 @@ namespace cpp
         data.clear( );
         for ( auto & itr : move )
         {
-            data.emplace_hint( data.end( ), std::map<K, V>::value_type{ std::move( itr.first ), std::move( itr.second ) } );
+            data.emplace_hint( data.end( ), std::move( itr.first ), std::move( itr.second ) );
         }
         return *this;
     }
@@ -196,7 +196,7 @@ namespace cpp
         data.clear( );
         for ( auto & itr : copy )
         {
-            data.emplace_hint( data.end( ), std::map<K, V>::value_type{ itr.first, itr.second } );
+            data.emplace_hint( data.end( ), itr.first, itr.second );
         }
         return *this;
     }

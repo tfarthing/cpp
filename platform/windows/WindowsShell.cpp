@@ -64,7 +64,7 @@ namespace cpp
                 if ( SUCCEEDED( hres ) )
                 {
                     // Save the link by calling IPersistFile::Save.
-                    hres = ppf->Save( shortcutPath.toWindows( ), TRUE );
+                    hres = ppf->Save( shortcutPath.toWindows( ).data( ), TRUE );
                     ppf->Release( );
                 }
                 psl->Release( );

@@ -32,7 +32,7 @@ namespace cpp
         static DataBuffer writeTo( Memory data );
         static DataBuffer readFrom( Memory data );
 
-        DataBuffer( Memory data, bool isReadable = true );
+        DataBuffer( Memory data = Memory::Empty, bool isReadable = true );
 
         size_t size( ) const;
         void clear( );

@@ -35,7 +35,7 @@ namespace cpp
 		Share share )
 	{
 		fileHandle = CreateFile(
-			filepath.toWindows( ),
+			filepath.toWindows( ).data( ),
 			( access != Access::Read ) ? GENERIC_WRITE | GENERIC_READ : GENERIC_READ,
 			( share == Share::Write ) ? FILE_SHARE_READ | FILE_SHARE_WRITE : FILE_SHARE_READ,
 			NULL,

@@ -1,4 +1,68 @@
-﻿BIT data encoding (binary in text)
+﻿Binary-In-Text (BIT)
+	* key value pairs
+				> key1 = 'value1'
+				> key2 = 'value2'
+	
+	* comments:
+		* comments are indicated by double slash, last to the end-of-line
+				> // comment
+
+	* values:
+		* values must be quote delimited, except when assigning null
+				> key = 'value'
+				> key = null
+		* values can be byte-length encoded, avoiding the need to parse or decode them
+				> key = (5)'value'
+		* values with unspecified length use "caret-encoded" binary
+				> key = 'value with ^'quote^', or newline ^n, or zero-byte ^0, or a caret ^^, or a hex value ^x07'
+		* values have no type interpretation, they are uninterpretted binary
+
+	* keys:
+		* keys should be utf-8, but can be non-utf8 string of byte values >= 0x32
+		* keys cannot contain unbracketed space (0x32), equal sign (=), colon (:), or newline (0x10) because these are used as key delimiters
+				> my key = 'value'						// bad
+				> my-key = 'value'						// good
+				> john doe@bon.com:554 = 'hello'		// bad
+		* keys may contain bracketed space, equal sign, or colon.  Bracketed portions of keys are delimited by close bracket (]) or newline.
+				> key[my index=something] = 'value'		// good
+				> key[john doe@bon.com:554] = 'value'	// good
+		* keys may be removed by assigning it to null (unquoted)
+				> key = null
+
+	* records: 
+		* a single text line is considered a record.
+		* newline characters indicate an end-of-record unless the newline occurs in a byte-length encoded value.
+				> value = (9)'begin\nend'\n				// good
+				> value = 'begin\nend\n'				// bad
+		* records can encode multiple key/value pairs per line
+				> key1='value1' key2='value2'
+		* records can use a key prefix which is formed from the combination of a root key and record key
+			* root key is indicated by a double colon
+				> root::key='value'						// i.e. root.key='value'
+			* record key is indciated by a single colon
+				> record:key='value'					// i.e. record.key='value'
+			* root key and record key can be used together
+				> root::record:key1='a' key2='b'		// i.e. root.record.key1='a' root.record.key2='b'
+		* the key prefix is only valid for a single record (line) unless the following line is indented from the previous using a tab character:
+				> record:
+				>	subrecord:
+				>		key1='value'					// record.subrecord.key1
+				>		key2='value'					// record.subrecord.key2
+				>	key3='value'						// record.key3
+		* blank lines or lines containing comments will not clear the key prefix
+		* key hierarchies can be removed by nullifying a record
+				> record: null
+
+	* operations:
+		* set key (assignment)
+				> parent.record.key = 'value'			// set value for key
+		* remove key
+				> parent.record.key = null				// remove key
+		* remove record
+				> parent.record: null					// remove all keys with prefix "parent.record."
+
+
+BIT data encoding (binary in text)
 
 * utf-8 text containing key-value pairs, keys are utf-8 encoded and values are binary data.
 

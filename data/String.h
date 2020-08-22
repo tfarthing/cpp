@@ -19,6 +19,12 @@
 namespace cpp
 {
 
+	template<typename T, typename... Params>
+	std::string format( const Memory & fmt, const T & param, Params... parameters );
+	std::string format( const Memory & fmt );
+
+
+
     struct String
 	{
 											String( );
@@ -36,8 +42,11 @@ namespace cpp
 		typedef std::vector<String>			Array;
 
 		bool								operator<( const String & str ) const;
+											/*
+											operator std::string && ( );
 											operator std::string & ( );
 											operator const std::string & ( ) const;
+											*/
 
 		String &							assign( char ch );
 		String &							assign( const Memory & memory );
@@ -178,6 +187,10 @@ namespace cpp
 	inline bool String::operator<( const String & str ) const
 		{ return data < str.data; }
 
+	/*
+	inline String::operator std::string && ( )
+		{ return std::move( data ); }
+
 
 	inline String::operator std::string &( )
 		{ return data; }
@@ -185,7 +198,7 @@ namespace cpp
 
 	inline String::operator const std::string &( ) const
 		{ return data; }
-
+	*/
 
 	inline String & String::assign( char ch )
 		{ data.assign( 1, ch ); return *this; }
@@ -443,6 +456,23 @@ namespace cpp
 	String String::format( const Memory & fmt, const T & param, Params... parameters )
 		{ return cpp::format( fmt, param, parameters... ); }
 
+
+
+	template<typename T, typename... Params>
+	std::string format( const Memory & fmt, const T & param, Params... parameters )
+	{
+		size_t fpos = fmt.find( '%' );
+		return ( fpos == Memory::npos )
+			? fmt
+			: fmt.substr( 0, fpos ) + cpp::toString( param ) + format( fmt.substr( fpos + 1 ), parameters... );
+	}
+
+
+	inline std::string format( const Memory & fmt )
+	{
+		return fmt;
+	}
+
 }
 
 
@@ -516,16 +546,20 @@ inline bool operator>=( const cpp::Memory & lhs, const cpp::String & rhs )
     { return cpp::Memory::compare( lhs, rhs ) >= 0; }
 
 
-inline cpp::String operator+( const cpp::String & lhs, const char * rhs )
-    { return cpp::String{ lhs }.append( rhs ); }
-inline cpp::String operator+( const char * lhs, const cpp::String & rhs )
-    { return cpp::String{ lhs }.append( rhs ); }
-inline cpp::String operator+( const cpp::String & lhs, const cpp::Memory & rhs )
-    { return cpp::String{ lhs }.append( rhs.begin(), rhs.end() ); }
-inline cpp::String operator+( const cpp::Memory & lhs, const cpp::String & rhs )
-    { return cpp::String{ lhs }.append( rhs ); }
 inline cpp::String operator+( const cpp::String & lhs, const cpp::String & rhs )
     { return cpp::String{ lhs }.append( rhs ); }
 inline cpp::String operator+( const cpp::String & lhs, char ch )
     { return cpp::String{ lhs }.append( 1, ch ); }
+inline cpp::String operator+( const cpp::String & lhs, const char * rhs )
+    { return cpp::String{ lhs }.append( rhs ); }
+inline cpp::String operator+( const cpp::String & lhs, const cpp::Memory & rhs )
+    { return cpp::String{ lhs }.append( rhs.begin(), rhs.end() ); }
+inline cpp::String operator+( const cpp::String & lhs, const std::string & rhs )
+    { return cpp::String{ lhs }.append( rhs ); }
+inline cpp::String operator+( const char * lhs, const cpp::String & rhs )
+    { return cpp::String{ lhs }.append( rhs ); }
+inline cpp::String operator+( const cpp::Memory & lhs, const cpp::String & rhs )
+    { return cpp::String{ lhs }.append( rhs ); }
+inline cpp::String operator+( const std::string & lhs, const cpp::String & rhs )
+    { return cpp::String{ lhs }.append( rhs ); }
 

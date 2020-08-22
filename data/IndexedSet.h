@@ -153,7 +153,7 @@ namespace cpp
     T IndexedSet<T>::getAt( size_t index ) const
     {
         if ( index >= m_array.size( ) )
-            { throw cpp::OutOfBoundsException{ cpp::String::format( "IndexedSet::getAt() : index(%) is out-of-bounds, size(%)", index, m_array.size( ) ) }; }
+            { throw cpp::OutOfBoundsException{ cpp::String::format( "IndexedSet::getAt() : index(%) is out-of-bounds, size(%)", index, m_array.size( ) ).data }; }
         return m_array.at( index );
     }
 

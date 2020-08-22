@@ -909,7 +909,7 @@ TEST_CASE( "Http" )
                 auto timeout = Duration::ofMillis( millis );
 
                 Http::Client http;
-                auto request = http.get( "http://thotrot.com/", "", timeout );
+                auto request = http.get( "http://grimethos.com/", "", timeout );
                 auto result = request.readAll( );
                 http.disconnectAll( );
 

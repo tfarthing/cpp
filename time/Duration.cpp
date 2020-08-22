@@ -57,7 +57,7 @@ namespace cpp
 
 		result.trim( "0" );
 
-		return result;
+		return std::move( result.data );
 	}
 
 }

@@ -76,7 +76,7 @@ namespace cpp
 
         std::filesystem::path               to_path( ) const;
         std::string                         toString( bool nativeSeperator = false ) const;
-		const wchar_t *						toWindows( std::wstring & buffer = std::wstring{} ) const;
+		std::wstring						toWindows( ) const;
 
         String                              path;
 	};

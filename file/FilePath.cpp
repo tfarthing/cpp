@@ -211,7 +211,7 @@ namespace cpp
 		size_t pos = path.findLastOf( "/" );
 		return ( pos != std::string::npos )
 			? Memory{ path }.substr( pos + 1 )
-			: path;
+			: Memory{ path };
 	}
 
 	//  FilePath{ "c:/dir/file.ext1.ext2" }.name() == "file"
@@ -257,10 +257,9 @@ namespace cpp
 	}
 
 
-	const wchar_t * FilePath::toWindows( std::wstring & buffer ) const
+	std::wstring FilePath::toWindows( ) const
 	{
-		buffer = toUtf16( toString( true ) );
-		return buffer.c_str( );
+		return toUtf16( toString( true ) );
 	}
 
 }

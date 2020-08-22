@@ -25,7 +25,7 @@ namespace cpp
 		String result = String::printf( format.data.data(), value );
         result.trimBack( "0" );
         result.trimBack( "." );
-		return result;
+		return std::move(result.data);
 	}
 
 }

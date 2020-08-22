@@ -205,7 +205,7 @@ namespace cpp
     template<class T>
     DataArray<T> & DataArray<T>::operator=( const DataArray<T> & copy )
     {
-        data = move.data;
+        data = copy.data;
         return *this;
     }
 

@@ -457,7 +457,7 @@ namespace cpp
             char dst[4];
             result += Utf8::encode( ch, Memory{ dst, dst + 4 } );
         }
-        return result;
+        return std::move(result.data);
     }
 
 

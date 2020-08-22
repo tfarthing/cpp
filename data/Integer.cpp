@@ -40,7 +40,7 @@ namespace cpp
 			{ fmt += std::to_string( width ); }
 		fmt += upper ? "llX" : "llx";
 
-		return String::printf( fmt.begin( ), value );
+		return std::move( String::printf( fmt.begin( ), value ).data );
 	}
 
 
@@ -55,7 +55,7 @@ namespace cpp
 			{ fmt += std::to_string( width ); }
 		fmt += "lli";
 
-		return String::printf( fmt.begin( ), value );
+		return std::move( String::printf( fmt.begin( ), value ).data );
 	}
 
 
@@ -70,7 +70,7 @@ namespace cpp
 			{ fmt += std::to_string( width ); }
 		fmt += "llu";
 
-		return String::printf( fmt.begin( ), value );
+		return std::move( String::printf( fmt.begin( ), value ).data );
 	}
 }
 

@@ -359,6 +359,13 @@ namespace cpp
         { return Float::fromBits( byteswap( Float::toBits( value ) ) ); }
 
 
+	bool Memory::endsWith( const Memory & sequence ) const
+	{
+		if ( sequence.length() > length() )
+			{ return false; }
+		return substr( length( ) - sequence.length( ) ) == sequence;
+	}
+
     bool Memory::isEscaped( size_t pos ) const
     {
         bool escapeFlag = false;
@@ -368,7 +375,7 @@ namespace cpp
     }
 
 
-    Memory Memory::copy( Memory & dst, const Memory & src )
+    Memory Memory::copy( Memory dst, const Memory & src )
     {
 		assert( dst.length( ) >= src.length( ) );
         memcpy( (char *)dst.begin(), src.begin(), src.length() );
@@ -376,7 +383,7 @@ namespace cpp
     }
 
 
-	Memory Memory::move( Memory & dst, const Memory & src )
+	Memory Memory::move( Memory dst, const Memory & src )
 	{
 		assert( dst.length( ) >= src.length( ) );
 		memmove( (char *)dst.begin( ), src.begin( ), src.length( ) );
@@ -587,7 +594,7 @@ namespace cpp
 
 	std::string toString( const String & str )
 	{
-		return str;
+		return str.data;
 	}
 
 
@@ -598,7 +605,7 @@ namespace cpp
         {
             if ( !result.empty() )
                 { result += ", "; }
-            result += element;
+            result += element.data;
         }
         return result;
     }
@@ -754,6 +761,9 @@ TEST_CASE( "Memory" )
 
         REQUIRE( cpp::format( "% %", 10, 100.001 ) == "10 100.001" );
         REQUIRE( cpp::format( "% % %", 10, 100.001, "some other extra long text to force alloc" ) == "10 100.001 some other extra long text to force alloc" );
+
+        REQUIRE( cpp::format( "% %", Memory{ "10" }, std::string{ "100.001" } ) == "10 100.001" );
+
     }
 
     SECTION( "encoding" )

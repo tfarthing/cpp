@@ -19,7 +19,7 @@ namespace cpp
         : public FileBase
     {
     public:
-        static File				            read(
+        static File				            readFrom(
                                                 const FilePath & filepath,
                                                 Share share = Share::All );
         static File				            create(

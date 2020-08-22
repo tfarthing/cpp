@@ -83,7 +83,7 @@ namespace cpp
             Files::createDirectories( filepath.parent( ) );
         }
 
-        HANDLE fileHandle = CreateFile( filepath.toWindows( ), accessMode, shareMode, 0, creationMode, FILE_ATTRIBUTE_NORMAL, 0 );
+        HANDLE fileHandle = CreateFile( filepath.toWindows( ).data( ), accessMode, shareMode, 0, creationMode, FILE_ATTRIBUTE_NORMAL, 0 );
         if ( fileHandle == INVALID_HANDLE_VALUE )
         {
             DWORD err = GetLastError( );
@@ -174,8 +174,7 @@ namespace cpp
             bytes = (DWORD)buffer.length( );
             if ( !ReadFile( m_handle, buffer.data( ), bytes, &bytes, NULL ) )
             {
-                DWORD error = GetLastError( );
-                m_error = std::make_error_code( std::errc::io_error );
+                m_error = std::error_code{ ::GetLastError( ), std::system_category( ) };
                 errorCode = m_error;
             }
 			if ( bytes == 0 )
@@ -253,7 +252,7 @@ namespace cpp
 
 
 
-    File File::read( const FilePath & filepath, Share share )
+    File File::readFrom( const FilePath & filepath, Share share )
     {
         return File{ filepath, Access::Read, share };
     }
@@ -391,7 +390,7 @@ TEST_CASE( "File" )
 
     REQUIRE( cpp::Files::exists( filename ) );
 
-	file = cpp::File::read( filename );
+	file = cpp::File::readFrom( filename );
 	CHECK( file.input( ).readAll( ) == "Hello World!\n" );
 
     cpp::Files::remove( filename );
